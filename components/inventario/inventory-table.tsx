@@ -1,0 +1,245 @@
+'use client';
+
+import { useState } from 'react';
+import Image from 'next/image';
+import { Search, Filter, Plus, Edit, Eye, Trash2 } from 'lucide-react';
+import { Card, Button, Badge } from '@/components/ui';
+import { ProductDetailModal } from './product-detail-modal';
+import { Producto } from '@/types';
+import { formatCurrency } from '@/lib/utils';
+
+interface InventoryTableProps {
+  productos: Producto[];
+  onProductUpdate?: (producto: Producto) => void;
+}
+
+export function InventoryTable({ productos, onProductUpdate }: InventoryTableProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const itemsPerPage = 10;
+
+  const categories = ['Todas', ...Array.from(new Set(productos.map(p => p.categoria)))];
+
+  const filteredProducts = productos.filter(producto => {
+    const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         producto.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === '' || selectedCategory === 'Todas' || producto.categoria === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+  const getStockStatus = (stock: number) => {
+    if (stock === 0) return { variant: 'danger' as const, label: 'Agotado' };
+    if (stock <= 10) return { variant: 'warning' as const, label: 'Stock Bajo' };
+    return { variant: 'success' as const, label: 'En Stock' };
+  };
+
+  const handleViewProduct = (producto: Producto) => {
+    setSelectedProduct(producto);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleEditProduct = (producto: Producto) => {
+    setSelectedProduct(producto);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleProductUpdate = (updatedProduct: Producto) => {
+    if (onProductUpdate) {
+      onProductUpdate(updatedProduct);
+    }
+    setIsDetailModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleCloseModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-4 flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="relative">
+            <select
+              className="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              {categories.map(category => (
+                <option key={category} value={category === 'Todas' ? '' : category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <Filter className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
+
+        <Button className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Nuevo Producto
+        </Button>
+      </div>
+
+      <Card>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Producto
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  SKU
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Categoría
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Stock
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Precio
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Estado
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {currentProducts.map((producto) => {
+                const stockStatus = getStockStatus(producto.stockTotal);
+                
+                return (
+                  <tr key={producto.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                          {producto.imagen ? (
+                            <Image
+                              src={producto.imagen}
+                              alt={producto.nombre}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                              <span className="text-xs text-gray-400">IMG</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{producto.nombre}</p>
+                          <p className="text-xs text-gray-500 line-clamp-1">{producto.descripcion}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 font-mono">{producto.sku}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-900">{producto.categoria}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {producto.stockTotal}
+                        </span>
+                        <Badge variant={stockStatus.variant} className="text-xs">
+                          {stockStatus.label}
+                        </Badge>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-gray-900">
+                        {formatCurrency(producto.precio)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge variant={producto.activo ? 'success' : 'default'}>
+                        {producto.activo ? 'Activo' : 'Inactivo'}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleViewProduct(producto)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Ver detalle"
+                        >
+                          <Eye className="w-4 h-4 text-gray-500" />
+                        </button>
+                        <button
+                          onClick={() => handleEditProduct(producto)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Editar producto"
+                        >
+                          <Edit className="w-4 h-4 text-gray-500" />
+                        </button>
+                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Eliminar producto">
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div className="text-sm text-gray-500">
+              Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredProducts.length)} de {filteredProducts.length} productos
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-gray-600">
+                Página {currentPage} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Siguiente
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
