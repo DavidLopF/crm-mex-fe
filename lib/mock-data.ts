@@ -31,11 +31,11 @@ export const topProductos: TopProducto[] = [
 ];
 
 export const pedidosRecientes: PedidoReciente[] = [
-  { id: '1', numero: 'PED-2026-0847', clienteNombre: 'María García López', total: 2450.00, estado: 'confirmado', fecha: new Date('2026-01-13T14:30:00') },
-  { id: '2', numero: 'PED-2026-0846', clienteNombre: 'Carlos Hernández', total: 1875.50, estado: 'pendiente', fecha: new Date('2026-01-13T12:15:00') },
-  { id: '3', numero: 'PED-2026-0845', clienteNombre: 'Ana Martínez Ruiz', total: 3200.00, estado: 'confirmado', fecha: new Date('2026-01-13T10:45:00') },
-  { id: '4', numero: 'PED-2026-0844', clienteNombre: 'Roberto Sánchez', total: 980.00, estado: 'borrador', fecha: new Date('2026-01-13T09:20:00') },
-  { id: '5', numero: 'PED-2026-0843', clienteNombre: 'Laura Díaz Moreno', total: 4125.00, estado: 'pendiente', fecha: new Date('2026-01-12T16:50:00') },
+  { id: '1', numero: 'PED-2026-0847', clienteNombre: 'María García López', total: 2450.00, estado: 'enviado', fecha: new Date('2026-01-13T14:30:00') },
+  { id: '2', numero: 'PED-2026-0846', clienteNombre: 'Carlos Hernández', total: 1875.50, estado: 'en_curso', fecha: new Date('2026-01-13T12:15:00') },
+  { id: '3', numero: 'PED-2026-0845', clienteNombre: 'Ana Martínez Ruiz', total: 3200.00, estado: 'enviado', fecha: new Date('2026-01-13T10:45:00') },
+  { id: '4', numero: 'PED-2026-0844', clienteNombre: 'Roberto Sánchez', total: 980.00, estado: 'cotizado', fecha: new Date('2026-01-13T09:20:00') },
+  { id: '5', numero: 'PED-2026-0843', clienteNombre: 'Laura Díaz Moreno', total: 4125.00, estado: 'transmitido', fecha: new Date('2026-01-12T16:50:00') },
   { id: '6', numero: 'PED-2026-0842', clienteNombre: 'Fernando Torres', total: 1560.00, estado: 'cancelado', fecha: new Date('2026-01-12T14:30:00') },
 ];
 
@@ -691,14 +691,14 @@ export const pedidosKanban: Pedido[] = [
     updatedAt: new Date('2026-01-12T16:00:00'),
   },
 
-  // Pagado
+  // Enviado
   {
     id: 'ped-008',
     numero: 'PED-2026-0088',
     clienteId: '2',
     clienteNombre: 'Carlos Hernández',
     clienteEmail: 'carlos.hdz@email.com',
-    estado: 'pagado',
+    estado: 'enviado',
     lineas: [
       {
         id: 'linea-009',
@@ -736,7 +736,7 @@ export const pedidosKanban: Pedido[] = [
     clienteId: '3',
     clienteNombre: 'Ana Martínez Ruiz',
     clienteEmail: 'ana.martinez@email.com',
-    estado: 'pagado',
+    estado: 'enviado',
     lineas: [
       {
         id: 'linea-011',

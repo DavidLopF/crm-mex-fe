@@ -14,7 +14,6 @@ const columnas: Array<{ estado: EstadoPedido; titulo: string; color: string }> =
   { estado: 'transmitido', titulo: 'Transmitido', color: 'purple' },
   { estado: 'en_curso', titulo: 'En Curso', color: 'orange' },
   { estado: 'enviado', titulo: 'Enviado', color: 'cyan' },
-  { estado: 'pagado', titulo: 'Pagado', color: 'green' },
   { estado: 'cancelado', titulo: 'Cancelado', color: 'red' },
 ];
 

@@ -63,10 +63,10 @@ export default function PedidosPage() {
     total: pedidos.length,
     cotizados: pedidos.filter(p => p.estado === 'cotizado').length,
     enProceso: pedidos.filter(p => ['transmitido', 'en_curso', 'enviado'].includes(p.estado)).length,
-    completados: pedidos.filter(p => p.estado === 'pagado').length,
+    enviados: pedidos.filter(p => p.estado === 'enviado').length,
     cancelados: pedidos.filter(p => p.estado === 'cancelado').length,
     totalVentas: pedidos
-      .filter(p => p.estado === 'pagado')
+      .filter(p => p.estado === 'enviado')
       .reduce((sum, p) => sum + p.total, 0),
   };
 
@@ -87,7 +87,7 @@ export default function PedidosPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <Card className="p-4">
             <p className="text-xs text-gray-500 mb-1">Total</p>
             <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
@@ -101,18 +101,12 @@ export default function PedidosPage() {
             <p className="text-2xl font-bold text-orange-600">{stats.enProceso}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-xs text-green-600 mb-1">Pagados</p>
-            <p className="text-2xl font-bold text-green-600">{stats.completados}</p>
+            <p className="text-xs text-cyan-600 mb-1">Enviados</p>
+            <p className="text-2xl font-bold text-cyan-600">{stats.enviados}</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs text-red-600 mb-1">Cancelados</p>
             <p className="text-2xl font-bold text-red-600">{stats.cancelados}</p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-xs text-gray-500 mb-1">Ventas Totales</p>
-            <p className="text-lg font-bold text-gray-900">
-              ${(stats.totalVentas / 1000).toFixed(1)}K
-            </p>
           </Card>
         </div>
 
