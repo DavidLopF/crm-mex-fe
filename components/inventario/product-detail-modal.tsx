@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus } from 'lucide-react';
-import { Modal, Button, Badge, Card, CardContent } from '@/components/ui';
-import { Producto } from '@/types';
+import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp } from 'lucide-react';
+import { Modal, Button, Badge, Card, CardContent, Select } from '@/components/ui';
+import { Producto, Cliente, HistorialPrecioCliente } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 
 interface ProductDetailModalProps {
@@ -12,11 +12,21 @@ interface ProductDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit?: (producto: Producto) => void;
+  clientes: Cliente[];
+  historialPrecios: HistorialPrecioCliente[];
 }
 
-export function ProductDetailModal({ producto, isOpen, onClose, onEdit }: ProductDetailModalProps) {
+export function ProductDetailModal({ 
+  producto, 
+  isOpen, 
+  onClose, 
+  onEdit,
+  clientes,
+  historialPrecios 
+}: ProductDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Producto | null>(null);
+  const [selectedClienteId, setSelectedClienteId] = useState<string>('');
 
   if (!producto) return null;
 
@@ -53,6 +63,15 @@ export function ProductDetailModal({ producto, isOpen, onClose, onEdit }: Produc
     });
   };
 
+  // Filtrar historial de precios por producto y cliente seleccionado
+  const historialFiltrado = selectedClienteId
+    ? historialPrecios.filter(
+        h => h.productoId === producto.id && h.clienteId === selectedClienteId
+      ).sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+    : [];
+
+  const clienteSeleccionado = clientes.find(c => c.id === selectedClienteId);
+
   const currentProduct = isEditing && editedProduct ? editedProduct : producto;
 
   return (
@@ -60,155 +79,189 @@ export function ProductDetailModal({ producto, isOpen, onClose, onEdit }: Produc
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? 'Editar Producto' : 'Detalle del Producto'}
-      size="xl"
+      size="2xl"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Imagen del producto */}
-        <div className="lg:col-span-1">
-          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4">
-            {currentProduct.imagen ? (
-              <Image
-                src={currentProduct.imagen}
-                alt={currentProduct.nombre}
-                width={400}
-                height={400}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <Package className="w-16 h-16 text-gray-400" />
+      <div className="space-y-6">
+        {/* Fila superior: Imagen + Información básica */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Imagen del producto */}
+          <div className="lg:col-span-1">
+            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4">
+              {currentProduct.imagen ? (
+                <Image
+                  src={currentProduct.imagen}
+                  alt={currentProduct.nombre}
+                  width={400}
+                  height={400}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <Package className="w-16 h-16 text-gray-400" />
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">SKU</span>
+                <span className="text-sm font-mono text-gray-900">{currentProduct.sku}</span>
               </div>
-            )}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Categoría</span>
+                <span className="text-sm text-gray-900">{currentProduct.categoria}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Estado</span>
+                <Badge variant={currentProduct.activo ? 'success' : 'default'}>
+                  {currentProduct.activo ? 'Activo' : 'Inactivo'}
+                </Badge>
+              </div>
+            </div>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">SKU</span>
-              <span className="text-sm font-mono text-gray-900">{currentProduct.sku}</span>
+
+          {/* Información básica del producto */}
+          <div className="lg:col-span-2 space-y-6">
+            <div>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedProduct?.nombre || ''}
+                  onChange={(e) => setEditedProduct(prev => prev ? { ...prev, nombre: e.target.value } : null)}
+                  className="text-2xl font-bold text-gray-900 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <h2 className="text-2xl font-bold text-gray-900">{currentProduct.nombre}</h2>
+              )}
+              
+              {isEditing ? (
+                <textarea
+                  value={editedProduct?.descripcion || ''}
+                  onChange={(e) => setEditedProduct(prev => prev ? { ...prev, descripcion: e.target.value } : null)}
+                  rows={3}
+                  className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <p className="mt-2 text-gray-600">{currentProduct.descripcion}</p>
+              )}
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Categoría</span>
-              <span className="text-sm text-gray-900">{currentProduct.categoria}</span>
+
+            {/* Precios */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-green-600" />
+                    <span className="text-sm font-medium text-gray-700">Precio de Venta</span>
+                  </div>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={editedProduct?.precio || 0}
+                      onChange={(e) => setEditedProduct(prev => prev ? { ...prev, precio: parseFloat(e.target.value) || 0 } : null)}
+                      className="text-2xl font-bold text-green-600 w-full border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      step="0.01"
+                    />
+                  ) : (
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(currentProduct.precio)}</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Tag className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">Costo</span>
+                  </div>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={editedProduct?.costo || 0}
+                      onChange={(e) => setEditedProduct(prev => prev ? { ...prev, costo: parseFloat(e.target.value) || 0 } : null)}
+                      className="text-2xl font-bold text-blue-600 w-full border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      step="0.01"
+                    />
+                  ) : (
+                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(currentProduct.costo)}</p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Estado</span>
-              <Badge variant={currentProduct.activo ? 'success' : 'default'}>
-                {currentProduct.activo ? 'Activo' : 'Inactivo'}
-              </Badge>
-            </div>
+
+            {/* Stock total y fechas */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-5 h-5 text-purple-600" />
+                    <span className="font-medium text-gray-700">Stock Total</span>
+                  </div>
+                  <span className="text-2xl font-bold text-purple-600">
+                    {currentProduct.stockTotal} unidades
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" />
+                    <span>Creado: {formatDateTime(currentProduct.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" />
+                    <span>Actualizado: {formatDateTime(currentProduct.updatedAt)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {/* Información del producto */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Fila inferior: Variaciones y Stock | Historial de Precios */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Columna izquierda: Variaciones */}
           <div>
-            {isEditing ? (
-              <input
-                type="text"
-                value={editedProduct?.nombre || ''}
-                onChange={(e) => setEditedProduct(prev => prev ? { ...prev, nombre: e.target.value } : null)}
-                className="text-2xl font-bold text-gray-900 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            ) : (
-              <h2 className="text-2xl font-bold text-gray-900">{currentProduct.nombre}</h2>
-            )}
-            
-            {isEditing ? (
-              <textarea
-                value={editedProduct?.descripcion || ''}
-                onChange={(e) => setEditedProduct(prev => prev ? { ...prev, descripcion: e.target.value } : null)}
-                rows={3}
-                className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            ) : (
-              <p className="mt-2 text-gray-600">{currentProduct.descripcion}</p>
-            )}
-          </div>
-
-          {/* Precios */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-medium text-gray-700">Precio de Venta</span>
-                </div>
-                {isEditing ? (
-                  <input
-                    type="number"
-                    value={editedProduct?.precio || 0}
-                    onChange={(e) => setEditedProduct(prev => prev ? { ...prev, precio: parseFloat(e.target.value) || 0 } : null)}
-                    className="text-2xl font-bold text-green-600 w-full border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    step="0.01"
-                  />
-                ) : (
-                  <p className="text-2xl font-bold text-green-600">{formatCurrency(currentProduct.precio)}</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Tag className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-700">Costo</span>
-                </div>
-                {isEditing ? (
-                  <input
-                    type="number"
-                    value={editedProduct?.costo || 0}
-                    onChange={(e) => setEditedProduct(prev => prev ? { ...prev, costo: parseFloat(e.target.value) || 0 } : null)}
-                    className="text-2xl font-bold text-blue-600 w-full border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    step="0.01"
-                  />
-                ) : (
-                  <p className="text-2xl font-bold text-blue-600">{formatCurrency(currentProduct.costo)}</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Variaciones */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Variaciones y Stock</h3>
-            <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4 text-gray-600" />
+              Variaciones y Stock
+            </h3>
+            <div className="space-y-2">
               {currentProduct.variaciones.map((variacion) => (
                 <Card key={variacion.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="font-medium text-gray-900">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="font-medium text-gray-900 text-sm">
                           {variacion.nombre}: {variacion.valor}
                         </span>
                       </div>
                       
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         {isEditing ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleVariationStockChange(variacion.id, variacion.stock - 1)}
                               className="p-1 hover:bg-gray-100 rounded"
                             >
-                              <Minus className="w-4 h-4 text-gray-600" />
+                              <Minus className="w-3 h-3 text-gray-600" />
                             </button>
                             <input
                               type="number"
                               value={variacion.stock}
                               onChange={(e) => handleVariationStockChange(variacion.id, parseInt(e.target.value) || 0)}
-                              className="w-16 text-center border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-14 text-center border border-gray-200 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                               min="0"
                             />
                             <button
                               onClick={() => handleVariationStockChange(variacion.id, variacion.stock + 1)}
                               className="p-1 hover:bg-gray-100 rounded"
                             >
-                              <Plus className="w-4 h-4 text-gray-600" />
+                              <Plus className="w-3 h-3 text-gray-600" />
                             </button>
                           </div>
                         ) : (
-                          <span className="text-lg font-semibold text-gray-900">
-                            {variacion.stock} unidades
+                          <span className="text-sm font-semibold text-gray-900">
+                            {variacion.stock} uds
                           </span>
                         )}
                         
@@ -219,7 +272,7 @@ export function ProductDetailModal({ producto, isOpen, onClose, onEdit }: Produc
                           }
                         >
                           {variacion.stock === 0 ? 'Agotado' : 
-                           variacion.stock <= 5 ? 'Stock Bajo' : 'Disponible'}
+                           variacion.stock <= 5 ? 'Bajo' : 'Disponible'}
                         </Badge>
                       </div>
                     </div>
@@ -229,51 +282,127 @@ export function ProductDetailModal({ producto, isOpen, onClose, onEdit }: Produc
             </div>
           </div>
 
-          {/* Stock total */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-purple-600" />
-                  <span className="font-medium text-gray-700">Stock Total</span>
+          {/* Columna derecha: Historial de Precios por Cliente */}
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-gray-600" />
+              Historial de Precios
+            </h3>
+            
+            <div className="mb-3">
+              <Select
+                value={selectedClienteId}
+                onChange={(e) => setSelectedClienteId(e.target.value)}
+              >
+                <option value="">-- Seleccione un cliente --</option>
+                {clientes.map((cliente) => (
+                  <option key={cliente.id} value={cliente.id}>
+                    {cliente.nombre} {cliente.apellido}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            {selectedClienteId && clienteSeleccionado ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900 text-sm truncate">
+                      {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {clienteSeleccionado.totalPedidos} pedidos • {formatCurrency(clienteSeleccionado.totalGastado)}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-2xl font-bold text-purple-600">
-                  {currentProduct.stockTotal} unidades
-                </span>
+
+                {historialFiltrado.length > 0 ? (
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {historialFiltrado.map((item) => (
+                      <div key={item.id} className="border border-gray-200 rounded-lg p-3 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-500 mb-1">
+                              {formatDateTime(item.fecha)}
+                            </p>
+                            <p className="text-xs font-mono text-blue-600 font-medium">
+                              {item.pedidoNumero}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-gray-900">
+                              {formatCurrency(item.precio)}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              × {item.cantidad} uds
+                            </p>
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-600">Total</span>
+                          <span className="text-sm font-bold text-gray-900">
+                            {formatCurrency(item.precio * item.cantidad)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Totales */}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-3 sticky bottom-0">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium text-gray-700">Total Unidades:</span>
+                          <span className="font-bold text-gray-900">
+                            {historialFiltrado.reduce((sum, item) => sum + item.cantidad, 0)} uds
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between pt-1.5 border-t border-blue-200">
+                          <span className="font-semibold text-gray-800">Total Vendido:</span>
+                          <span className="text-lg font-bold text-blue-600">
+                            {formatCurrency(
+                              historialFiltrado.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">Sin historial para este cliente</p>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Fechas */}
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>Creado: {formatDateTime(currentProduct.createdAt)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>Actualizado: {formatDateTime(currentProduct.updatedAt)}</span>
-            </div>
-          </div>
-
-          {/* Botones de acción */}
-          <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-            {isEditing ? (
-              <>
-                <Button onClick={handleSave}>
-                  Guardar Cambios
-                </Button>
-                <Button variant="outline" onClick={handleEditToggle}>
-                  Cancelar
-                </Button>
-              </>
             ) : (
-              <Button onClick={handleEditToggle} className="flex items-center gap-2">
-                <Edit2 className="w-4 h-4" />
-                Editar Producto
-              </Button>
+              <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <TrendingUp className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">Seleccione un cliente para ver el historial</p>
+              </div>
             )}
           </div>
+        </div>
+
+        {/* Botones de acción */}
+        <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
+          {isEditing ? (
+            <>
+              <Button onClick={handleSave}>
+                Guardar Cambios
+              </Button>
+              <Button variant="outline" onClick={handleEditToggle}>
+                Cancelar
+              </Button>
+            </>
+          ) : (
+            <Button onClick={handleEditToggle} className="flex items-center gap-2">
+              <Edit2 className="w-4 h-4" />
+              Editar Producto
+            </Button>
+          )}
         </div>
       </div>
     </Modal>

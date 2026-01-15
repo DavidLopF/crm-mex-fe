@@ -1,7 +1,19 @@
+'use client';
+
+import { useState } from 'react';
 import { InventoryTable, InventoryStats } from '@/components/inventario';
-import { productosInventario } from '@/lib/mock-data';
+import { productosInventario, clientesRecientes, historialPreciosClientes } from '@/lib/mock-data';
+import { Producto } from '@/types';
 
 export default function InventarioPage() {
+  const [productos, setProductos] = useState<Producto[]>(productosInventario);
+
+  const handleProductUpdate = (updatedProduct: Producto) => {
+    setProductos(prev => 
+      prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+    );
+  };
+
   return (
     <main className="p-6">
       <div className="space-y-6">
@@ -12,8 +24,13 @@ export default function InventarioPage() {
           </div>
         </div>
         
-        <InventoryStats productos={productosInventario} />
-        <InventoryTable productos={productosInventario} />
+        <InventoryStats productos={productos} />
+        <InventoryTable 
+          productos={productos} 
+          onProductUpdate={handleProductUpdate}
+          clientes={clientesRecientes}
+          historialPrecios={historialPreciosClientes}
+        />
       </div>
     </main>
   );

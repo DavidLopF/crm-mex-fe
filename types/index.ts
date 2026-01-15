@@ -98,6 +98,17 @@ export interface Cliente {
   updatedAt: Date;
 }
 
+export interface HistorialPrecioCliente {
+  id: string;
+  productoId: string;
+  clienteId: string;
+  precio: number;
+  cantidad: number;
+  pedidoId: string;
+  pedidoNumero: string;
+  fecha: Date;
+}
+
 export interface DashboardStats {
   totalProductos: number;
   productosStockBajo: number;

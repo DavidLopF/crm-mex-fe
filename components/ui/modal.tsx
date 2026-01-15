@@ -1,3 +1,5 @@
+'use client';
+
 import { ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,6 +31,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
     }
 
@@ -41,35 +44,37 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        />
-        
-        <div
-          className={cn(
-            'relative w-full transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all',
-            sizeStyles[size],
-            className
-          )}
-        >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-          
-          <div className="px-6 py-4">
-            {children}
+    <>
+      <div
+        className="fixed inset-0 z-40 bg-black/20 animate-fadeIn"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
+        <div className="flex min-h-screen items-center justify-center p-4">
+          <div
+            className={cn(
+              'pointer-events-auto relative w-full overflow-hidden rounded-lg bg-white text-left shadow-xl sm:my-8',
+              'animate-slideUp',
+              sizeStyles[size],
+              className
+            )}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+              {children}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

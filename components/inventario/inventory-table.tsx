@@ -5,15 +5,22 @@ import Image from 'next/image';
 import { Search, Filter, Plus, Edit, Eye, Trash2 } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
-import { Producto } from '@/types';
+import { Producto, Cliente, HistorialPrecioCliente } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 
 interface InventoryTableProps {
   productos: Producto[];
   onProductUpdate?: (producto: Producto) => void;
+  clientes: Cliente[];
+  historialPrecios: HistorialPrecioCliente[];
 }
 
-export function InventoryTable({ productos, onProductUpdate }: InventoryTableProps) {
+export function InventoryTable({ 
+  productos, 
+  onProductUpdate,
+  clientes,
+  historialPrecios 
+}: InventoryTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -240,6 +247,15 @@ export function InventoryTable({ productos, onProductUpdate }: InventoryTablePro
           </div>
         )}
       </Card>
+
+      <ProductDetailModal
+        producto={selectedProduct}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseModal}
+        onEdit={handleProductUpdate}
+        clientes={clientes}
+        historialPrecios={historialPrecios}
+      />
     </div>
   );
 }
