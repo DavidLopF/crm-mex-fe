@@ -51,7 +51,7 @@ export interface MovimientoInventario {
   createdAt: Date;
 }
 
-export type EstadoPedido = 'borrador' | 'pendiente' | 'confirmado' | 'cancelado';
+export type EstadoPedido = 'cotizado' | 'transmitido' | 'en_curso' | 'enviado' | 'pagado' | 'cancelado';
 
 export interface PedidoLinea {
   id: string;
@@ -69,12 +69,15 @@ export interface Pedido {
   numero: string;
   clienteId: string;
   clienteNombre: string;
+  clienteEmail?: string;
+  clienteTelefono?: string;
   estado: EstadoPedido;
   lineas: PedidoLinea[];
   subtotal: number;
   impuestos: number;
   total: number;
   notas?: string;
+  transmitido?: boolean; // Flag para saber si ya fue transmitido
   usuarioId: string;
   createdAt: Date;
   updatedAt: Date;
