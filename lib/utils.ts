@@ -31,9 +31,10 @@ export function formatDateTime(date: Date): string {
 
 export function getEstadoColor(estado: EstadoPedido): string {
   const colors: Record<EstadoPedido, string> = {
-    borrador: 'bg-gray-100 text-gray-700',
-    pendiente: 'bg-amber-100 text-amber-700',
-    confirmado: 'bg-green-100 text-green-700',
+    cotizado: 'bg-blue-100 text-blue-700',
+    transmitido: 'bg-purple-100 text-purple-700',
+    en_curso: 'bg-orange-100 text-orange-700',
+    enviado: 'bg-cyan-100 text-cyan-700',
     cancelado: 'bg-red-100 text-red-700',
   };
   return colors[estado];
@@ -41,9 +42,10 @@ export function getEstadoColor(estado: EstadoPedido): string {
 
 export function getEstadoLabel(estado: EstadoPedido): string {
   const labels: Record<EstadoPedido, string> = {
-    borrador: 'Borrador',
-    pendiente: 'Pendiente',
-    confirmado: 'Confirmado',
+    cotizado: 'Cotizado',
+    transmitido: 'Transmitido',
+    en_curso: 'En Curso',
+    enviado: 'Enviado',
     cancelado: 'Cancelado',
   };
   return labels[estado];

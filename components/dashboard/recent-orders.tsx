@@ -7,16 +7,18 @@ interface RecentOrdersProps {
 }
 
 const estadoVariants: Record<EstadoPedido, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  borrador: 'default',
-  pendiente: 'warning',
-  confirmado: 'success',
+  cotizado: 'info',
+  transmitido: 'default',
+  en_curso: 'warning',
+  enviado: 'success',
   cancelado: 'danger',
 };
 
 const estadoLabels: Record<EstadoPedido, string> = {
-  borrador: 'Borrador',
-  pendiente: 'Pendiente',
-  confirmado: 'Confirmado',
+  cotizado: 'Cotizado',
+  transmitido: 'Transmitido',
+  en_curso: 'En Curso',
+  enviado: 'Enviado',
   cancelado: 'Cancelado',
 };
 
