@@ -14,6 +14,20 @@ export default function InventarioPage() {
     );
   };
 
+  const handleProductCreate = (newProduct: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const producto: Producto = {
+      ...newProduct,
+      id: `prod-${Date.now()}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setProductos(prev => [producto, ...prev]);
+  };
+
+  const handleProductDelete = (productoId: string) => {
+    setProductos(prev => prev.filter(p => p.id !== productoId));
+  };
+
   return (
     <main className="p-6">
       <div className="space-y-6">
@@ -28,6 +42,8 @@ export default function InventarioPage() {
         <InventoryTable 
           productos={productos} 
           onProductUpdate={handleProductUpdate}
+          onProductCreate={handleProductCreate}
+          onProductDelete={handleProductDelete}
           clientes={clientesRecientes}
           historialPrecios={historialPreciosClientes}
         />

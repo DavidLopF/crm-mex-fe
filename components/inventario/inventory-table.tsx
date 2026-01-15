@@ -5,12 +5,16 @@ import Image from 'next/image';
 import { Search, Filter, Plus, Edit, Eye, Trash2 } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
+import { CreateProductModal } from './create-product-modal';
+import { DeleteConfirmModal } from './delete-confirm-modal';
 import { Producto, Cliente, HistorialPrecioCliente } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 
 interface InventoryTableProps {
   productos: Producto[];
   onProductUpdate?: (producto: Producto) => void;
+  onProductCreate?: (producto: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onProductDelete?: (productoId: string) => void;
   clientes: Cliente[];
   historialPrecios: HistorialPrecioCliente[];
 }
@@ -18,6 +22,8 @@ interface InventoryTableProps {
 export function InventoryTable({ 
   productos, 
   onProductUpdate,
+  onProductCreate,
+  onProductDelete,
   clientes,
   historialPrecios 
 }: InventoryTableProps) {
@@ -26,6 +32,9 @@ export function InventoryTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Producto | null>(null);
   const itemsPerPage = 10;
 
   const categories = ['Todas', ...Array.from(new Set(productos.map(p => p.categoria)))];
@@ -70,6 +79,31 @@ export function InventoryTable({
     setSelectedProduct(null);
   };
 
+  const handleCreateProduct = (newProduct: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (onProductCreate) {
+      onProductCreate(newProduct);
+    }
+    setIsCreateModalOpen(false);
+  };
+
+  const handleDeleteClick = (producto: Producto) => {
+    setProductToDelete(producto);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (productToDelete && onProductDelete) {
+      onProductDelete(productToDelete.id);
+    }
+    setIsDeleteModalOpen(false);
+    setProductToDelete(null);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setProductToDelete(null);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -101,7 +135,7 @@ export function InventoryTable({
           </div>
         </div>
 
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4" />
           Nuevo Producto
         </Button>
@@ -206,7 +240,11 @@ export function InventoryTable({
                         >
                           <Edit className="w-4 h-4 text-gray-500" />
                         </button>
-                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Eliminar producto">
+                        <button
+                          onClick={() => handleDeleteClick(producto)}
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Eliminar producto"
+                        >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
                       </div>
@@ -255,6 +293,19 @@ export function InventoryTable({
         onEdit={handleProductUpdate}
         clientes={clientes}
         historialPrecios={historialPrecios}
+      />
+
+      <CreateProductModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleCreateProduct}
+      />
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        producto={productToDelete}
       />
     </div>
   );
