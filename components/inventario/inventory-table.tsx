@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Search, Filter, Plus, Edit, Eye, Trash2 } from 'lucide-react';
+import { Search, Filter, Plus, Edit, Eye, Trash2, Package } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
 import { CreateProductModal } from './create-product-modal';
@@ -17,6 +17,14 @@ interface InventoryTableProps {
   onProductDelete?: (productoId: string) => void;
   clientes: Cliente[];
   historialPrecios: HistorialPrecioCliente[];
+  // optional controlled props for server-driven mode
+  externalSearch?: string;
+  onSearchChange?: (value: string) => void;
+  externalPage?: number;
+  onPageChange?: (page: number) => void;
+  externalItemsPerPage?: number;
+  onItemsPerPageChange?: (limit: number) => void;
+  totalItems?: number;
 }
 
 export function InventoryTable({ 
@@ -25,11 +33,18 @@ export function InventoryTable({
   onProductCreate,
   onProductDelete,
   clientes,
-  historialPrecios 
+  historialPrecios,
+  externalSearch,
+  onSearchChange,
+  externalPage,
+  onPageChange,
+  externalItemsPerPage,
+  onItemsPerPageChange,
+  totalItems,
 }: InventoryTableProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [internalSearch, setInternalSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [internalPage, setInternalPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -37,18 +52,30 @@ export function InventoryTable({
   const [productToDelete, setProductToDelete] = useState<Producto | null>(null);
   const itemsPerPage = 10;
 
+  const isControlledSearch = typeof externalSearch === 'string' && typeof onSearchChange === 'function';
+  const searchTerm = isControlledSearch ? externalSearch! : internalSearch;
+
+  const isControlledPage = typeof externalPage === 'number' && typeof onPageChange === 'function';
+  const currentPage = isControlledPage ? externalPage! : internalPage;
+
+  const effectiveItemsPerPage = externalItemsPerPage ?? itemsPerPage;
+
   const categories = ['Todas', ...Array.from(new Set(productos.map(p => p.categoria)))];
 
   const filteredProducts = productos.filter(producto => {
-    const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = !searchTerm || producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          producto.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === '' || selectedCategory === 'Todas' || producto.categoria === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil((externalItemsPerPage ? (totalItems ?? filteredProducts.length) : filteredProducts.length) / effectiveItemsPerPage);
+  
+  // Si estamos en modo server-driven (externalItemsPerPage definido), no hacemos slice local
+  // porque el backend ya nos mandó solo los items de la página actual
+  const currentProducts = externalItemsPerPage 
+    ? filteredProducts 
+    : filteredProducts.slice((currentPage - 1) * effectiveItemsPerPage, currentPage * effectiveItemsPerPage);
 
   const getStockStatus = (stock: number) => {
     if (stock === 0) return { variant: 'danger' as const, label: 'Agotado' };
@@ -108,14 +135,20 @@ export function InventoryTable({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Buscar productos..."
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                if (isControlledSearch && onSearchChange) {
+                  onSearchChange(e.target.value);
+                } else {
+                  setInternalSearch(e.target.value);
+                }
+              }}
             />
           </div>
           
@@ -187,8 +220,8 @@ export function InventoryTable({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                              <span className="text-xs text-gray-400">IMG</span>
+                            <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                              <Package className="w-5 h-5 text-blue-400" />
                             </div>
                           )}
                         </div>
@@ -258,14 +291,41 @@ export function InventoryTable({
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-            <div className="text-sm text-gray-500">
-              Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredProducts.length)} de {filteredProducts.length} productos
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-500">
+                Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1}-{Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredProducts.length)} de {totalItems ?? filteredProducts.length} productos
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="items-per-page" className="text-sm text-gray-600">
+                  Registros por página:
+                </label>
+                <select
+                  id="items-per-page"
+                  className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={effectiveItemsPerPage}
+                  onChange={(e) => {
+                    const newLimit = parseInt(e.target.value);
+                    if (onItemsPerPageChange) {
+                      onItemsPerPageChange(newLimit);
+                    }
+                  }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => {
+                  const next = Math.max(currentPage - 1, 1);
+                  if (isControlledPage && onPageChange) onPageChange(next);
+                  else setInternalPage(next);
+                }}
                 disabled={currentPage === 1}
               >
                 Anterior
@@ -276,7 +336,11 @@ export function InventoryTable({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => {
+                  const next = Math.min(currentPage + 1, totalPages);
+                  if (isControlledPage && onPageChange) onPageChange(next);
+                  else setInternalPage(next);
+                }}
                 disabled={currentPage === totalPages}
               >
                 Siguiente

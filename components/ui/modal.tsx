@@ -72,7 +72,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
             <div className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
               {children}
             </div>
-          </div>
+          </div  >
         </div>
       </div>
     </>
