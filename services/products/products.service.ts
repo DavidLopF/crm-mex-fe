@@ -1,11 +1,15 @@
-import { get } from '@/services/http-client';
+import { get, post } from '@/services/http-client';
 import {
   ProductFiltersDto,
   PaginatedProductsDto,
   ApiProductsResponse,
   ProductStatistics,
+  ApiProductDetail,
+  CategoryDto,
+  CreateProductDto,
   mapApiProductToProducto,
 } from './products.types';
+import { Producto } from '@/types';
 
 const BASE_PATH = '/api/products';
 
@@ -48,6 +52,95 @@ export async function getStadistics(): Promise<ProductStatistics> {
     return raw;
   } catch (err) {
     console.error('Error al obtener estadísticas de productos:', err);
+    throw err;
+  }
+}
+
+/**
+ * Obtener detalle completo de un producto.
+ * GET /api/products/:id
+ * 
+ * Retorna tanto el producto mapeado como los datos raw del API
+ * para tener acceso a variantes con almacenes.
+ */
+export async function getProductById(id: string | number): Promise<{ producto: Producto; raw: ApiProductDetail }> {
+  try {
+    const raw = await get<ApiProductDetail>(`${BASE_PATH}/${id}`);
+    
+    // Mapear variantes/variants
+    const variaciones = raw.variants.map(v => ({
+      id: String(v.id),
+      nombre: v.variantName,
+      valor: v.sku, // Usamos SKU como valor por ahora
+      stock: v.stock,
+      precio: undefined, // Las variantes no tienen precio individual en este modelo
+    }));
+
+    // Mapear el producto completo
+    const producto: Producto = {
+      id: String(raw.id),
+      nombre: raw.name,
+      descripcion: raw.description ?? '',
+      sku: raw.sku,
+      precio: raw.price,
+      costo: raw.cost,
+      categoria: raw.category,
+      imagen: raw.image,
+      variaciones,
+      stockTotal: raw.totalStock,
+      activo: raw.status === 'Activo',
+      createdAt: new Date(raw.createdAt),
+      updatedAt: new Date(raw.updatedAt),
+    };
+
+    return { producto, raw };
+  } catch (err) {
+    console.error('Error al obtener detalle del producto:', err);
+    throw err;
+  }
+}
+
+/**
+ * Obtener lista de categorías de productos.
+ * GET /api/products/categories
+ * 
+ * El backend responde: { success, data: CategoryDto[], count }
+ */
+export async function getCategories(): Promise<CategoryDto[]> {
+  try {
+    const response = await get<CategoryDto[]>(`${BASE_PATH}/categories`);
+    return response;
+  } catch (err) {
+    console.error('Error al obtener categorías:', err);
+    throw err;
+  }
+}
+
+/**
+ * Crear un nuevo producto.
+ * POST /api/products
+ * 
+ * El backend espera:
+ * {
+ *   name: string,
+ *   sku: string,
+ *   categoryId: number,
+ *   defaultPrice: number,
+ *   cost?: number,
+ *   description?: string,
+ *   image?: string,
+ *   currency?: string,
+ *   variants: [{ variantName: string, stock: number, warehouseId?: number }]
+ * }
+ * 
+ * Responde: { success, data: ApiProductDetail }
+ */
+export async function createProduct(productData: CreateProductDto): Promise<ApiProductDetail> {
+  try {
+    const response = await post<ApiProductDetail>(BASE_PATH, productData);
+    return response;
+  } catch (err) {
+    console.error('Error al crear producto:', err);
     throw err;
   }
 }

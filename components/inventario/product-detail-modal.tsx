@@ -1,19 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp } from 'lucide-react';
 import { Modal, Button, Badge, Card, CardContent, Select } from '@/components/ui';
-import { Producto, Cliente, HistorialPrecioCliente } from '@/types';
+import { Producto } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { getAllClients, getClientPriceHistory, ClientListItem, PriceHistoryItem } from '@/services/clients';
 
 interface ProductDetailModalProps {
   producto: Producto | null;
   isOpen: boolean;
   onClose: () => void;
   onEdit?: (producto: Producto) => void;
-  clientes: Cliente[];
-  historialPrecios: HistorialPrecioCliente[];
 }
 
 export function ProductDetailModal({ 
@@ -21,12 +20,55 @@ export function ProductDetailModal({
   isOpen, 
   onClose, 
   onEdit,
-  clientes,
-  historialPrecios 
 }: ProductDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Producto | null>(null);
   const [selectedClienteId, setSelectedClienteId] = useState<string>('');
+  const [clientes, setClientes] = useState<ClientListItem[]>([]);
+  const [historialPrecios, setHistorialPrecios] = useState<PriceHistoryItem[]>([]);
+  const [loadingClientes, setLoadingClientes] = useState(false);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
+
+  // Cargar lista de clientes cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      loadClientes();
+    }
+  }, [isOpen]);
+
+  // Cargar historial de precios cuando cambia el cliente seleccionado
+  useEffect(() => {
+    if (selectedClienteId && producto) {
+      loadPriceHistory(selectedClienteId, producto.id);
+    } else {
+      setHistorialPrecios([]);
+    }
+  }, [selectedClienteId, producto]);
+
+  const loadClientes = async () => {
+    setLoadingClientes(true);
+    try {
+      const data = await getAllClients();
+      setClientes(data);
+    } catch (error) {
+      console.error('Error cargando clientes:', error);
+    } finally {
+      setLoadingClientes(false);
+    }
+  };
+
+  const loadPriceHistory = async (clientId: string, productId: string) => {
+    setLoadingHistorial(true);
+    try {
+      const data = await getClientPriceHistory(clientId, productId);
+      setHistorialPrecios(data);
+    } catch (error) {
+      console.error('Error cargando historial de precios:', error);
+      setHistorialPrecios([]);
+    } finally {
+      setLoadingHistorial(false);
+    }
+  };
 
   if (!producto) return null;
 
@@ -63,14 +105,12 @@ export function ProductDetailModal({
     });
   };
 
-  // Filtrar historial de precios por producto y cliente seleccionado
-  const historialFiltrado = selectedClienteId
-    ? historialPrecios.filter(
-        h => h.productoId === producto.id && h.clienteId === selectedClienteId
-      ).sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-    : [];
+  // Filtrar historial de precios - ya viene filtrado del backend por cliente y producto
+  const historialFiltrado = historialPrecios.sort(
+    (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+  );
 
-  const clienteSeleccionado = clientes.find(c => c.id === selectedClienteId);
+  const clienteSeleccionado = clientes.find(c => String(c.id) === selectedClienteId);
 
   const currentProduct = isEditing && editedProduct ? editedProduct : producto;
 
@@ -293,17 +333,24 @@ export function ProductDetailModal({
               <Select
                 value={selectedClienteId}
                 onChange={(e) => setSelectedClienteId(e.target.value)}
+                disabled={loadingClientes}
               >
                 <option value="">-- Seleccione un cliente --</option>
                 {clientes.map((cliente) => (
                   <option key={cliente.id} value={cliente.id}>
-                    {cliente.nombre} {cliente.apellido}
+                    {cliente.name}
                   </option>
                 ))}
               </Select>
             </div>
 
-            {selectedClienteId && clienteSeleccionado ? (
+            {loadingHistorial && (
+              <div className="text-center text-sm text-gray-500 py-4">
+                Cargando historial...
+              </div>
+            )}
+
+            {selectedClienteId && clienteSeleccionado && !loadingHistorial ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -311,10 +358,7 @@ export function ProductDetailModal({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-900 text-sm truncate">
-                      {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {clienteSeleccionado.totalPedidos} pedidos • {formatCurrency(clienteSeleccionado.totalGastado)}
+                      {clienteSeleccionado.name}
                     </p>
                   </div>
                 </div>
@@ -326,25 +370,25 @@ export function ProductDetailModal({
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <p className="text-xs text-gray-500 mb-1">
-                              {formatDateTime(item.fecha)}
+                              {formatDateTime(new Date(item.orderDate))}
                             </p>
                             <p className="text-xs font-mono text-blue-600 font-medium">
-                              {item.pedidoNumero}
+                              {item.orderNumber}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-bold text-gray-900">
-                              {formatCurrency(item.precio)}
+                              {formatCurrency(item.price)}
                             </p>
                             <p className="text-xs text-gray-500 mt-0.5">
-                              × {item.cantidad} uds
+                              × {item.quantity} uds
                             </p>
                           </div>
                         </div>
                         <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
                           <span className="text-xs font-medium text-gray-600">Total</span>
                           <span className="text-sm font-bold text-gray-900">
-                            {formatCurrency(item.precio * item.cantidad)}
+                            {formatCurrency(item.price * item.quantity)}
                           </span>
                         </div>
                       </div>
@@ -356,14 +400,14 @@ export function ProductDetailModal({
                         <div className="flex items-center justify-between text-sm">
                           <span className="font-medium text-gray-700">Total Unidades:</span>
                           <span className="font-bold text-gray-900">
-                            {historialFiltrado.reduce((sum, item) => sum + item.cantidad, 0)} uds
+                            {historialFiltrado.reduce((sum, item) => sum + item.quantity, 0)} uds
                           </span>
                         </div>
                         <div className="flex items-center justify-between pt-1.5 border-t border-blue-200">
                           <span className="font-semibold text-gray-800">Total Vendido:</span>
                           <span className="text-lg font-bold text-blue-600">
                             {formatCurrency(
-                              historialFiltrado.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
+                              historialFiltrado.reduce((sum, item) => sum + (item.price * item.quantity), 0)
                             )}
                           </span>
                         </div>

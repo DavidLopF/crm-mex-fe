@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { InventoryTable, InventoryTableSkeleton, InventoryStats } from '@/components/inventario';
-import { clientesRecientes, historialPreciosClientes } from '@/lib/mock-data';
 import { Producto } from '@/types';
 import { getProducts, PaginatedProductsDto, getStadistics, ProductStatistics } from '@/services/products';
 import { useDebounce } from '@/lib/hooks';
@@ -98,8 +97,6 @@ export default function InventarioPage() {
               onProductUpdate={handleProductUpdate}
               onProductCreate={handleProductCreate}
               onProductDelete={handleProductDelete}
-              clientes={clientesRecientes}
-              historialPrecios={historialPreciosClientes}
               externalSearch={search}
               onSearchChange={(v) => { setSearch(v); setPage(1); }}
               externalPage={page}

@@ -1,18 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Plus, Minus, X, Upload } from 'lucide-react';
 import { Modal, Button, Card, CardContent, Select } from '@/components/ui';
 import { Producto, ProductoVariacion } from '@/types';
+import { getCategories, createProduct, CategoryDto, CreateProductDto } from '@/services/products';
 
 interface CreateProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (producto: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => void;
 }
-
-const categorias = ['Ropa', 'Calzado', 'Accesorios', 'Electrónica', 'Deportes', 'Hogar'];
 
 const variacionesTemplate = [
   { nombre: 'Talla', valores: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
@@ -26,12 +25,36 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
   const [sku, setSku] = useState('');
   const [precio, setPrecio] = useState<number>(0);
   const [costo, setCosto] = useState<number>(0);
-  const [categoria, setCategoria] = useState('');
+  const [categoriaId, setCategoriaId] = useState<number | ''>('');
   const [imagen, setImagen] = useState('');
   const [variaciones, setVariaciones] = useState<ProductoVariacion[]>([]);
   const [tipoVariacion, setTipoVariacion] = useState('');
   const [valorVariacion, setValorVariacion] = useState('');
   const [stockVariacion, setStockVariacion] = useState<number>(0);
+  
+  // Estados para categorías del backend
+  const [categorias, setCategorias] = useState<CategoryDto[]>([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Cargar categorías cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      loadCategorias();
+    }
+  }, [isOpen]);
+
+  const loadCategorias = async () => {
+    setLoadingCategorias(true);
+    try {
+      const cats = await getCategories();
+      setCategorias(cats);
+    } catch (error) {
+      console.error('Error al cargar categorías:', error);
+    } finally {
+      setLoadingCategorias(false);
+    }
+  };
 
   const handleReset = () => {
     setNombre('');
@@ -39,12 +62,13 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
     setSku('');
     setPrecio(0);
     setCosto(0);
-    setCategoria('');
+    setCategoriaId('');
     setImagen('');
     setVariaciones([]);
     setTipoVariacion('');
     setValorVariacion('');
     setStockVariacion(0);
+    setSubmitting(false);
   };
 
   const handleClose = () => {
@@ -77,30 +101,60 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
     ));
   };
 
-  const handleSubmit = () => {
-    if (!nombre || !sku || !categoria || variaciones.length === 0) {
+  const handleSubmit = async () => {
+    if (!nombre || !sku || !categoriaId || variaciones.length === 0) {
       alert('Por favor complete todos los campos requeridos y agregue al menos una variación');
       return;
     }
 
-    const stockTotal = variaciones.reduce((sum, v) => sum + v.stock, 0);
+    setSubmitting(true);
 
-    const newProduct: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'> = {
-      nombre,
-      descripcion,
-      sku,
-      precio,
-      costo,
-      categoria,
-      imagen: imagen || undefined,
-      variaciones,
-      stockTotal,
-      activo: true,
-    };
+    try {
+      // Preparar el DTO para el backend
+      const createDto: CreateProductDto = {
+        name: nombre,
+        description: descripcion || undefined,
+        sku,
+        categoryId: Number(categoriaId),
+        defaultPrice: precio,
+        cost: costo || undefined,
+        currency: 'MXN',
+        image: imagen || undefined,
+        variants: variaciones.map(v => ({
+          variantName: `${v.nombre}: ${v.valor}`,
+          stock: v.stock,
+        })),
+      };
 
-    onSave(newProduct);
-    handleReset();
-    onClose();
+      // Llamar al backend
+      await createProduct(createDto);
+      
+      // Mapear la respuesta al formato del frontend para actualizar la UI
+      const stockTotal = variaciones.reduce((sum, v) => sum + v.stock, 0);
+      const categoriaSeleccionada = categorias.find(c => c.id === categoriaId);
+
+      const newProduct: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'> = {
+        nombre,
+        descripcion,
+        sku,
+        precio,
+        costo,
+        categoria: categoriaSeleccionada?.name || '',
+        imagen: imagen || undefined,
+        variaciones,
+        stockTotal,
+        activo: true,
+      };
+
+      onSave(newProduct);
+      handleReset();
+      onClose();
+    } catch (error) {
+      console.error('Error al crear producto:', error);
+      alert('Error al crear el producto. Por favor intente nuevamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const stockTotal = variaciones.reduce((sum, v) => sum + v.stock, 0);
@@ -147,11 +201,17 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Categoría <span className="text-red-500">*</span>
               </label>
-              <Select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-                <option value="">Seleccione una categoría</option>
+              <Select 
+                value={categoriaId} 
+                onChange={(e) => setCategoriaId(e.target.value ? Number(e.target.value) : '')}
+                disabled={loadingCategorias}
+              >
+                <option value="">
+                  {loadingCategorias ? 'Cargando...' : 'Seleccione una categoría'}
+                </option>
                 {categorias.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
                   </option>
                 ))}
               </Select>
@@ -387,14 +447,14 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
 
         {/* Botones de acción */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={handleClose} disabled={submitting}>
             Cancelar
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!nombre || !sku || !categoria || variaciones.length === 0}
+            disabled={!nombre || !sku || !categoriaId || variaciones.length === 0 || submitting}
           >
-            Crear Producto
+            {submitting ? 'Creando...' : 'Crear Producto'}
           </Button>
         </div>
       </div>

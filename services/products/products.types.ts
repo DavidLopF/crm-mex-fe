@@ -79,3 +79,68 @@ export interface ProductStatistics {
   activeProducts: number;
   inactiveProducts: number;
 }
+
+// ── Detalle de producto ────────────────────────────────────────────
+export interface ApiWarehouse {
+  warehouseId: number;
+  warehouseName: string;
+  qtyOnHand: number;
+  qtyReserved: number;
+  qtyAvailable: number;
+}
+
+export interface ApiVariant {
+  id: number;
+  sku: string;
+  barcode: string;
+  variantName: string;
+  stock: number;
+  reserved: number;
+  available: number;
+  status: string;
+  warehouses: ApiWarehouse[];
+}
+
+export interface ApiProductDetail {
+  id: number;
+  name: string;
+  description?: string;
+  sku: string;
+  category: string;
+  price: number;
+  cost: number;
+  currency: string;
+  totalStock: number;
+  status: string;
+  image?: string;
+  createdAt: string;
+  updatedAt: string;
+  variants: ApiVariant[];
+}
+
+// ── Categorías ──────────────────────────────────────────────────────
+export interface CategoryDto {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+// ── Crear producto ──────────────────────────────────────────────────
+export interface CreateProductVariantDto {
+  variantName: string;
+  stock: number;
+  warehouseId?: number; // Opcional: si no se especifica, usa el almacén por defecto
+}
+
+export interface CreateProductDto {
+  name: string;
+  description?: string;
+  sku: string;
+  categoryId: number;
+  defaultPrice: number;
+  cost?: number;
+  currency?: string;
+  image?: string;
+  variants: CreateProductVariantDto[];
+}
+

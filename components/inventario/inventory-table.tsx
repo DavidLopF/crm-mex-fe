@@ -7,16 +7,15 @@ import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
 import { CreateProductModal } from './create-product-modal';
 import { DeleteConfirmModal } from './delete-confirm-modal';
-import { Producto, Cliente, HistorialPrecioCliente } from '@/types';
+import { Producto } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { getProductById } from '@/services/products';
 
 interface InventoryTableProps {
   productos: Producto[];
   onProductUpdate?: (producto: Producto) => void;
   onProductCreate?: (producto: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onProductDelete?: (productoId: string) => void;
-  clientes: Cliente[];
-  historialPrecios: HistorialPrecioCliente[];
   // optional controlled props for server-driven mode
   externalSearch?: string;
   onSearchChange?: (value: string) => void;
@@ -32,8 +31,6 @@ export function InventoryTable({
   onProductUpdate,
   onProductCreate,
   onProductDelete,
-  clientes,
-  historialPrecios,
   externalSearch,
   onSearchChange,
   externalPage,
@@ -50,6 +47,7 @@ export function InventoryTable({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Producto | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const itemsPerPage = 10;
 
   const isControlledSearch = typeof externalSearch === 'string' && typeof onSearchChange === 'function';
@@ -83,14 +81,38 @@ export function InventoryTable({
     return { variant: 'success' as const, label: 'En Stock' };
   };
 
-  const handleViewProduct = (producto: Producto) => {
-    setSelectedProduct(producto);
-    setIsDetailModalOpen(true);
+  const handleViewProduct = async (producto: Producto) => {
+    setLoadingDetail(true);
+    try {
+      // Cargar el detalle completo desde el backend
+      const { producto: detalle } = await getProductById(producto.id);
+      setSelectedProduct(detalle);
+      setIsDetailModalOpen(true);
+    } catch (error) {
+      console.error('Error cargando detalle del producto:', error);
+      // Fallback: usar el producto de la lista si falla
+      setSelectedProduct(producto);
+      setIsDetailModalOpen(true);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
-  const handleEditProduct = (producto: Producto) => {
-    setSelectedProduct(producto);
-    setIsDetailModalOpen(true);
+  const handleEditProduct = async (producto: Producto) => {
+    setLoadingDetail(true);
+    try {
+      // Cargar el detalle completo desde el backend para editar
+      const { producto: detalle } = await getProductById(producto.id);
+      setSelectedProduct(detalle);
+      setIsDetailModalOpen(true);
+    } catch (error) {
+      console.error('Error cargando detalle del producto:', error);
+      // Fallback: usar el producto de la lista si falla
+      setSelectedProduct(producto);
+      setIsDetailModalOpen(true);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const handleProductUpdate = (updatedProduct: Producto) => {
@@ -261,15 +283,17 @@ export function InventoryTable({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewProduct(producto)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                           title="Ver detalle"
+                          disabled={loadingDetail}
                         >
                           <Eye className="w-4 h-4 text-gray-500" />
                         </button>
                         <button
                           onClick={() => handleEditProduct(producto)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                           title="Editar producto"
+                          disabled={loadingDetail}
                         >
                           <Edit className="w-4 h-4 text-gray-500" />
                         </button>
@@ -355,8 +379,6 @@ export function InventoryTable({
         isOpen={isDetailModalOpen}
         onClose={handleCloseModal}
         onEdit={handleProductUpdate}
-        clientes={clientes}
-        historialPrecios={historialPrecios}
       />
 
       <CreateProductModal
