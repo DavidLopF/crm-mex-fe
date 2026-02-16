@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CRM Mex - Sistema de Gestión",
+  title: "CRM  - Sistema de Gestión",
   description: "Sistema de gestión de inventarios, ventas y clientes",
 };
 

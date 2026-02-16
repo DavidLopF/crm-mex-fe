@@ -9,7 +9,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   className?: string;
 }
 
@@ -19,6 +19,7 @@ const sizeStyles = {
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
   '2xl': 'max-w-6xl',
+  full: 'max-w-[95vw]',
 };
 
 export function Modal({ isOpen, onClose, title, children, size = 'lg', className }: ModalProps) {
@@ -59,17 +60,30 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
               className
             )}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            {title && (
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            )}
+            
+            {!title && (
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="absolute top-3 right-3 z-10 p-2 hover:bg-black/10 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-white" />
               </button>
-            </div>
+            )}
             
-            <div className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className={cn(
+              title ? 'px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto' : ''
+            )}>
               {children}
             </div>
           </div  >

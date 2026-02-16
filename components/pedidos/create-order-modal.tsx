@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Modal, Card, Button, Select } from '@/components/ui';
 import { 
   Search, 
@@ -16,8 +16,9 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { Pedido, Producto } from '@/types';
-import { clientesRecientes, productosInventario, historialPreciosClientes } from '@/lib/mock-data';
+import { clientesRecientes, historialPreciosClientes } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
+import { getInventory, InventoryItem } from '@/services/inventory';
 import Image from 'next/image';
 
 interface CreateOrderModalProps {
@@ -47,19 +48,85 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
   const [mostrarHistorico, setMostrarHistorico] = useState<string | null>(null);
   const [clienteSectionOpen, setClienteSectionOpen] = useState(true);
   const [productosSectionOpen, setProductosSectionOpen] = useState(true);
+  
+  // Estados para inventario del backend
+  const [inventario, setInventario] = useState<InventoryItem[]>([]);
+  const [loadingInventario, setLoadingInventario] = useState(false);
+  const [productosDisponibles, setProductosDisponibles] = useState<Producto[]>([]);
 
   const clienteSeleccionado = clientesRecientes.find(c => c.id === clienteId);
 
+  // Cargar inventario cuando se abre el modal
+  useEffect(() => {
+    if (isOpen) {
+      loadInventario();
+    }
+  }, [isOpen]);
+
+  const loadInventario = async () => {
+    setLoadingInventario(true);
+    try {
+      const items = await getInventory();
+      setInventario(items);
+      
+      // Agrupar por producto para crear lista de productos disponibles
+      const productosMap = new Map<number, Producto>();
+      
+      items.forEach(item => {
+        if (!productosMap.has(item.productId)) {
+          // Crear producto base
+          const producto: Producto = {
+            id: String(item.productId),
+            nombre: item.productName,
+            descripcion: '',
+            sku: item.sku,
+            precio: 0, // Se puede obtener del historial o poner un default
+            costo: 0,
+            categoria: '',
+            variaciones: [],
+            stockTotal: 0,
+            activo: item.status === 'Activo',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          productosMap.set(item.productId, producto);
+        }
+        
+        const producto = productosMap.get(item.productId)!;
+        
+        // Agregar variación si no existe
+        const variacionExistente = producto.variaciones.find(v => v.id === String(item.variantId));
+        if (!variacionExistente) {
+          producto.variaciones.push({
+            id: String(item.variantId),
+            nombre: item.variantName,
+            valor: item.variantName,
+            stock: item.qtyAvailable,
+          });
+        }
+        
+        // Sumar stock total
+        producto.stockTotal += item.qtyAvailable;
+      });
+      
+      setProductosDisponibles(Array.from(productosMap.values()));
+    } catch (error) {
+      console.error('Error al cargar inventario:', error);
+    } finally {
+      setLoadingInventario(false);
+    }
+  };
+
   // Filtrar productos por búsqueda
   const productosFiltrados = useMemo(() => {
-    if (!searchTerm) return productosInventario.slice(0, 10);
+    if (!searchTerm) return productosDisponibles.slice(0, 10);
     const term = searchTerm.toLowerCase();
-    return productosInventario.filter(p => 
+    return productosDisponibles.filter(p => 
       p.nombre.toLowerCase().includes(term) ||
       p.sku.toLowerCase().includes(term) ||
-      p.categoria.toLowerCase().includes(term)
+      (p.categoria && p.categoria.toLowerCase().includes(term))
     );
-  }, [searchTerm]);
+  }, [searchTerm, productosDisponibles]);
 
   // Obtener historial de precios para un producto y cliente
   const obtenerHistorialPrecios = (productoId: string) => {
@@ -280,6 +347,11 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                   {!clienteId ? (
                     <div className="text-center py-8 text-gray-500 text-sm">
                       Selecciona un cliente para comenzar
+                    </div>
+                  ) : loadingInventario ? (
+                    <div className="text-center py-8">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <p className="text-sm text-gray-500 mt-2">Cargando productos disponibles...</p>
                     </div>
                   ) : productosFiltrados.length === 0 ? (
                     <div className="text-center py-8 text-gray-500 text-sm">

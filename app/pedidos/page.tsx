@@ -1,18 +1,89 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Filter, Search } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { OrdersKanban, OrderDetailModal, CreateOrderModal } from '@/components/pedidos';
-import { pedidosKanban } from '@/lib/mock-data';
 import { Pedido, EstadoPedido } from '@/types';
+import { getOrders, OrderStatus } from '@/services';
+
+// Mapeo de estados del backend a estados del frontend
+const mapEstadoBackendToFrontend = (statusCode: string): EstadoPedido => {
+  const mapping: Record<string, EstadoPedido> = {
+    'COTIZADO': 'cotizado',
+    'TRANSMITIDO': 'transmitido',
+    'EN_CURSO': 'en_curso',
+    'ENVIADO': 'enviado',
+    'CANCELADO': 'cancelado',
+  };
+  return mapping[statusCode] || 'cotizado';
+};
+
+// Convertir respuesta del backend a estructura Pedido
+const mapOrdersToPedidos = (orderStatuses: OrderStatus[]): Pedido[] => {
+  const pedidos: Pedido[] = [];
+  
+  orderStatuses.forEach(status => {
+    status.orders.forEach(order => {
+      const pedido: Pedido = {
+        id: String(order.id),
+        numero: order.code,
+        clienteId: String(order.client.id),
+        clienteNombre: order.client.name,
+        clienteEmail: '',
+        clienteTelefono: '',
+        estado: mapEstadoBackendToFrontend(status.statusCode),
+        lineas: order.items.map(item => ({
+          id: String(item.id),
+          productoId: String(item.variantId),
+          variacionId: String(item.variantId),
+          productoNombre: item.description,
+          variacionNombre: item.variant.variantName,
+          cantidad: item.qty,
+          precioUnitario: parseFloat(item.unitPrice),
+          subtotal: parseFloat(item.lineTotal),
+        })),
+        subtotal: parseFloat(order.total),
+        impuestos: 0,
+        total: parseFloat(order.total),
+        notas: '',
+        transmitido: status.statusCode !== 'COTIZADO',
+        usuarioId: '1',
+        createdAt: new Date(order.createdAt),
+        updatedAt: new Date(order.createdAt),
+      };
+      pedidos.push(pedido);
+    });
+  });
+  
+  return pedidos;
+};
 
 export default function PedidosPage() {
-  const [pedidos, setPedidos] = useState<Pedido[]>(pedidosKanban);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Cargar pedidos desde el backend
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const orderStatuses = await getOrders();
+      const pedidosMapeados = mapOrdersToPedidos(orderStatuses);
+      setPedidos(pedidosMapeados);
+    } catch (error) {
+      console.error('Error al cargar pedidos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOrderClick = (pedido: Pedido) => {
     setSelectedOrder(pedido);
@@ -135,11 +206,20 @@ export default function PedidosPage() {
 
       {/* Kanban Board */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <OrdersKanban
-          pedidos={filteredPedidos}
-          onOrderClick={handleOrderClick}
-          onOrderUpdate={handleOrderUpdate}
-        />
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+              <p className="text-sm text-gray-500">Cargando pedidos...</p>
+            </div>
+          </div>
+        ) : (
+          <OrdersKanban
+            pedidos={filteredPedidos}
+            onOrderClick={handleOrderClick}
+            onOrderUpdate={handleOrderUpdate}
+          />
+        )}
       </div>
 
       {/* Modal de Detalle */}
