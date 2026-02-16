@@ -1,4 +1,4 @@
-export { getProducts, getStadistics, getProductById, getCategories, createProduct } from './products.service';
+export { getProducts, getStadistics, getProductById, getCategories, createProduct, updateProduct } from './products.service';
 export type { 
   ProductFiltersDto, 
   PaginatedProductsDto, 
@@ -10,5 +10,8 @@ export type {
   CategoryDto,
   CreateProductDto,
   CreateProductVariantDto,
+  UpdateProductDto,
+  UpdateProductVariantDto,
+  UpdateProductResponseDto,
 } from './products.types';
 export { mapApiProductToProducto } from './products.types';

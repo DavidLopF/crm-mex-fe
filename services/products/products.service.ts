@@ -1,4 +1,4 @@
-import { get, post } from '@/services/http-client';
+import { get, post, put } from '@/services/http-client';
 import {
   ProductFiltersDto,
   PaginatedProductsDto,
@@ -7,6 +7,8 @@ import {
   ApiProductDetail,
   CategoryDto,
   CreateProductDto,
+  UpdateProductDto,
+  UpdateProductResponseDto,
   mapApiProductToProducto,
 } from './products.types';
 import { Producto } from '@/types';
@@ -141,6 +143,44 @@ export async function createProduct(productData: CreateProductDto): Promise<ApiP
     return response;
   } catch (err) {
     console.error('Error al crear producto:', err);
+    throw err;
+  }
+}
+
+/**
+ * Actualizar un producto existente.
+ * PUT /api/products/:id
+ * 
+ * El backend espera:
+ * {
+ *   name?: string,
+ *   description?: string,
+ *   categoryId?: number,
+ *   price?: number,
+ *   cost?: number,
+ *   currency?: string,
+ *   image?: string,
+ *   isActive?: boolean,
+ *   variants?: [{ 
+ *     id?: number,        // Si tiene id, se actualiza. Si no, se crea nueva
+ *     variantName: string, 
+ *     stock: number,
+ *     sku?: string,
+ *     warehouseId?: number
+ *   }]
+ * }
+ * 
+ * Responde: { success, data: UpdateProductResponseDto }
+ */
+export async function updateProduct(
+  id: string | number, 
+  productData: UpdateProductDto
+): Promise<UpdateProductResponseDto> {
+  try {
+    const response = await put<UpdateProductResponseDto>(`${BASE_PATH}/${id}`, productData);
+    return response;
+  } catch (err) {
+    console.error('Error al actualizar producto:', err);
     throw err;
   }
 }

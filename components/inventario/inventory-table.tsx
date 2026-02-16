@@ -16,6 +16,8 @@ interface InventoryTableProps {
   onProductUpdate?: (producto: Producto) => void;
   onProductCreate?: (producto: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onProductDelete?: (productoId: string) => void;
+  onError?: (message: string) => void;
+  onSuccess?: (message: string) => void;
   // optional controlled props for server-driven mode
   externalSearch?: string;
   onSearchChange?: (value: string) => void;
@@ -31,6 +33,8 @@ export function InventoryTable({
   onProductUpdate,
   onProductCreate,
   onProductDelete,
+  onError,
+  onSuccess,
   externalSearch,
   onSearchChange,
   externalPage,
@@ -379,12 +383,15 @@ export function InventoryTable({
         isOpen={isDetailModalOpen}
         onClose={handleCloseModal}
         onEdit={handleProductUpdate}
+        onError={onError}
+        onSuccess={onSuccess}
       />
 
       <CreateProductModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreateProduct}
+        onError={onError}
       />
 
       <DeleteConfirmModal

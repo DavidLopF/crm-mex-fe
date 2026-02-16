@@ -144,3 +144,41 @@ export interface CreateProductDto {
   variants: CreateProductVariantDto[];
 }
 
+// ── Actualizar producto ─────────────────────────────────────────────
+export interface UpdateProductVariantDto {
+  id?: number;           // Si tiene id, se actualiza. Si no, se crea nueva
+  variantName: string;
+  stock: number;
+  sku?: string;
+  warehouseId?: number;
+}
+
+export interface UpdateProductDto {
+  name?: string;
+  description?: string;
+  categoryId?: number;
+  price?: number;
+  defaultPrice?: number;  // Alias de price
+  cost?: number;
+  currency?: string;
+  image?: string;
+  isActive?: boolean;
+  variants?: UpdateProductVariantDto[];
+}
+
+// Respuesta del PUT
+export interface UpdateProductResponseDto {
+  id: number;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  cost: number;
+  currency: string;
+  totalStock: number;
+  status: string;
+  description?: string;
+  image?: string;
+  updatedAt: string;
+  variants: ApiVariant[];
+}

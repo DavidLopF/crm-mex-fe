@@ -11,6 +11,7 @@ interface CreateProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (producto: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onError?: (message: string) => void;
 }
 
 const variacionesTemplate = [
@@ -19,7 +20,7 @@ const variacionesTemplate = [
   { nombre: 'Talla Calzado', valores: ['22', '23', '24', '25', '26', '27', '28', '29', '30'] },
 ];
 
-export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductModalProps) {
+export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateProductModalProps) {
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [sku, setSku] = useState('');
@@ -42,6 +43,7 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
     if (isOpen) {
       loadCategorias();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const loadCategorias = async () => {
@@ -51,6 +53,9 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
       setCategorias(cats);
     } catch (error) {
       console.error('Error al cargar categorías:', error);
+      if (onError) {
+        onError('No se pudieron cargar las categorías. Verifica que el servidor esté en ejecución.');
+      }
     } finally {
       setLoadingCategorias(false);
     }
@@ -151,7 +156,12 @@ export function CreateProductModal({ isOpen, onClose, onSave }: CreateProductMod
       onClose();
     } catch (error) {
       console.error('Error al crear producto:', error);
-      alert('Error al crear el producto. Por favor intente nuevamente.');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      if (onError) {
+        onError(`Error al crear el producto: ${errorMessage}. Verifica que el servidor esté en ejecución.`);
+      } else {
+        alert('Error al crear el producto. Por favor intente nuevamente.');
+      }
     } finally {
       setSubmitting(false);
     }

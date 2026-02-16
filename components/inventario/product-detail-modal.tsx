@@ -7,12 +7,15 @@ import { Modal, Button, Badge, Card, CardContent, Select } from '@/components/ui
 import { Producto } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { getAllClients, getClientPriceHistory, ClientListItem, PriceHistoryItem } from '@/services/clients';
+import { updateProduct, UpdateProductDto, getCategories, CategoryDto } from '@/services/products';
 
 interface ProductDetailModalProps {
   producto: Producto | null;
   isOpen: boolean;
   onClose: () => void;
   onEdit?: (producto: Producto) => void;
+  onError?: (message: string) => void;
+  onSuccess?: (message: string) => void;
 }
 
 export function ProductDetailModal({ 
@@ -20,6 +23,8 @@ export function ProductDetailModal({
   isOpen, 
   onClose, 
   onEdit,
+  onError,
+  onSuccess,
 }: ProductDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Producto | null>(null);
@@ -28,11 +33,15 @@ export function ProductDetailModal({
   const [historialPrecios, setHistorialPrecios] = useState<PriceHistoryItem[]>([]);
   const [loadingClientes, setLoadingClientes] = useState(false);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [categorias, setCategorias] = useState<CategoryDto[]>([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
 
-  // Cargar lista de clientes cuando se abre el modal
+  // Cargar lista de clientes y categorías cuando se abre el modal
   useEffect(() => {
     if (isOpen) {
       loadClientes();
+      loadCategorias();
     }
   }, [isOpen]);
 
@@ -44,6 +53,18 @@ export function ProductDetailModal({
       setHistorialPrecios([]);
     }
   }, [selectedClienteId, producto]);
+
+  const loadCategorias = async () => {
+    setLoadingCategorias(true);
+    try {
+      const cats = await getCategories();
+      setCategorias(cats);
+    } catch (error) {
+      console.error('Error cargando categorías:', error);
+    } finally {
+      setLoadingCategorias(false);
+    }
+  };
 
   const loadClientes = async () => {
     setLoadingClientes(true);
@@ -81,12 +102,57 @@ export function ProductDetailModal({
     setIsEditing(!isEditing);
   };
 
-  const handleSave = () => {
-    if (editedProduct && onEdit) {
-      onEdit(editedProduct);
+  const handleSave = async () => {
+    if (!editedProduct) return;
+    
+    setSaving(true);
+    try {
+      // Buscar categoryId a partir del nombre de la categoría
+      const categoriaEncontrada = categorias.find(c => c.name === editedProduct.categoria);
+      
+      // Preparar el DTO para el backend
+      const updateDto: UpdateProductDto = {
+        name: editedProduct.nombre,
+        description: editedProduct.descripcion,
+        categoryId: categoriaEncontrada?.id,
+        price: editedProduct.precio,
+        cost: editedProduct.costo,
+        image: editedProduct.imagen,
+        isActive: editedProduct.activo,
+        variants: editedProduct.variaciones.map(v => ({
+          id: isNaN(Number(v.id)) ? undefined : Number(v.id),
+          variantName: v.nombre ? `${v.nombre}: ${v.valor}` : v.valor,
+          stock: v.stock,
+        })),
+      };
+
+      // Llamar al backend
+      await updateProduct(producto.id, updateDto);
+      
+      // Actualizar el producto local con los cambios
+      if (onEdit) {
+        onEdit({
+          ...editedProduct,
+          updatedAt: new Date(),
+        });
+      }
+      
+      // Mostrar éxito
+      if (onSuccess) {
+        onSuccess(`Producto "${editedProduct.nombre}" actualizado exitosamente`);
+      }
+      
+      setIsEditing(false);
+      setEditedProduct(null);
+    } catch (error) {
+      console.error('Error al actualizar producto:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      if (onError) {
+        onError(`Error al actualizar el producto: ${errorMessage}`);
+      }
+    } finally {
+      setSaving(false);
     }
-    setIsEditing(false);
-    setEditedProduct(null);
   };
 
   const handleVariationStockChange = (variationId: string, newStock: number) => {
@@ -149,7 +215,23 @@ export function ProductDetailModal({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">Categoría</span>
-                <span className="text-sm text-gray-900">{currentProduct.categoria}</span>
+                {isEditing ? (
+                  <Select
+                    value={editedProduct?.categoria || ''}
+                    onChange={(e) => setEditedProduct(editedProduct ? { ...editedProduct, categoria: e.target.value } : null)}
+                    className="w-32 text-sm"
+                    disabled={loadingCategorias}
+                  >
+                    <option value="">{loadingCategorias ? 'Cargando...' : 'Seleccione'}</option>
+                    {categorias.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </Select>
+                ) : (
+                  <span className="text-sm text-gray-900">{currentProduct.categoria}</span>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">Estado</span>
@@ -434,10 +516,10 @@ export function ProductDetailModal({
         <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
           {isEditing ? (
             <>
-              <Button onClick={handleSave}>
-                Guardar Cambios
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
               </Button>
-              <Button variant="outline" onClick={handleEditToggle}>
+              <Button variant="outline" onClick={handleEditToggle} disabled={saving}>
                 Cancelar
               </Button>
             </>
