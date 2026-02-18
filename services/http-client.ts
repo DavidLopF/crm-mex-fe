@@ -29,6 +29,19 @@ interface ApiSuccessResponse<T> {
   data: T;
 }
 
+interface ApiPaginatedSuccessResponse<T> {
+  success: true;
+  data: T;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 interface ApiErrorResponse {
   success: false;
   message: string;
@@ -92,4 +105,51 @@ export function patch<T>(path: string, body?: unknown, params?: Record<string, u
 /** DELETE request */
 export function del<T>(path: string, params?: Record<string, unknown>): Promise<T> {
   return request<T>(path, { method: 'DELETE' }, params);
+}
+
+/** Resultado paginado genérico */
+export interface PaginatedResult<T> {
+  data: T;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+/**
+ * GET request que preserva la metadata de paginación.
+ * Útil para endpoints que devuelven { success, data, pagination }.
+ */
+export async function getPaginated<T>(
+  path: string,
+  params?: Record<string, unknown>,
+): Promise<PaginatedResult<T>> {
+  const url = buildUrl(path, params);
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  const res = await fetch(url, { method: 'GET', headers });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+
+  const json: ApiPaginatedSuccessResponse<T> | ApiErrorResponse = await res.json();
+
+  if (!json.success) {
+    throw new Error((json as ApiErrorResponse).message || 'Error desconocido');
+  }
+
+  const success = json as ApiPaginatedSuccessResponse<T>;
+  return {
+    data: success.data,
+    pagination: success.pagination,
+  };
 }

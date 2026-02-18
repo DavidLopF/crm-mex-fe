@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Search, Filter, Plus, Edit, Eye, Trash2, Package } from 'lucide-react';
+import { Search, Plus, Edit, Eye, Trash2, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
 import { CreateProductModal } from './create-product-modal';
@@ -161,11 +161,11 @@ export function InventoryTable({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar productos..."
+              placeholder="Buscar productos por nombre o SKU..."
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => {
@@ -178,19 +178,20 @@ export function InventoryTable({
             />
           </div>
           
-          <div className="relative">
-            <select
-              className="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              {categories.map(category => (
-                <option key={category} value={category === 'Todas' ? '' : category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-            <Filter className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            {categories.slice(0, 6).map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category === 'Todas' ? '' : category)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                  (selectedCategory === '' && category === 'Todas') || selectedCategory === category
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -317,65 +318,83 @@ export function InventoryTable({
           </table>
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-500">
-                Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1}-{Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredProducts.length)} de {totalItems ?? filteredProducts.length} productos
-              </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="items-per-page" className="text-sm text-gray-600">
-                  Registros por página:
-                </label>
-                <select
-                  id="items-per-page"
-                  className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={effectiveItemsPerPage}
-                  onChange={(e) => {
-                    const newLimit = parseInt(e.target.value);
-                    if (onItemsPerPageChange) {
-                      onItemsPerPageChange(newLimit);
-                    }
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+          <p className="text-sm text-gray-500">
+            Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
+            {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredProducts.length)} de{' '}
+            {totalItems ?? filteredProducts.length} productos
+          </p>
+          <div className="flex items-center gap-2">
+            {/* Items per page */}
+            <select
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={effectiveItemsPerPage}
+              onChange={(e) => {
+                const newLimit = Number(e.target.value);
+                if (onItemsPerPageChange) {
+                  onItemsPerPageChange(newLimit);
+                }
+              }}
+            >
+              {[5, 10, 20, 50].map((v) => (
+                <option key={v} value={v}>{v} / pág</option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => {
+                const next = Math.max(currentPage - 1, 1);
+                if (isControlledPage && onPageChange) onPageChange(next);
+                else setInternalPage(next);
+              }}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+              
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => {
+                    if (isControlledPage && onPageChange) onPageChange(pageNum);
+                    else setInternalPage(pageNum);
                   }}
+                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-blue-600 text-white'
+                      : 'hover:bg-gray-50 text-gray-600'
+                  }`}
                 >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={15}>15</option>
-                  <option value={20}>20</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const next = Math.max(currentPage - 1, 1);
-                  if (isControlledPage && onPageChange) onPageChange(next);
-                  else setInternalPage(next);
-                }}
-                disabled={currentPage === 1}
-              >
-                Anterior
-              </Button>
-              <span className="text-sm text-gray-600">
-                Página {currentPage} de {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const next = Math.min(currentPage + 1, totalPages);
-                  if (isControlledPage && onPageChange) onPageChange(next);
-                  else setInternalPage(next);
-                }}
-                disabled={currentPage === totalPages}
-              >
-                Siguiente
-              </Button>
-            </div>
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => {
+                const next = Math.min(currentPage + 1, totalPages);
+                if (isControlledPage && onPageChange) onPageChange(next);
+                else setInternalPage(next);
+              }}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
-        )}
+        </div>
       </Card>
 
       <ProductDetailModal
