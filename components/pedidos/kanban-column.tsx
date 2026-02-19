@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Pedido, EstadoPedido } from '@/types';
 import { OrderCard } from './order-card';
+import { OrderStatusCode } from '@/services/orders';
 
 interface KanbanColumnProps {
   titulo?: string;
@@ -11,9 +12,10 @@ interface KanbanColumnProps {
   color: string;
   onOrderClick: (pedido: Pedido) => void;
   onDrop: (pedido: Pedido, nuevoEstado: EstadoPedido) => void;
+  onStatusChange?: (orderId: string, newStatusCode: OrderStatusCode) => Promise<void>;
 }
 
-export function KanbanColumn({ estado, pedidos, onOrderClick, onDrop }: KanbanColumnProps) {
+export function KanbanColumn({ estado, pedidos, onOrderClick, onDrop, onStatusChange }: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -59,6 +61,7 @@ export function KanbanColumn({ estado, pedidos, onOrderClick, onDrop }: KanbanCo
             key={pedido.id}
             pedido={pedido}
             onClick={() => onOrderClick(pedido)}
+            onStatusChange={onStatusChange}
           />
         ))
       ) : (

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Search, Plus, Eye, Edit, Trash2, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ClientDetail } from '@/services/clients';
+import { getClientById } from '@/services/clients/clients.service';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ClientDetailModal } from './client-detail-modal';
 import { CreateClientModal } from './create-client-modal';
@@ -55,6 +56,7 @@ export function ClientTable({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -87,9 +89,21 @@ export function ClientTable({
     : filteredClients.slice((currentPage - 1) * effectiveItemsPerPage, currentPage * effectiveItemsPerPage);
 
   // Handlers
-  const handleViewClient = (client: ClientDetail) => {
-    setSelectedClient(client);
-    setIsDetailModalOpen(true);
+  const handleViewClient = async (client: ClientDetail) => {
+    try {
+      setLoadingDetail(true);
+      // Obtener datos completos del cliente desde el backend
+      const fullClient = await getClientById(client.id);
+      setSelectedClient(fullClient);
+      setIsDetailModalOpen(true);
+    } catch (error) {
+      console.error('Error al obtener detalle del cliente:', error);
+      // En caso de error, mostrar con los datos que ya tenemos
+      setSelectedClient(client);
+      setIsDetailModalOpen(true);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const handleEditClient = (client: ClientDetail) => {
@@ -283,15 +297,17 @@ export function ClientTable({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewClient(client)}
-                          className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-gray-400 hover:text-blue-600"
+                          className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-gray-400 hover:text-blue-600 disabled:opacity-50"
                           title="Ver detalle"
+                          disabled={loadingDetail}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleEditClient(client)}
-                          className="p-2 hover:bg-amber-50 rounded-lg transition-colors text-gray-400 hover:text-amber-600"
+                          className="p-2 hover:bg-amber-50 rounded-lg transition-colors text-gray-400 hover:text-amber-600 disabled:opacity-50"
                           title="Editar"
+                          disabled={loadingDetail}
                         >
                           <Edit className="w-4 h-4" />
                         </button>

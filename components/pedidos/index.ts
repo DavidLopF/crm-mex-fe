@@ -3,3 +3,4 @@ export { KanbanColumn } from './kanban-column';
 export { OrdersKanban } from './orders-kanban';
 export { OrderDetailModal } from './order-detail-modal';
 export { CreateOrderModal } from './create-order-modal';
+export { ChangeStatusMenu } from './change-status-menu';

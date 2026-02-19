@@ -19,14 +19,23 @@ export function formatDate(date: Date): string {
   }).format(date);
 }
 
-export function formatDateTime(date: Date): string {
+export function formatDateTime(date: Date | string | null | undefined): string {
+  if (!date) return 'N/A';
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  // Validar que la fecha sea válida
+  if (isNaN(dateObj.getTime())) {
+    return 'Fecha inválida';
+  }
+  
   return new Intl.DateTimeFormat('es-MX', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: 'numeric',
     minute: 'numeric',
-  }).format(date);
+  }).format(dateObj);
 }
 
 export function getEstadoColor(estado: EstadoPedido): string {

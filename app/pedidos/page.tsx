@@ -5,7 +5,15 @@ import { Plus, Filter, Search } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { OrdersKanban, OrderDetailModal, CreateOrderModal } from '@/components/pedidos';
 import { Pedido, EstadoPedido } from '@/types';
-import { getOrders, OrderStatus } from '@/services';
+import { 
+  getOrders, 
+  OrderStatus, 
+  changeOrderStatus, 
+  OrderStatusCode,
+  ORDER_STATUS_LABELS,
+  canTransitionToStatus,
+} from '@/services';
+import { useToast } from '@/lib/hooks';
 
 // Mapeo de estados del backend a estados del frontend
 const mapEstadoBackendToFrontend = (statusCode: string): EstadoPedido => {
@@ -17,6 +25,19 @@ const mapEstadoBackendToFrontend = (statusCode: string): EstadoPedido => {
     'CANCELADO': 'cancelado',
   };
   return mapping[statusCode] || 'cotizado';
+};
+
+// Mapeo de estados del frontend a códigos del backend
+const mapEstadoFrontendToBackendCode = (estado: EstadoPedido): OrderStatusCode => {
+  const mapping: Record<string, OrderStatusCode> = {
+    'cotizado': OrderStatusCode.COTIZADO,
+    'transmitido': OrderStatusCode.TRANSMITIDO,
+    'en_curso': OrderStatusCode.EN_CURSO,
+    'enviado': OrderStatusCode.ENVIADO,
+    'cancelado': OrderStatusCode.CANCELADO,
+    'pagado': OrderStatusCode.ENVIADO,
+  };
+  return mapping[estado] || OrderStatusCode.COTIZADO;
 };
 
 // Convertir respuesta del backend a estructura Pedido
@@ -66,6 +87,7 @@ export default function PedidosPage() {
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const toast = useToast();
 
   // Cargar pedidos desde el backend
   useEffect(() => {
@@ -106,22 +128,106 @@ export default function PedidosPage() {
     // TODO: Aquí harías la llamada al API para crear el pedido
   };
 
-  const handleOrderUpdate = (pedido: Pedido, nuevoEstado: EstadoPedido) => {
-    setPedidos(prevPedidos =>
-      prevPedidos.map(p =>
-        p.id === pedido.id
-          ? { 
-              ...p, 
-              estado: nuevoEstado,
-              // Si se mueve de cotizado a transmitido, marcar como transmitido
-              transmitido: nuevoEstado === 'transmitido' ? true : p.transmitido
-            }
-          : p
-      )
-    );
-    
-    // TODO: Aquí harías la llamada al API para actualizar el estado
-    console.log(`Pedido ${pedido.numero} movido a ${nuevoEstado}`);
+  const handleOrderUpdate = async (pedido: Pedido, nuevoEstado: EstadoPedido) => {
+    try {
+      const currentStatusCode = getStatusCodeFromEstado(pedido.estado);
+      const newStatusCode = mapEstadoFrontendToBackendCode(nuevoEstado);
+
+      // Validar la transición
+      const validation = canTransitionToStatus(currentStatusCode, newStatusCode);
+      
+      if (!validation.valid) {
+        toast.error(validation.error || 'Transición no válida');
+        return;
+      }
+
+      // Actualizar optimistamente el UI
+      setPedidos(prevPedidos =>
+        prevPedidos.map(p =>
+          p.id === pedido.id
+            ? { 
+                ...p, 
+                estado: nuevoEstado,
+                transmitido: nuevoEstado !== 'cotizado'
+              }
+            : p
+        )
+      );
+
+      // Llamar a la API
+      const userId = 1; // TODO: Obtener desde contexto/autenticación
+      await changeOrderStatus(parseInt(pedido.id), {
+        newStatusCode,
+        userId,
+      });
+
+      toast.success(`Pedido movido a ${nuevoEstado.toUpperCase()}`);
+    } catch (error) {
+      console.error('Error al cambiar estado:', error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Error al cambiar el estado del pedido'
+      );
+      
+      // Revertir el cambio en caso de error
+      await loadOrders();
+    }
+  };
+
+  // Obtener código de estado desde string
+  const getStatusCodeFromEstado = (estado: string): string => {
+    const mapping: Record<string, string> = {
+      'cotizado': 'COTIZADO',
+      'transmitido': 'TRANSMITIDO',
+      'en_curso': 'EN_CURSO',
+      'enviado': 'ENVIADO',
+      'cancelado': 'CANCELADO',
+    };
+    return mapping[estado] || 'COTIZADO';
+  };
+
+  // Handler para cambiar estado usando la API (desde el menú)
+  const handleStatusChange = async (orderId: string, newStatusCode: OrderStatusCode) => {
+    try {
+      const pedido = pedidos.find(p => p.id === orderId);
+      if (!pedido) return;
+
+      // Mapear el nuevo código a estado frontend
+      const nuevoEstado = mapEstadoBackendToFrontend(ORDER_STATUS_LABELS[newStatusCode]);
+
+      // Actualizar optimistamente el UI
+      setPedidos(prevPedidos =>
+        prevPedidos.map(p =>
+          p.id === orderId
+            ? { 
+                ...p, 
+                estado: nuevoEstado,
+                transmitido: nuevoEstado !== 'cotizado'
+              }
+            : p
+        )
+      );
+
+      // Llamar a la API
+      const userId = 1; // TODO: Obtener desde contexto/autenticación
+      await changeOrderStatus(parseInt(orderId), {
+        newStatusCode,
+        userId,
+      });
+
+      toast.success('Estado del pedido actualizado correctamente');
+    } catch (error) {
+      console.error('Error al cambiar estado:', error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Error al cambiar el estado del pedido'
+      );
+      
+      // Revertir el cambio en caso de error
+      await loadOrders();
+    }
   };
 
   const filteredPedidos = pedidos.filter(pedido => 
@@ -218,6 +324,7 @@ export default function PedidosPage() {
             pedidos={filteredPedidos}
             onOrderClick={handleOrderClick}
             onOrderUpdate={handleOrderUpdate}
+            onStatusChange={handleStatusChange}
           />
         )}
       </div>

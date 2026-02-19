@@ -83,7 +83,7 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
               <div className="flex-1">
                 <span className="text-xs text-gray-500 block">Fecha de Registro</span>
                 <span className="text-sm font-medium text-gray-900">
-                  {formatDateTime(new Date(client.createdAt))}
+                  {formatDateTime(client.createdAt)}
                 </span>
               </div>
             </div>
@@ -92,12 +92,50 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
               <div className="flex-1">
                 <span className="text-xs text-gray-500 block">Última Actualización</span>
                 <span className="text-sm font-medium text-gray-900">
-                  {formatDateTime(new Date(client.updatedAt))}
+                  {formatDateTime(client.updatedAt)}
                 </span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Historial de precios */}
+        {client.hystoricalPrices && client.hystoricalPrices.length > 0 && (
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              Historial de Precios
+            </h4>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {client.hystoricalPrices.map((price) => (
+                <div
+                  key={price.id}
+                  className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between"
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{price.productName}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-500">
+                        Pedido #{price.orderNumber}
+                      </span>
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-xs text-gray-500">
+                        {formatDateTime(price.orderDate)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-gray-900">
+                      {formatCurrency(price.price)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Cant: {price.quantity}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );

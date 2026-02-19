@@ -25,9 +25,10 @@ export interface ClientDetail {
   document: string | null;
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   totalOrders: number;
   totalSpent: number;
+  hystoricalPrices?: PriceHistoryItem[];
 }
 
 // ── Filtros para GET /api/clients (paginado) ───────────────────────

@@ -4,11 +4,14 @@ import { Calendar, User, Package, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { Pedido } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { ChangeStatusMenu } from './change-status-menu';
+import { OrderStatusCode } from '@/services/orders';
 
 interface OrderCardProps {
   pedido: Pedido;
   onClick: () => void;
   onDragStart?: (pedido: Pedido) => void;
+  onStatusChange?: (orderId: string, newStatusCode: OrderStatusCode) => Promise<void>;
 }
 
 const estadoColors = {
@@ -20,9 +23,27 @@ const estadoColors = {
   cancelado: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'danger' as const },
 };
 
-export function OrderCard({ pedido, onClick, onDragStart }: OrderCardProps) {
+export function OrderCard({ pedido, onClick, onDragStart, onStatusChange }: OrderCardProps) {
   const colors = estadoColors[pedido.estado];
   const cantidadTotal = pedido.lineas.reduce((sum, linea) => sum + linea.cantidad, 0);
+
+  // Mapeo de estado del frontend al código del backend
+  const getStatusCodeFromEstado = (estado: string): string => {
+    const mapping: Record<string, string> = {
+      'cotizado': 'COTIZADO',
+      'transmitido': 'TRANSMITIDO',
+      'en_curso': 'EN_CURSO',
+      'enviado': 'ENVIADO',
+      'cancelado': 'CANCELADO',
+    };
+    return mapping[estado] || 'COTIZADO';
+  };
+
+  const handleStatusChange = async (newStatusCode: OrderStatusCode) => {
+    if (onStatusChange) {
+      await onStatusChange(pedido.id, newStatusCode);
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.effectAllowed = 'move';
@@ -41,7 +62,7 @@ export function OrderCard({ pedido, onClick, onDragStart }: OrderCardProps) {
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 flex-shrink-0">
-        <div>
+        <div className="flex-1">
           <p className="font-mono text-sm font-semibold text-gray-900">{pedido.numero}</p>
           <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
             <Calendar className="w-3 h-3" />
@@ -49,11 +70,20 @@ export function OrderCard({ pedido, onClick, onDragStart }: OrderCardProps) {
           </p>
         </div>
         
-        {!pedido.transmitido && pedido.estado === 'cotizado' && (
-          <Badge variant="warning" className="text-xs">
-            Editable
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {!pedido.transmitido && pedido.estado === 'cotizado' && (
+            <Badge variant="warning" className="text-xs">
+              Editable
+            </Badge>
+          )}
+          
+          {onStatusChange && (
+            <ChangeStatusMenu
+              currentStatusCode={getStatusCodeFromEstado(pedido.estado)}
+              onChangeStatus={handleStatusChange}
+            />
+          )}
+        </div>
       </div>
 
       {/* Cliente */}

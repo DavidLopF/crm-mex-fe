@@ -2,11 +2,13 @@
 
 import { Pedido, EstadoPedido } from '@/types';
 import { KanbanColumn } from './kanban-column';
+import { OrderStatusCode } from '@/services/orders';
 
 interface OrdersKanbanProps {
   pedidos: Pedido[];
   onOrderClick: (pedido: Pedido) => void;
   onOrderUpdate: (pedido: Pedido, nuevoEstado: EstadoPedido) => void;
+  onStatusChange?: (orderId: string, newStatusCode: OrderStatusCode) => Promise<void>;
 }
 
 const columnas: Array<{ estado: EstadoPedido; titulo: string; color: string }> = [
@@ -17,7 +19,7 @@ const columnas: Array<{ estado: EstadoPedido; titulo: string; color: string }> =
   { estado: 'cancelado', titulo: 'Cancelado', color: 'red' },
 ];
 
-export function OrdersKanban({ pedidos, onOrderClick, onOrderUpdate }: OrdersKanbanProps) {
+export function OrdersKanban({ pedidos, onOrderClick, onOrderUpdate, onStatusChange }: OrdersKanbanProps) {
   const handleDrop = (pedido: Pedido, nuevoEstado: EstadoPedido) => {
     onOrderUpdate(pedido, nuevoEstado);
   };
@@ -78,6 +80,7 @@ export function OrdersKanban({ pedidos, onOrderClick, onOrderUpdate }: OrdersKan
                 color={columna.color}
                 onOrderClick={onOrderClick}
                 onDrop={handleDrop}
+                onStatusChange={onStatusChange}
               />
             ))}
           </div>
