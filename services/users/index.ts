@@ -1,0 +1,30 @@
+export {
+  getRoles,
+  getAllRoles,
+  getRoleById,
+  createRole,
+  updateRole,
+  deleteRole,
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  changeUserRole,
+  changeUserPassword,
+  deleteUser,
+} from './users.service';
+
+export type {
+  Role,
+  UserDetail,
+  UserFiltersDto,
+  PaginatedUsersDto,
+  CreateUserDto,
+  UpdateUserDto,
+  ChangeUserRoleDto,
+  ChangePasswordDto,
+  RoleFiltersDto,
+  PaginatedRolesDto,
+  CreateRoleDto,
+  UpdateRoleDto,
+} from './users.types';

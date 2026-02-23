@@ -57,11 +57,11 @@ export async function getClients(filters: ClientFiltersDto = {}): Promise<Pagina
 
 /**
  * Obtener lista simple de todos los clientes (para selects/dropdowns)
- * GET /api/clients/all
+ * GET /api/clients
  */
 export async function getAllClients(): Promise<ClientListItem[]> {
   try {
-    const response = await get<ClientListItem[]>(`${BASE_PATH}/all`);
+    const response = await get<ClientListItem[]>(`${BASE_PATH}`);
     return response;
   } catch (err) {
     console.error('Error al obtener clientes:', err);

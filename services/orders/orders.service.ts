@@ -1,5 +1,13 @@
-import { get, post, put } from '../http-client';
-import { CreateOrderDto, Order, OrderStatus, ChangeOrderStatusDto } from './orders.types';
+import { get, post, put, getPaginated } from '../http-client';
+import { 
+  CreateOrderDto, 
+  Order, 
+  OrderStatus, 
+  ChangeOrderStatusDto, 
+  OrderProductItem, 
+  OrderProductFiltersDto, 
+  OrderProductsPaginatedResponse 
+} from './orders.types';
 
 /**
  * Obtiene todos los pedidos agrupados por estado
@@ -8,6 +16,38 @@ import { CreateOrderDto, Order, OrderStatus, ChangeOrderStatusDto } from './orde
  */
 export async function getOrders(): Promise<OrderStatus[]> {
   return get<OrderStatus[]>('/api/orders');
+}
+
+/**
+ * Obtiene productos disponibles para crear pedidos (paginado y con búsqueda)
+ * GET /api/inventory?page=1&limit=10&search=...&stockStatus=in-stock
+ *
+ * Retorna items de variantes con precio, stock y almacenes.
+ */
+export async function getOrderProducts(
+  filters: OrderProductFiltersDto = {}
+): Promise<OrderProductsPaginatedResponse> {
+  try {
+    const response = await getPaginated<OrderProductItem[]>('/api/inventory', {
+      page: filters.page ?? 1,
+      limit: filters.limit ?? 10,
+      search: filters.search,
+      stockStatus: filters.stockStatus,
+    });
+
+    return {
+      items: response.data,
+      total: response.pagination.total,
+      page: response.pagination.page,
+      limit: response.pagination.limit,
+      totalPages: response.pagination.totalPages,
+      hasNextPage: response.pagination.hasNextPage,
+      hasPrevPage: response.pagination.hasPrevPage,
+    };
+  } catch (err) {
+    console.error('Error al obtener productos para pedidos:', err);
+    throw err;
+  }
 }
 
 /**

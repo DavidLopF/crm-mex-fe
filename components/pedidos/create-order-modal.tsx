@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { Modal, Card, Button, Select } from '@/components/ui';
+import { useState, useEffect, useCallback } from 'react';
+import { Card, Button } from '@/components/ui';
 import { 
   Search, 
   Plus, 
@@ -12,235 +12,248 @@ import {
   Package,
   FileText,
   Download,
-  ChevronDown,
-  ChevronUp
+  ChevronLeft,
+  ChevronRight,
+  Warehouse,
+  X,
+  User,
 } from 'lucide-react';
-import { Pedido, Producto } from '@/types';
-import { clientesRecientes, historialPreciosClientes } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
-import { getInventory, InventoryItem } from '@/services/inventory';
-import Image from 'next/image';
+import { useDebounce } from '@/lib/hooks';
+import { 
+  getOrderProducts, 
+  OrderProductItem, 
+  CreateOrderDto,
+} from '@/services/orders';
+import { 
+  getAllClients, 
+  getClientPriceHistory, 
+  ClientListItem, 
+  PriceHistoryItem,
+} from '@/services/clients';
 
 interface CreateOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (pedido: Partial<Pedido>) => void;
+  onSave: (dto: CreateOrderDto) => void;
 }
 
 interface LineaCarrito {
   id: string;
-  producto: Producto;
-  variacion?: { id: string; nombre: string; precio: number };
+  producto: OrderProductItem;
   cantidad: number;
   precioUnitario: number;
-  precioOriginal: number;
+  precioLista: number;
   subtotal: number;
   usandoPrecioHistorico: boolean;
 }
 
 let carritoCounter = 0;
 
+const PRODUCTS_PER_PAGE = 3;
+
 export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalProps) {
-  const [clienteId, setClienteId] = useState<string>('');
+  // ── Estado principal ──────────────────────────────────────────────
+  const [clienteId, setClienteId] = useState<number | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [carrito, setCarrito] = useState<LineaCarrito[]>([]);
   const [notas, setNotas] = useState('');
-  const [mostrarHistorico, setMostrarHistorico] = useState<string | null>(null);
-  const [clienteSectionOpen, setClienteSectionOpen] = useState(true);
-  const [productosSectionOpen, setProductosSectionOpen] = useState(true);
-  
-  // Estados para inventario del backend
-  const [inventario, setInventario] = useState<InventoryItem[]>([]);
-  const [loadingInventario, setLoadingInventario] = useState(false);
-  const [productosDisponibles, setProductosDisponibles] = useState<Producto[]>([]);
 
-  const clienteSeleccionado = clientesRecientes.find(c => c.id === clienteId);
+  // ── Clientes ──────────────────────────────────────────────────────
+  const [clientes, setClientes] = useState<ClientListItem[]>([]);
+  const [loadingClientes, setLoadingClientes] = useState(false);
 
-  // Cargar inventario cuando se abre el modal
+  // ── Productos (paginados desde API) ───────────────────────────────
+  const [productos, setProductos] = useState<OrderProductItem[]>([]);
+  const [loadingProductos, setLoadingProductos] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+
+  // ── Historial de precios ──────────────────────────────────────────
+  const [expandedHistorial, setExpandedHistorial] = useState<number | null>(null);
+  const [historialPrecios, setHistorialPrecios] = useState<PriceHistoryItem[]>([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
+
+  const debouncedSearch = useDebounce(searchTerm, 400);
+
+  const clienteSeleccionado = clientes.find(c => c.id === clienteId);
+
+  // ── Bloquear scroll del body y manejar Escape ─────────────────────
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  // ── Cargar clientes cuando se abre el modal ───────────────────────
   useEffect(() => {
     if (isOpen) {
-      loadInventario();
+      loadClientes();
     }
   }, [isOpen]);
 
-  const loadInventario = async () => {
-    setLoadingInventario(true);
+  const loadClientes = async () => {
+    setLoadingClientes(true);
     try {
-      const items = await getInventory();
-      setInventario(items);
-      
-      // Agrupar por producto para crear lista de productos disponibles
-      const productosMap = new Map<number, Producto>();
-      
-      items.forEach(item => {
-        if (!productosMap.has(item.productId)) {
-          // Crear producto base
-          const producto: Producto = {
-            id: String(item.productId),
-            nombre: item.productName,
-            descripcion: '',
-            sku: item.sku,
-            precio: 0, // Se puede obtener del historial o poner un default
-            costo: 0,
-            categoria: '',
-            variaciones: [],
-            stockTotal: 0,
-            activo: item.status === 'Activo',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-          productosMap.set(item.productId, producto);
-        }
-        
-        const producto = productosMap.get(item.productId)!;
-        
-        // Agregar variación si no existe
-        const variacionExistente = producto.variaciones.find(v => v.id === String(item.variantId));
-        if (!variacionExistente) {
-          producto.variaciones.push({
-            id: String(item.variantId),
-            nombre: item.variantName,
-            valor: item.variantName,
-            stock: item.qtyAvailable,
-          });
-        }
-        
-        // Sumar stock total
-        producto.stockTotal += item.qtyAvailable;
-      });
-      
-      setProductosDisponibles(Array.from(productosMap.values()));
-    } catch (error) {
-      console.error('Error al cargar inventario:', error);
+      const data = await getAllClients();
+      setClientes(data);
+    } catch {
+      console.error('Error al cargar clientes');
     } finally {
-      setLoadingInventario(false);
+      setLoadingClientes(false);
     }
   };
 
-  // Filtrar productos por búsqueda
-  const productosFiltrados = useMemo(() => {
-    if (!searchTerm) return productosDisponibles.slice(0, 10);
-    const term = searchTerm.toLowerCase();
-    return productosDisponibles.filter(p => 
-      p.nombre.toLowerCase().includes(term) ||
-      p.sku.toLowerCase().includes(term) ||
-      (p.categoria && p.categoria.toLowerCase().includes(term))
-    );
-  }, [searchTerm, productosDisponibles]);
+  // ── Cargar productos con búsqueda y paginación ────────────────────
+  const loadProductos = useCallback(async (page: number, search: string) => {
+    setLoadingProductos(true);
+    try {
+      const response = await getOrderProducts({
+        page,
+        limit: PRODUCTS_PER_PAGE,
+        search: search || undefined,
+        stockStatus: search ? 'all' : 'in-stock',
+      });
+      setProductos(response.items);
+      setTotalPages(response.totalPages);
+      setTotalProducts(response.total);
+      setCurrentPage(response.page);
+    } catch {
+      console.error('Error al cargar productos');
+      setProductos([]);
+    } finally {
+      setLoadingProductos(false);
+    }
+  }, []);
 
-  // Obtener historial de precios para un producto y cliente
-  const obtenerHistorialPrecios = (productoId: string) => {
-    if (!clienteId) return [];
-    return historialPreciosClientes.filter(
-      h => h.productoId === productoId && h.clienteId === clienteId
-    ).sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  // Recargar productos cuando cambia la búsqueda (debounced)
+  useEffect(() => {
+    if (isOpen && clienteId) {
+      setCurrentPage(1);
+      loadProductos(1, debouncedSearch);
+    }
+  }, [debouncedSearch, isOpen, clienteId, loadProductos]);
+
+  // ── Cargar historial de precios para un producto ──────────────────
+  const toggleHistorial = async (productId: number) => {
+    if (expandedHistorial === productId) {
+      setExpandedHistorial(null);
+      setHistorialPrecios([]);
+      return;
+    }
+
+    if (!clienteId) return;
+
+    setExpandedHistorial(productId);
+    setLoadingHistorial(true);
+    try {
+      const data = await getClientPriceHistory(clienteId, productId);
+      setHistorialPrecios(data);
+    } catch {
+      setHistorialPrecios([]);
+    } finally {
+      setLoadingHistorial(false);
+    }
   };
 
-  // Agregar producto al carrito
-  const agregarAlCarrito = (
-    producto: Producto, 
-    variacion?: { id: string; nombre: string; precio: number },
-    precioPersonalizado?: number
-  ) => {
-    const historial = obtenerHistorialPrecios(producto.id);
-    const precioHistorico = historial.length > 0 ? historial[0].precio : null;
-    const precioBase = variacion ? variacion.precio : producto.precio;
-    
-    let precioFinal = precioBase;
-    let usandoHistorico = false;
-
-    if (precioPersonalizado) {
-      precioFinal = precioPersonalizado;
-    } else if (precioHistorico && clienteId) {
-      precioFinal = precioHistorico;
-      usandoHistorico = true;
+  // ── Paginación ────────────────────────────────────────────────────
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      loadProductos(currentPage - 1, debouncedSearch);
     }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      loadProductos(currentPage + 1, debouncedSearch);
+    }
+  };
+
+  // ── Agregar producto al carrito ───────────────────────────────────
+  const agregarAlCarrito = (producto: OrderProductItem, precioPersonalizado?: number) => {
+    const precioBase = producto.price;
+    const precioFinal = precioPersonalizado ?? precioBase;
 
     carritoCounter++;
     const nuevaLinea: LineaCarrito = {
-      id: `${producto.id}-${variacion?.id || 'base'}-${carritoCounter}`,
+      id: `${producto.id}-${carritoCounter}`,
       producto,
-      variacion,
       cantidad: 1,
       precioUnitario: precioFinal,
-      precioOriginal: precioBase,
+      precioLista: precioBase,
       subtotal: precioFinal,
-      usandoPrecioHistorico: usandoHistorico,
+      usandoPrecioHistorico: precioPersonalizado !== undefined,
     };
 
-    setCarrito([...carrito, nuevaLinea]);
-    setMostrarHistorico(null);
+    setCarrito(prev => [...prev, nuevaLinea]);
+    setExpandedHistorial(null);
   };
 
-  // Actualizar cantidad
+  // ── Actualizar cantidad ───────────────────────────────────────────
   const actualizarCantidad = (lineaId: string, cantidad: number) => {
     if (cantidad < 1) return;
-    setCarrito(carrito.map(linea => 
-      linea.id === lineaId 
-        ? { ...linea, cantidad, subtotal: linea.precioUnitario * cantidad }
-        : linea
-    ));
+    setCarrito(prev =>
+      prev.map(linea =>
+        linea.id === lineaId
+          ? { ...linea, cantidad, subtotal: linea.precioUnitario * cantidad }
+          : linea
+      )
+    );
   };
 
-  // Actualizar precio unitario
+  // ── Actualizar precio unitario ────────────────────────────────────
   const actualizarPrecio = (lineaId: string, precio: number) => {
     if (precio < 0) return;
-    setCarrito(carrito.map(linea => 
-      linea.id === lineaId 
-        ? { 
-            ...linea, 
-            precioUnitario: precio, 
-            subtotal: precio * linea.cantidad,
-            usandoPrecioHistorico: false 
-          }
-        : linea
-    ));
+    setCarrito(prev =>
+      prev.map(linea =>
+        linea.id === lineaId
+          ? {
+              ...linea,
+              precioUnitario: precio,
+              subtotal: precio * linea.cantidad,
+              usandoPrecioHistorico: false,
+            }
+          : linea
+      )
+    );
   };
 
-  // Eliminar del carrito
+  // ── Eliminar del carrito ────────────────────────────────────────────
   const eliminarDelCarrito = (lineaId: string) => {
-    setCarrito(carrito.filter(linea => linea.id !== lineaId));
+    setCarrito(prev => prev.filter(linea => linea.id !== lineaId));
   };
 
-  // Calcular totales
+  // ── Calcular totales ──────────────────────────────────────────────
   const subtotal = carrito.reduce((sum, linea) => sum + linea.subtotal, 0);
   const total = subtotal;
 
+  // ── Guardar pedido ────────────────────────────────────────────────
   const handleGuardar = () => {
     if (!clienteId || carrito.length === 0) return;
 
-    const cliente = clientesRecientes.find(c => c.id === clienteId);
-    if (!cliente) return;
-
-    const pedidoId = Math.floor(Math.random() * 10000);
-    const pedidoNumero = `PED-2026-${String(pedidoId).padStart(4, '0')}`;
-
-    const nuevoPedido: Partial<Pedido> = {
-      numero: pedidoNumero,
-      estado: 'cotizado',
-      clienteId: cliente.id,
-      clienteNombre: cliente.nombre,
-      clienteEmail: cliente.email,
-      clienteTelefono: cliente.telefono,
-      lineas: carrito.map((linea, index) => ({
-        id: `linea-${index}`,
-        productoId: linea.producto.id,
-        productoNombre: linea.producto.nombre,
-        variacionId: linea.variacion?.id || '',
-        variacionNombre: linea.variacion?.nombre || '',
-        cantidad: linea.cantidad,
-        precioUnitario: linea.precioUnitario,
-        subtotal: linea.subtotal,
+    const dto: CreateOrderDto = {
+      clientId: clienteId as number,
+      items: carrito.map(linea => ({
+        variantId: linea.producto.id,
+        qty: linea.cantidad,
+        unitPrice: linea.precioUnitario,
+        listPrice: linea.precioLista,
+        description: linea.producto.variantName
+          ? `${linea.producto.name} - ${linea.producto.variantName}`
+          : linea.producto.name,
       })),
-      subtotal,
-      total,
-      notas,
-      transmitido: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      currency: 'MXN',
     };
 
-    onSave(nuevoPedido);
+    onSave(dto);
     handleClose();
   };
 
@@ -249,411 +262,417 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
     setSearchTerm('');
     setCarrito([]);
     setNotas('');
-    setMostrarHistorico(null);
+    setExpandedHistorial(null);
+    setHistorialPrecios([]);
+    setProductos([]);
+    setCurrentPage(1);
     onClose();
   };
 
   const handleDescargarPDF = () => {
-    // TODO: Implementar generación de PDF
     console.log('Descargar PDF', { cliente: clienteSeleccionado, carrito, total });
     alert('Funcionalidad de PDF en desarrollo');
   };
 
   const handleDescargarExcel = () => {
-    // TODO: Implementar generación de Excel
     console.log('Descargar Excel', { cliente: clienteSeleccionado, carrito, total });
     alert('Funcionalidad de Excel en desarrollo');
   };
 
+  // ── Badge de stock ────────────────────────────────────────────────
+  const getStockBadge = (status: string) => {
+    switch (status) {
+      case 'in_stock':
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">En stock</span>;
+      case 'low_stock':
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Stock bajo</span>;
+      case 'out_of_stock':
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Sin stock</span>;
+      default:
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{status}</span>;
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" title="Crear Nuevo Pedido">
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-120px)] gap-6 p-6">
-        {/* Panel Izquierdo - Productos */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Selector de Cliente */}
-          <Card className="mb-4">
-            <button
-              onClick={() => setClienteSectionOpen(!clienteSectionOpen)}
-              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-            >
-              <h3 className="text-sm font-semibold text-gray-900">Seleccionar Cliente</h3>
-              {clienteSectionOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              )}
-            </button>
-            
-            {clienteSectionOpen && (
-              <div className="px-4 pb-4 border-t border-gray-100">
-                <div className="mt-3">
-                  <Select
-                    value={clienteId}
-                    onChange={(e) => {
-                      setClienteId(e.target.value);
-                      setCarrito([]); // Limpiar carrito al cambiar cliente
-                    }}
-                  >
-                    <option value="">Seleccione un cliente...</option>
-                    {clientesRecientes.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre} - {c.email}
-                      </option>
-                    ))}
-                  </Select>
-                  {clienteSeleccionado && (
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm font-medium text-blue-900">{clienteSeleccionado.nombre}</p>
-                      <p className="text-xs text-blue-700 mt-1">{clienteSeleccionado.telefono}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </Card>
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-40 bg-black/30 transition-opacity duration-200 animate-in fade-in" 
+        onClick={handleClose} 
+      />
 
-          {/* Buscador de Productos */}
-          <Card className={productosSectionOpen ? "flex-1 flex flex-col min-h-0" : "flex flex-col"}>
-            <button
-              onClick={() => setProductosSectionOpen(!productosSectionOpen)}
-              className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors flex-shrink-0"
-            >
-              <h3 className="text-sm font-semibold text-gray-900">Agregar Productos</h3>
-              {productosSectionOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              )}
-            </button>
-
-            {productosSectionOpen && (
-              <>
-                <div className="px-4 pb-4 border-t border-gray-100">
-                  <div className="relative mt-3">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Buscar productos por nombre, SKU o categoría..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      disabled={!clienteId}
-                    />
-                  </div>
-                </div>
-
-                {/* Lista de Productos */}
-                <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
-                  {!clienteId ? (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      Selecciona un cliente para comenzar
-                    </div>
-                  ) : loadingInventario ? (
-                    <div className="text-center py-8">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <p className="text-sm text-gray-500 mt-2">Cargando productos disponibles...</p>
-                    </div>
-                  ) : productosFiltrados.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      No se encontraron productos
-                    </div>
-                  ) : (
-                    productosFiltrados.map((producto) => {
-                  const historial = obtenerHistorialPrecios(producto.id);
-                  const mostrandoHistorico = mostrarHistorico === producto.id;
-
-                  return (
-                    <Card key={producto.id} className="p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-4">
-                        {/* Imagen del producto */}
-                        <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden relative">
-                          {producto.imagen ? (
-                            <Image
-                              src={producto.imagen}
-                              alt={producto.nombre}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="w-8 h-8 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Info del producto */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-gray-900 truncate">{producto.nombre}</h4>
-                          </div>
-                          <p className="text-xs text-gray-500">SKU: {producto.sku} • {producto.categoria}</p>
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className="text-sm font-semibold text-gray-900">
-                              {formatCurrency(producto.precio)}
-                            </span>
-                            {historial.length > 0 && (
-                              <button
-                                onClick={() => setMostrarHistorico(
-                                  mostrandoHistorico ? null : producto.id
-                                )}
-                                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
-                              >
-                                <History className="w-3 h-3" />
-                                Ver historial ({historial.length})
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        <Button
-                          size="sm"
-                          onClick={() => agregarAlCarrito(producto)}
-                          className="flex items-center gap-1 flex-shrink-0"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Agregar
-                        </Button>
-                      </div>
-
-                      {/* Historial de precios */}
-                      {mostrandoHistorico && historial.length > 0 && (
-                        <div className="mt-3 p-3 bg-blue-50 rounded-lg space-y-2">
-                          <p className="text-xs font-semibold text-blue-900 mb-2">
-                            Precios anteriores:
-                          </p>
-                          {historial.slice(0, 3).map((h) => (
-                            <button
-                              key={h.id}
-                              onClick={() => agregarAlCarrito(producto, undefined, h.precio)}
-                              className="w-full flex items-center justify-between p-2 bg-white rounded hover:bg-blue-100 transition-colors"
-                            >
-                              <span className="text-xs text-gray-600">
-                                {new Date(h.fecha).toLocaleDateString('es-MX')}
-                              </span>
-                              <span className="text-sm font-semibold text-blue-700">
-                                {formatCurrency(h.precio)}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Variaciones */}
-                      {producto.variaciones && producto.variaciones.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <p className="text-xs font-medium text-gray-700 mb-2">Variaciones:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {producto.variaciones.map((variacion) => {
-                              if (!variacion.precio) return null;
-                              const precio = variacion.precio as number;
-                              return (
-                                <button
-                                  key={variacion.id}
-                                  onClick={() => agregarAlCarrito(producto, {
-                                    id: variacion.id,
-                                    nombre: variacion.nombre,
-                                    precio: precio
-                                  })}
-                                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition-colors"
-                                >
-                                  {variacion.nombre} - {formatCurrency(precio)}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </Card>
-                    );
-                  })
-                )}
-                </div>
-              </>
-            )}
-          </Card>
+      {/* Fullscreen Panel */}
+      <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in slide-in-from-bottom-4 fade-in duration-300">
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+          <h2 className="text-lg font-semibold text-gray-900">Crear Nuevo Pedido</h2>
+          <button
+            onClick={handleClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
 
-        {/* Panel Derecho - Carrito */}
-        <div className="w-full lg:w-[420px] flex flex-col">
-          <Card className="flex-1 flex flex-col">
-            {/* Header Carrito */}
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-blue-600" />
-                <h3 className="text-base font-semibold text-gray-900">
-                  Carrito ({carrito.length})
-                </h3>
+        {/* ── Body: 3 columnas ───────────────────────────────────── */}
+        <div className="flex-1 flex min-h-0">
+
+          {/* ═══ Columna 1: Cliente + Búsqueda ═══ */}
+          <div className="w-80 flex-shrink-0 border-r border-gray-200 flex flex-col bg-gray-50/50">
+            {/* Cliente */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center gap-2 mb-3">
+                <User className="w-4 h-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-900">Cliente</h3>
+              </div>
+              {loadingClientes ? (
+                <div className="flex items-center gap-2 py-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                  <span className="text-sm text-gray-500">Cargando...</span>
+                </div>
+              ) : (
+                <select
+                  value={clienteId}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setClienteId(val ? Number(val) : '');
+                    setCarrito([]);
+                    setExpandedHistorial(null);
+                    setHistorialPrecios([]);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all duration-200"
+                >
+                  <option value="">Seleccione un cliente...</option>
+                  {clientes.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              )}
+              {clienteSeleccionado && (
+                <div className="mt-2 px-3 py-2 bg-blue-50 rounded-lg animate-in slide-in-from-top-2 fade-in duration-200">
+                  <p className="text-sm font-medium text-blue-900">{clienteSeleccionado.name}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Buscador */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar producto, SKU..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all duration-200"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={!clienteId}
+                />
               </div>
             </div>
 
-            {/* Items del Carrito */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {carrito.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <ShoppingCart className="w-12 h-12 text-gray-300 mb-3" />
-                  <p className="text-sm text-gray-500">El carrito está vacío</p>
-                  <p className="text-xs text-gray-400 mt-1">Agrega productos para continuar</p>
+            {/* Lista de Productos */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {!clienteId ? (
+                <div className="text-center py-12 text-gray-400 text-sm">
+                  <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                  Selecciona un cliente
+                </div>
+              ) : loadingProductos ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                  <p className="text-xs text-gray-500 mt-2">Cargando...</p>
+                </div>
+              ) : productos.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 text-sm">
+                  Sin resultados
                 </div>
               ) : (
-                carrito.map((linea) => (
-                  <div key={linea.id} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-start gap-3 mb-2">
-                      {/* Imagen del producto en carrito */}
-                      <div className="w-12 h-12 flex-shrink-0 bg-gray-200 rounded overflow-hidden relative">
-                        {linea.producto.imagen ? (
-                          <Image
-                            src={linea.producto.imagen}
-                            alt={linea.producto.nombre}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-5 h-5 text-gray-400" />
+                productos.map((producto) => (
+                  <div
+                    key={producto.id}
+                    className="p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
+                        <Package className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-medium text-gray-900 truncate">{producto.name}</p>
+                          {getStockBadge(producto.stockStatus)}
+                        </div>
+                        {producto.variantName && (
+                          <p className="text-xs text-blue-600 font-medium">{producto.variantName}</p>
+                        )}
+                        <p className="text-xs text-gray-400 truncate">
+                          {producto.sku}{producto.category ? ` • ${producto.category}` : ''}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm font-bold text-gray-900">{formatCurrency(producto.price)}</span>
+                          <span className="text-xs text-gray-400">Stock: {producto.stock}</span>
+                        </div>
+                        {/* Almacenes inline */}
+                        {producto.warehouses && producto.warehouses.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {producto.warehouses.map((wh, idx) => (
+                              <span key={idx} className="inline-flex items-center gap-0.5 text-[10px] text-gray-500">
+                                <Warehouse className="w-2.5 h-2.5" />
+                                {wh.warehouseName}: {wh.qtyOnHand}
+                                {wh.qtyReserved > 0 && (
+                                  <span className="text-orange-500">({wh.qtyReserved} res.)</span>
+                                )}
+                              </span>
+                            ))}
                           </div>
                         )}
                       </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {linea.producto.nombre}
-                            </p>
-                            {linea.variacion && (
-                              <p className="text-xs text-gray-600">{linea.variacion.nombre}</p>
-                            )}
-                            {linea.usandoPrecioHistorico && (
-                              <span className="inline-flex items-center gap-1 text-xs text-blue-600 mt-1">
-                                <History className="w-3 h-3" />
-                                Precio histórico
-                              </span>
+                      <button
+                        onClick={() => agregarAlCarrito(producto)}
+                        disabled={producto.stock <= 0}
+                        className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-95"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {/* Historial toggle */}
+                    {clienteId && (
+                      <div className="mt-1.5">
+                        <button
+                          onClick={() => toggleHistorial(producto.productId)}
+                          className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors duration-200"
+                        >
+                          <History className="w-3 h-3" />
+                          {expandedHistorial === producto.productId ? 'Ocultar historial' : 'Ver historial'}
+                        </button>
+                        {expandedHistorial === producto.productId && (
+                          <div className="mt-2 p-2 bg-blue-50 rounded space-y-1 animate-in slide-in-from-top-2 fade-in duration-200">
+                            {loadingHistorial ? (
+                              <p className="text-xs text-blue-600">Cargando...</p>
+                            ) : historialPrecios.length === 0 ? (
+                              <p className="text-xs text-blue-600">Sin historial</p>
+                            ) : (
+                              historialPrecios.slice(0, 3).map((h) => (
+                                <button
+                                  key={h.id}
+                                  onClick={() => agregarAlCarrito(producto, h.price)}
+                                  className="w-full flex items-center justify-between p-1.5 bg-white rounded text-xs hover:bg-blue-100 transition-all duration-200 hover:scale-[1.02]"
+                                >
+                                  <div className="text-left">
+                                    <span className="text-gray-600">{new Date(h.orderDate).toLocaleDateString('es-MX')}</span>
+                                    <span className="text-gray-400 ml-1">• {h.orderNumber}</span>
+                                  </div>
+                                  <span className="font-semibold text-blue-700">{formatCurrency(h.price)}</span>
+                                </button>
+                              ))
                             )}
                           </div>
-                          <button
-                            onClick={() => eliminarDelCarrito(linea.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        )}
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs text-gray-600 block mb-1">Cantidad</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={linea.cantidad}
-                          onChange={(e) => actualizarCantidad(linea.id, parseInt(e.target.value))}
-                          className="w-full px-2 py-1 border border-gray-200 rounded text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600 block mb-1">Precio Unit.</label>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">$</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={linea.precioUnitario}
-                            onChange={(e) => actualizarPrecio(linea.id, parseFloat(e.target.value))}
-                            className="w-full pl-5 pr-2 py-1 border border-gray-200 rounded text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
-                      <span className="text-xs text-gray-600">Subtotal:</span>
-                      <span className="text-sm font-bold text-gray-900">
-                        {formatCurrency(linea.subtotal)}
-                      </span>
-                    </div>
+                    )}
                   </div>
                 ))
               )}
             </div>
 
+            {/* Paginación */}
+            {clienteId && totalProducts > 0 && (
+              <div className="px-4 py-2 border-t border-gray-200 flex items-center justify-between flex-shrink-0 bg-white">
+                <span className="text-xs text-gray-500">
+                  {totalProducts} resultado{totalProducts !== 1 ? 's' : ''}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={currentPage <= 1}
+                    className="p-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-xs text-gray-600">{currentPage}/{totalPages}</span>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage >= totalPages}
+                    className="p-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ═══ Columna 2: Carrito ═══ */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Header Carrito */}
+            <div className="px-6 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-blue-600" />
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Carrito ({carrito.length} {carrito.length === 1 ? 'item' : 'items'})
+                </h3>
+              </div>
+            </div>
+
+            {/* Items del Carrito */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {carrito.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <ShoppingCart className="w-12 h-12 text-gray-200 mb-3" />
+                  <p className="text-sm text-gray-400">El carrito está vacío</p>
+                  <p className="text-xs text-gray-300 mt-1">Agrega productos desde el panel izquierdo</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {carrito.map((linea) => (
+                    <Card key={linea.id} className="p-3 animate-in slide-in-from-right-4 fade-in duration-300 hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
+                          <Package className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{linea.producto.name}</p>
+                              {linea.producto.variantName && (
+                                <p className="text-xs text-blue-600">{linea.producto.variantName}</p>
+                              )}
+                              {linea.usandoPrecioHistorico && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-blue-600">
+                                  <History className="w-2.5 h-2.5" />Precio histórico
+                                </span>
+                              )}
+                            </div>
+                            <button onClick={() => eliminarDelCarrito(linea.id)} className="text-red-400 hover:text-red-600 p-0.5 transition-all duration-200 hover:scale-110 active:scale-95">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 mt-2">
+                            <div>
+                              <label className="text-[10px] text-gray-500 block">Cant.</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={linea.cantidad}
+                                onChange={(e) => actualizarCantidad(linea.id, parseInt(e.target.value))}
+                                className="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-gray-500 block">P. Unit.</label>
+                              <div className="relative">
+                                <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-gray-400">$</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={linea.precioUnitario}
+                                  onChange={(e) => actualizarPrecio(linea.id, parseFloat(e.target.value))}
+                                  className="w-full pl-4 pr-1 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-gray-500 block">Subtotal</label>
+                              <p className="py-1 text-sm font-bold text-gray-900">
+                                {formatCurrency(linea.subtotal)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Notas */}
-            <div className="p-4 border-t border-gray-200">
-              <label className="text-xs font-medium text-gray-700 block mb-2">
-                Notas del pedido (opcional)
-              </label>
+            <div className="px-4 py-3 border-t border-gray-200 flex-shrink-0">
               <textarea
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
-                placeholder="Agrega notas o instrucciones especiales..."
+                placeholder="Notas del pedido (opcional)..."
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={3}
+                rows={2}
               />
             </div>
+          </div>
 
+          {/* ═══ Columna 3: Resumen / Acciones ═══ */}
+          <div className="w-72 flex-shrink-0 border-l border-gray-200 flex flex-col bg-gray-50/50">
             {/* Totales */}
-            <div className="p-4 border-t border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span className="font-semibold text-gray-900">
-                    {formatCurrency(subtotal)}
-                  </span>
+            <div className="p-5 flex-1 flex flex-col justify-center">
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">Resumen del Pedido</h3>
+
+              {clienteSeleccionado && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs text-gray-500">Cliente</p>
+                  <p className="text-sm font-medium text-blue-900">{clienteSeleccionado.name}</p>
                 </div>
-                <div className="pt-2 border-t border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-base font-bold text-gray-900">Total:</span>
-                    <span className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(total)}
-                    </span>
-                  </div>
+              )}
+
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Productos</span>
+                  <span className="font-medium text-gray-900">{carrito.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Unidades</span>
+                  <span className="font-medium text-gray-900">{carrito.reduce((s, l) => s + l.cantidad, 0)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Subtotal</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(subtotal)}</span>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-gray-200">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm font-bold text-gray-900">Total</span>
+                  <span className="text-2xl font-bold text-blue-600">{formatCurrency(total)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div className="p-4 border-t border-gray-200 space-y-3">
-              {/* Botones de Descarga */}
+            {/* Acciones */}
+            <div className="p-4 border-t border-gray-200 space-y-2 flex-shrink-0">
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   onClick={handleDescargarPDF}
                   disabled={!clienteId || carrito.length === 0}
-                  className="flex-1 flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs transition-all duration-200 hover:scale-105 active:scale-95"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-3.5 h-3.5" />
                   PDF
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleDescargarExcel}
                   disabled={!clienteId || carrito.length === 0}
-                  className="flex-1 flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs transition-all duration-200 hover:scale-105 active:scale-95"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5" />
                   Excel
                 </Button>
               </div>
-
-              {/* Botones principales */}
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={handleClose} className="flex-1">
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleGuardar}
-                  disabled={!clienteId || carrito.length === 0}
-                  className="flex-1 flex items-center justify-center gap-2"
-                >
-                  <DollarSign className="w-4 h-4" />
-                  Crear Cotización
-                </Button>
-              </div>
+              <Button
+                onClick={handleGuardar}
+                disabled={!clienteId || carrito.length === 0}
+                className="w-full flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                <DollarSign className="w-4 h-4" />
+                Crear Cotización
+              </Button>
+              <Button variant="outline" onClick={handleClose} className="w-full transition-all duration-200 hover:scale-105 active:scale-95">
+                Cancelar
+              </Button>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
-    </Modal>
+    </>
   );
 }

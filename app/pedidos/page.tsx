@@ -12,6 +12,8 @@ import {
   OrderStatusCode,
   ORDER_STATUS_LABELS,
   canTransitionToStatus,
+  createOrder,
+  CreateOrderDto,
 } from '@/services';
 import { useToast } from '@/lib/hooks';
 
@@ -117,15 +119,19 @@ export default function PedidosPage() {
     setSelectedOrder(null);
   };
 
-  const handleCreateOrder = (nuevoPedido: Partial<Pedido>) => {
-    const pedidoCompleto: Pedido = {
-      ...nuevoPedido,
-      id: `pedido-${Date.now()}`,
-    } as Pedido;
-
-    setPedidos([pedidoCompleto, ...pedidos]);
-    console.log('Pedido creado:', pedidoCompleto);
-    // TODO: Aquí harías la llamada al API para crear el pedido
+  const handleCreateOrder = async (dto: CreateOrderDto) => {
+    try {
+      await createOrder(dto);
+      toast.success('Pedido creado exitosamente');
+      await loadOrders();
+    } catch (error) {
+      console.error('Error al crear pedido:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Error al crear el pedido'
+      );
+    }
   };
 
   const handleOrderUpdate = async (pedido: Pedido, nuevoEstado: EstadoPedido) => {

@@ -19,6 +19,49 @@ export interface OrderItem {
   variant: OrderVariant;
 }
 
+// ── Tipos para productos en creación de pedidos ────────────────────
+export interface OrderProductWarehouse {
+  warehouseName: string;
+  qtyOnHand: number;
+  qtyReserved: number;
+}
+
+export interface OrderProductItem {
+  id: number;
+  productId: number;
+  name: string;
+  description: string;
+  variantName: string;
+  sku: string;
+  barcode: string;
+  category: string;
+  stock: number;
+  stockStatus: string;
+  price: number;
+  currency: string;
+  isActive: boolean;
+  warehouses: OrderProductWarehouse[];
+}
+
+export type StockStatusFilter = 'all' | 'in-stock' | 'low-stock' | 'out-of-stock';
+
+export interface OrderProductFiltersDto {
+  page?: number;
+  limit?: number;
+  search?: string;
+  stockStatus?: StockStatusFilter;
+}
+
+export interface OrderProductsPaginatedResponse {
+  items: OrderProductItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 export interface OrderClient {
   id: number;
   name: string;

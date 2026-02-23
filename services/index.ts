@@ -5,3 +5,5 @@ export * from './products';
 export * from './clients';
 export * from './inventory';
 export * from './orders';
+export * from './users';
+export * from './company';

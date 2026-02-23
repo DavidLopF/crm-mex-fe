@@ -14,6 +14,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useCompany } from '@/lib/company-context';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -26,6 +27,7 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { settings } = useCompany();
 
   return (
     <aside
@@ -41,10 +43,23 @@ export function Sidebar() {
         )}>
           {!collapsed && (
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: settings.primaryColor }}
+              >
                 <Package className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">CRM </span>
+              <span className="text-xl font-bold text-gray-900">{settings.companyName} </span>
+            </Link>
+          )}
+          {collapsed && (
+            <Link href="/" className="flex items-center justify-center">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: settings.primaryColor }}
+              >
+                <Package className="w-5 h-5 text-white" />
+              </div>
             </Link>
           )}
           <button
@@ -69,12 +84,16 @@ export function Sidebar() {
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                   isActive
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'text-white'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
                   collapsed && 'justify-center'
                 )}
+                style={isActive ? { backgroundColor: settings.primaryColor + '15', color: settings.primaryColor } : undefined}
               >
-                <item.icon className={cn('w-5 h-5 flex-shrink-0', isActive && 'text-blue-600')} />
+                <item.icon
+                  className="w-5 h-5 flex-shrink-0"
+                  style={isActive ? { color: settings.primaryColor } : undefined}
+                />
                 {!collapsed && (
                   <span className="font-medium">{item.name}</span>
                 )}
