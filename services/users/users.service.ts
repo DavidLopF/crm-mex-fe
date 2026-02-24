@@ -14,6 +14,18 @@ import {
   UpdateRoleDto,
 } from './users.types';
 
+/**
+ * Normaliza un UserDetail del backend:
+ * convierte roles[0].role → role para que todos los componentes
+ * puedan usar user.role directamente.
+ */
+function normalizeUser(user: UserDetail): UserDetail {
+  if (!user.role && user.roles && user.roles.length > 0) {
+    return { ...user, role: user.roles[0].role };
+  }
+  return user;
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // ROLES
 // ═══════════════════════════════════════════════════════════════════
@@ -22,15 +34,14 @@ const ROLES_PATH = '/api/roles';
 
 /**
  * Obtener lista paginada de roles
- * GET /api/roles?page=1&limit=10&search=...
+ * GET /api/roles
  */
 export async function getRoles(filters: RoleFiltersDto = {}): Promise<PaginatedRolesDto> {
   try {
-    const params: Record<string, unknown> = {
-      page: filters.page,
-      limit: filters.limit,
-      search: filters.search,
-    };
+    const params: Record<string, unknown> = {};
+
+    if (filters.page !== undefined) params.page = filters.page;
+    if (filters.limit !== undefined) params.limit = filters.limit;
 
     const response = await getPaginated<Role[]>(ROLES_PATH, params);
 
@@ -39,26 +50,26 @@ export async function getRoles(filters: RoleFiltersDto = {}): Promise<PaginatedR
       total: response.pagination.total,
       page: response.pagination.page,
       limit: response.pagination.limit,
-      totalPages: response.pagination.totalPages,
+      totalPages: response.pagination.totalPages ?? Math.ceil(response.pagination.total / (response.pagination.limit || 10)),
     };
   } catch (err) {
     console.error('Error al obtener roles:', err);
     throw err;
   }
 }
-
 /**
  * Obtener todos los roles (para selects)
- * GET /api/roles/all
+ * GET /api/roles — devuelve { success, data: Role[] } sin paginación
  */
 export async function getAllRoles(): Promise<Role[]> {
   try {
-    return await get<Role[]>(`${ROLES_PATH}/all`);
+    return await get<Role[]>(ROLES_PATH);
   } catch (err) {
     console.error('Error al obtener roles:', err);
     throw err;
   }
 }
+
 
 /**
  * Obtener un rol por ID
@@ -124,25 +135,22 @@ const USERS_PATH = '/api/users';
  */
 export async function getUsers(filters: UserFiltersDto = {}): Promise<PaginatedUsersDto> {
   try {
-    const params: Record<string, unknown> = {
-      page: filters.page,
-      limit: filters.limit,
-      search: filters.search,
-      roleId: filters.roleId,
-    };
+    const params: Record<string, unknown> = {};
 
-    if (filters.active !== undefined) {
-      params.active = filters.active;
-    }
+    if (filters.page !== undefined) params.page = filters.page;
+    if (filters.limit !== undefined) params.limit = filters.limit;
+    if (filters.search && filters.search.trim()) params.search = filters.search.trim();
+    if (filters.roleId !== undefined) params.roleId = filters.roleId;
+    if (filters.active !== undefined) params.active = filters.active;
 
     const response = await getPaginated<UserDetail[]>(USERS_PATH, params);
 
     return {
-      items: response.data,
+      items: response.data.map(normalizeUser),
       total: response.pagination.total,
       page: response.pagination.page,
       limit: response.pagination.limit,
-      totalPages: response.pagination.totalPages,
+      totalPages: response.pagination.totalPages ?? Math.ceil(response.pagination.total / (response.pagination.limit || 10)),
     };
   } catch (err) {
     console.error('Error al obtener usuarios:', err);
@@ -156,7 +164,8 @@ export async function getUsers(filters: UserFiltersDto = {}): Promise<PaginatedU
  */
 export async function getUserById(id: number | string): Promise<UserDetail> {
   try {
-    return await get<UserDetail>(`${USERS_PATH}/${id}`);
+    const user = await get<UserDetail>(`${USERS_PATH}/${id}`);
+    return normalizeUser(user);
   } catch (err) {
     console.error('Error al obtener usuario:', err);
     throw err;
@@ -182,7 +191,8 @@ export async function createUser(data: CreateUserDto): Promise<UserDetail> {
  */
 export async function updateUser(id: number | string, data: UpdateUserDto): Promise<UserDetail> {
   try {
-    return await put<UserDetail>(`${USERS_PATH}/${id}`, data);
+    const updated = await put<UserDetail>(`${USERS_PATH}/${id}`, data);
+    return normalizeUser(updated);
   } catch (err) {
     console.error('Error al actualizar usuario:', err);
     throw err;

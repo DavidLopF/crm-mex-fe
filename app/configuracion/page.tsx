@@ -163,7 +163,7 @@ export default function ConfiguracionPage() {
     setSubmitting(true);
     try {
       await createUser(data);
-      toast.success(`Usuario "${data.name}" creado exitosamente`);
+      toast.success(`Usuario "${data.fullName}" creado exitosamente`);
       await loadUsers(usersPage, debouncedUsersSearch, usersStatusFilter);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

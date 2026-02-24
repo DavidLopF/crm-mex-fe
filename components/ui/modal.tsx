@@ -75,14 +75,15 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
             {!title && (
               <button
                 onClick={onClose}
-                className="absolute top-3 right-3 z-10 p-2 hover:bg-black/10 rounded-lg transition-colors"
+                className="absolute top-3 right-3 z-10 p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-white" />
+                <X className="w-5 h-5 text-gray-400" />
               </button>
             )}
             
             <div className={cn(
-              title ? 'px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto' : ''
+              'max-h-[calc(100vh-200px)] overflow-y-auto',
+              title ? 'px-6 py-4' : 'px-6 py-5'
             )}>
               {children}
             </div>

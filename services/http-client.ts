@@ -40,9 +40,9 @@ interface ApiPaginatedSuccessResponse<T> {
     page: number;
     limit: number;
     total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
+    totalPages?: number;
+    hasNextPage?: boolean;
+    hasPrevPage?: boolean;
   };
 }
 
@@ -101,7 +101,7 @@ async function tryRefreshToken(): Promise<boolean> {
   if (!rt) return false;
 
   try {
-    const res = await fetch(`${getBaseUrl()}/api/auth/refresh`, {
+    const res = await fetch(`${getBaseUrl()}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: rt }),
@@ -224,9 +224,9 @@ export interface PaginatedResult<T> {
     page: number;
     limit: number;
     total: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
+    totalPages?: number;
+    hasNextPage?: boolean;
+    hasPrevPage?: boolean;
   };
 }
 

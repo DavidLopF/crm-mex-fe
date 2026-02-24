@@ -16,6 +16,8 @@ export {
 
 export type {
   Role,
+  Permission,
+  UserRoleRelation,
   UserDetail,
   UserFiltersDto,
   PaginatedUsersDto,
@@ -27,4 +29,5 @@ export type {
   PaginatedRolesDto,
   CreateRoleDto,
   UpdateRoleDto,
+  UpdateRolePermissionsDto,
 } from './users.types';

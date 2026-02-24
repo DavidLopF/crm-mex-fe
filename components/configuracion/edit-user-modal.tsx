@@ -15,14 +15,12 @@ interface EditUserModalProps {
 export function EditUserModal({ isOpen, onClose, onSave, user, submitting }: EditUserModalProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [isActive, setIsActive] = useState(true);
   const [lastUserId, setLastUserId] = useState<number | null>(null);
 
   // Sync state when user changes (replaces useEffect)
   if (user && user.id !== lastUserId) {
-    setName(user.name);
+    setName(user.fullName);
     setEmail(user.email);
-    setIsActive(user.isActive);
     setLastUserId(user.id);
   }
 
@@ -37,9 +35,8 @@ export function EditUserModal({ isOpen, onClose, onSave, user, submitting }: Edi
 
     const updates: UpdateUserDto = {};
 
-    if (name.trim() !== user.name) updates.name = name.trim();
+    if (name.trim() !== user.fullName) updates.fullName = name.trim();
     if (email.trim() !== user.email) updates.email = email.trim();
-    if (isActive !== user.isActive) updates.isActive = isActive;
 
     // Si no hay cambios reales, solo cerramos
     if (Object.keys(updates).length === 0) {
@@ -85,33 +82,6 @@ export function EditUserModal({ isOpen, onClose, onSave, user, submitting }: Edi
           {email && !isValidEmail(email) && (
             <p className="mt-1 text-xs text-red-500">Ingresa un correo electrónico válido</p>
           )}
-        </div>
-
-        {/* Estado */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="isActive"
-                checked={isActive}
-                onChange={() => setIsActive(true)}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Activo</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="isActive"
-                checked={!isActive}
-                onChange={() => setIsActive(false)}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Inactivo</span>
-            </label>
-          </div>
         </div>
 
         {/* Botones de acción */}

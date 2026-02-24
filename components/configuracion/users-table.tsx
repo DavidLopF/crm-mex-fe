@@ -16,6 +16,7 @@ interface UsersTableProps {
   onUserUpdate?: (id: number, data: UpdateUserDto) => void;
   onUserDelete?: (id: number) => void;
   onUserRoleChange?: (userId: number, roleId: number) => void;
+  onRoleCreate?: (data: import('@/services/users').CreateRoleDto) => Promise<import('@/services/users').Role | void>;
   externalSearch?: string;
   onSearchChange?: (value: string) => void;
   externalPage?: number;
@@ -25,6 +26,7 @@ interface UsersTableProps {
   totalItems?: number;
   itemsPerPage?: number;
   submitting?: boolean;
+  isAdmin?: boolean;
 }
 
 export function UsersTable({
@@ -33,6 +35,7 @@ export function UsersTable({
   onUserUpdate,
   onUserDelete,
   onUserRoleChange,
+  onRoleCreate,
   externalSearch,
   onSearchChange,
   externalPage,
@@ -42,6 +45,7 @@ export function UsersTable({
   totalItems,
   itemsPerPage = 10,
   submitting,
+  isAdmin = true,
 }: UsersTableProps) {
   const [internalSearch, setInternalSearch] = useState('');
   const [internalPage, setInternalPage] = useState(1);
@@ -223,10 +227,10 @@ export function UsersTable({
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-xs font-semibold text-blue-700">
-                            {getInitials(user.name)}
+                            {getInitials(user.fullName)}
                           </span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{user.name}</span>
+                        <span className="text-sm font-medium text-gray-900">{user.fullName}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -239,7 +243,7 @@ export function UsersTable({
                         title="Cambiar rol"
                       >
                         <Shield className="w-3 h-3" />
-                        {user.role.name}
+                        {user.role?.name ?? '—'}
                       </button>
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -285,25 +289,71 @@ export function UsersTable({
         </div>
 
         {/* Paginación */}
-        {totalPages > 1 && (
+        {(totalItems ?? filteredUsers.length) > 0 && (
           <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
             <p className="text-sm text-gray-500">
-              Mostrando página {currentPage} de {totalPages} ({totalItems ?? filteredUsers.length} usuarios)
+              {(() => {
+                const total = totalItems ?? filteredUsers.length;
+                const from = total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+                const to = Math.min(currentPage * itemsPerPage, total);
+                return `Mostrando ${from}–${to} de ${total} usuarios`;
+              })()}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage <= 1}
+                className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                «
+              </button>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
+
+              {/* Números de página */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...');
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, i) =>
+                  p === '...' ? (
+                    <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-gray-400">…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => handlePageChange(p as number)}
+                      className={`min-w-[32px] px-2.5 py-1.5 text-xs rounded-lg border transition-colors ${
+                        p === currentPage
+                          ? 'border-blue-500 bg-blue-500 text-white font-semibold'
+                          : 'border-gray-200 hover:bg-white text-gray-600'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage >= totalPages}
+                className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                »
               </button>
             </div>
           </div>
@@ -338,7 +388,9 @@ export function UsersTable({
         isOpen={isChangeRoleModalOpen}
         onClose={() => { setIsChangeRoleModalOpen(false); setSelectedUser(null); }}
         onSave={handleRoleChange}
+        onRoleCreate={onRoleCreate}
         user={selectedUser}
+        isAdmin={isAdmin}
         submitting={submitting}
       />
     </div>

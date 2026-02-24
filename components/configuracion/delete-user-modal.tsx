@@ -40,7 +40,7 @@ export function DeleteUserModal({ isOpen, onClose, onConfirm, user, submitting }
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">Nombre:</span>
-              <span className="text-sm text-gray-900 font-semibold">{user.name}</span>
+              <span className="text-sm text-gray-900 font-semibold">{user.fullName}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">Email:</span>
@@ -48,7 +48,7 @@ export function DeleteUserModal({ isOpen, onClose, onConfirm, user, submitting }
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">Rol:</span>
-              <span className="text-sm text-gray-900">{user.role.name}</span>
+              <span className="text-sm text-gray-900">{user.role?.name ?? '—'}</span>
             </div>
           </div>
         </div>

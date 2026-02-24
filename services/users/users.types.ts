@@ -1,21 +1,43 @@
+// ── Permiso individual ─────────────────────────────────────────────
+export interface Permission {
+  id: string;
+  label: string;
+  description?: string;
+  module: string;
+}
+
 // ── Rol ────────────────────────────────────────────────────────────
 export interface Role {
   id: number;
+  code?: string;
   name: string;
-  description: string | null;
+  description?: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;
   usersCount?: number;
+  permissions?: string[];
+}
+
+// ── Relación usuario-rol (tal como viene del backend) ──────────────
+export interface UserRoleRelation {
+  userId: number;
+  roleId: number;
+  createdAt: string;
+  role: Role;
 }
 
 // ── Usuario completo ───────────────────────────────────────────────
 export interface UserDetail {
   id: number;
-  name: string;
+  /** El backend devuelve fullName (no name) */
+  fullName: string;
   email: string;
   isActive: boolean;
-  role: Role;
+  /** Array de relaciones usuario-rol tal como viene del backend */
+  roles?: UserRoleRelation[];
+  /** Campo normalizado: primer rol del array (calculado por el mapper) */
+  role?: Role;
   createdAt: string;
   updatedAt?: string;
 }
@@ -40,7 +62,7 @@ export interface PaginatedUsersDto {
 
 // ── DTO para crear un usuario ──────────────────────────────────────
 export interface CreateUserDto {
-  name: string;
+  fullName: string;
   email: string;
   password: string;
   roleId: number;
@@ -48,9 +70,8 @@ export interface CreateUserDto {
 
 // ── DTO para actualizar un usuario ─────────────────────────────────
 export interface UpdateUserDto {
-  name?: string;
+  fullName?: string;
   email?: string;
-  isActive?: boolean;
 }
 
 // ── DTO para cambiar el rol de un usuario ──────────────────────────
@@ -90,4 +111,9 @@ export interface UpdateRoleDto {
   name?: string;
   description?: string;
   isActive?: boolean;
+}
+
+// ── DTO para actualizar permisos de un rol ─────────────────────────
+export interface UpdateRolePermissionsDto {
+  permissions: string[];
 }

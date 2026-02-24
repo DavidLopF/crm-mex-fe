@@ -61,7 +61,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
     if (!isFormValid) return;
 
     onSave({
-      name: name.trim(),
+      fullName: name.trim(),
       email: email.trim(),
       password,
       roleId: roleId as number,
