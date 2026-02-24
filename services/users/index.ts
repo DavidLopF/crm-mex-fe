@@ -2,6 +2,8 @@ export {
   getRoles,
   getAllRoles,
   getRoleById,
+  getRolePermissions,
+  updateRolePermissions,
   createRole,
   updateRole,
   deleteRole,
@@ -17,6 +19,8 @@ export {
 export type {
   Role,
   Permission,
+  RolePermission,
+  RolePermissionUpdateItem,
   UserRoleRelation,
   UserDetail,
   UserFiltersDto,

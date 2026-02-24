@@ -20,6 +20,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
   const [roleId, setRoleId] = useState<number | ''>('');
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
+  const [rolesError, setRolesError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -29,11 +30,13 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
 
   const loadRoles = async () => {
     setLoadingRoles(true);
+    setRolesError('');
     try {
       const allRoles = await getAllRoles();
-      setRoles(allRoles.filter(r => r.isActive));
+      setRoles(allRoles.filter(r => r.isActive !== false));
     } catch (err) {
       console.error('Error al cargar roles:', err);
+      setRolesError('No se pudieron cargar los roles');
     } finally {
       setLoadingRoles(false);
     }
@@ -64,6 +67,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
       fullName: name.trim(),
       email: email.trim(),
       password,
+      confirmPassword,
       roleId: roleId as number,
     });
 
@@ -113,6 +117,19 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
           {loadingRoles ? (
             <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-400">
               Cargando roles...
+            </div>
+          ) : rolesError ? (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 px-3 py-2 border border-red-200 rounded-lg bg-red-50 text-sm text-red-500">
+                {rolesError}
+              </div>
+              <button
+                type="button"
+                onClick={loadRoles}
+                className="px-3 py-2 text-sm text-blue-600 hover:text-blue-800 underline whitespace-nowrap"
+              >
+                Reintentar
+              </button>
             </div>
           ) : (
             <select

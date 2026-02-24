@@ -47,7 +47,7 @@ export async function getClients(filters: ClientFiltersDto = {}): Promise<Pagina
       total: response.pagination.total,
       page: response.pagination.page,
       limit: response.pagination.limit,
-      totalPages: response.pagination.totalPages,
+      totalPages: response.pagination.totalPages ?? 0,
     };
   } catch (err) {
     console.error('Error al obtener clientes:', err);

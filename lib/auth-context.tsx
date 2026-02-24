@@ -9,31 +9,37 @@ import {
   ReactNode,
 } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import type { LoginResponse } from '@/services/auth';
+import type { LoginResponse, ModulePermission } from '@/services/auth';
 import { logout as logoutService } from '@/services/auth';
 
 const ACCESS_TOKEN_KEY = 'crm-auth-access-token';
 const REFRESH_TOKEN_KEY = 'crm-auth-refresh-token';
 const FULLNAME_KEY = 'crm-auth-fullname';
+const PERMISSIONS_KEY = 'crm-auth-permissions';
 
 interface AuthContextValue {
   accessToken: string | null;
   fullName: string | null;
+  permissions: ModulePermission[];
   isAuthenticated: boolean;
   isLoading: boolean;
-  /** Guarda tokens + fullName tras login exitoso */
+  /** Guarda tokens + fullName + permisos tras login exitoso */
   setSession: (data: LoginResponse) => void;
   /** Cierra sesión: revoca refresh token en el server y limpia localStorage */
   logout: () => void;
+  /** Verifica si el usuario tiene un permiso específico para un módulo */
+  can: (moduleCode: string, action: 'canView' | 'canCreate' | 'canEdit' | 'canDelete') => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   accessToken: null,
   fullName: null,
+  permissions: [],
   isAuthenticated: false,
   isLoading: true,
   setSession: () => {},
   logout: () => {},
+  can: () => false,
 });
 
 function loadString(key: string): string | null {
@@ -45,11 +51,22 @@ function loadString(key: string): string | null {
   }
 }
 
+function loadPermissions(): ModulePermission[] {
+  const raw = loadString(PERMISSIONS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as ModulePermission[];
+  } catch {
+    return [];
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [accessToken, setAccessToken] = useState<string | null>(() => loadString(ACCESS_TOKEN_KEY));
   const [fullName, setFullName] = useState<string | null>(() => loadString(FULLNAME_KEY));
+  const [permissions, setPermissions] = useState<ModulePermission[]>(() => loadPermissions());
   const [isLoading] = useState(() => typeof window === 'undefined');
 
   // ── Listen for http-client events ─────────────────────────────────────────
@@ -60,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleSessionExpired = () => {
       setAccessToken(null);
       setFullName(null);
+      setPermissions([]);
       router.replace('/login');
     };
 
@@ -89,8 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(ACCESS_TOKEN_KEY, data.auth.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, data.auth.refreshToken);
     localStorage.setItem(FULLNAME_KEY, data.fullName);
+    localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(data.permissions ?? []));
     setAccessToken(data.auth.accessToken);
     setFullName(data.fullName);
+    setPermissions(data.permissions ?? []);
   }, []);
 
   const logout = useCallback(async () => {
@@ -105,20 +125,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(FULLNAME_KEY);
+    localStorage.removeItem(PERMISSIONS_KEY);
     setAccessToken(null);
     setFullName(null);
+    setPermissions([]);
     router.replace('/login');
   }, [router]);
+
+  const can = useCallback(
+    (moduleCode: string, action: 'canView' | 'canCreate' | 'canEdit' | 'canDelete'): boolean => {
+      const mod = permissions.find((p) => p.moduleCode === moduleCode);
+      return mod ? mod[action] : false;
+    },
+    [permissions],
+  );
 
   return (
     <AuthContext.Provider
       value={{
         accessToken,
         fullName,
+        permissions,
         isAuthenticated: !!accessToken,
         isLoading,
         setSession,
         logout,
+        can,
       }}
     >
       {children}

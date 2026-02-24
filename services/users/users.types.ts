@@ -1,9 +1,20 @@
-// ── Permiso individual ─────────────────────────────────────────────
+// ── Permiso individual (frontend) ─────────────────────────────────
 export interface Permission {
   id: string;
   label: string;
   description?: string;
   module: string;
+}
+
+// ── Permiso de rol (tal como devuelve GET /api/roles/:id/permissions) ──
+export interface RolePermission {
+  moduleId: number;
+  moduleCode: string;   // ej: "DASHBOARD", "PEDIDOS", "INVENTARIO"
+  moduleName: string;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
 // ── Rol ────────────────────────────────────────────────────────────
@@ -65,6 +76,7 @@ export interface CreateUserDto {
   fullName: string;
   email: string;
   password: string;
+  confirmPassword: string;
   roleId: number;
 }
 
@@ -104,6 +116,7 @@ export interface PaginatedRolesDto {
 export interface CreateRoleDto {
   name: string;
   description?: string;
+  code?: string;
 }
 
 // ── DTO para actualizar un rol ─────────────────────────────────────
@@ -114,6 +127,15 @@ export interface UpdateRoleDto {
 }
 
 // ── DTO para actualizar permisos de un rol ─────────────────────────
+// Body: { permissions: [{ moduleId, canView, canCreate, canEdit, canDelete }] }
+export interface RolePermissionUpdateItem {
+  moduleId: number;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
 export interface UpdateRolePermissionsDto {
-  permissions: string[];
+  permissions: RolePermissionUpdateItem[];
 }

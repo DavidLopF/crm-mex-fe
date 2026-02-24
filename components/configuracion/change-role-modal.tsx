@@ -12,177 +12,46 @@ import {
   Package,
   ShoppingCart,
   Settings,
-  FileText,
   AlertCircle,
   X,
 } from "lucide-react";
 import { Modal, Button } from "@/components/ui";
 import type { UserDetail, Role, CreateRoleDto } from "@/services/users";
-import { getAllRoles, createRole } from "@/services/users";
+import { getAllRoles, createRole, getRolePermissions, updateRolePermissions } from "@/services/users";
 
-// ── Permisos disponibles en el sistema ──────────────────────────────────────
-const PERMISSION_MODULES = [
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    icon: BarChart2,
-    color: "blue",
-    permissions: [
-      {
-        id: "dashboard.view",
-        label: "Ver dashboard",
-        description: "Acceso a estadísticas generales",
-      },
-    ],
-  },
-  {
-    key: "inventory",
-    label: "Inventario",
-    icon: Package,
-    color: "green",
-    permissions: [
-      {
-        id: "inventory.view",
-        label: "Ver inventario",
-        description: "Consultar productos y stock",
-      },
-      {
-        id: "inventory.create",
-        label: "Crear productos",
-        description: "Agregar nuevos productos",
-      },
-      {
-        id: "inventory.edit",
-        label: "Editar productos",
-        description: "Modificar productos existentes",
-      },
-      {
-        id: "inventory.delete",
-        label: "Eliminar productos",
-        description: "Eliminar productos del catálogo",
-      },
-    ],
-  },
-  {
-    key: "orders",
-    label: "Pedidos",
-    icon: ShoppingCart,
-    color: "orange",
-    permissions: [
-      {
-        id: "orders.view",
-        label: "Ver pedidos",
-        description: "Consultar todos los pedidos",
-      },
-      {
-        id: "orders.create",
-        label: "Crear pedidos",
-        description: "Generar nuevos pedidos",
-      },
-      {
-        id: "orders.edit",
-        label: "Editar pedidos",
-        description: "Modificar pedidos existentes",
-      },
-      {
-        id: "orders.delete",
-        label: "Cancelar pedidos",
-        description: "Cancelar o eliminar pedidos",
-      },
-      {
-        id: "orders.status",
-        label: "Cambiar estatus",
-        description: "Actualizar el estado de pedidos",
-      },
-    ],
-  },
-  {
-    key: "clients",
-    label: "Clientes",
-    icon: Users,
-    color: "purple",
-    permissions: [
-      {
-        id: "clients.view",
-        label: "Ver clientes",
-        description: "Consultar listado de clientes",
-      },
-      {
-        id: "clients.create",
-        label: "Crear clientes",
-        description: "Registrar nuevos clientes",
-      },
-      {
-        id: "clients.edit",
-        label: "Editar clientes",
-        description: "Modificar datos de clientes",
-      },
-      {
-        id: "clients.delete",
-        label: "Eliminar clientes",
-        description: "Dar de baja a clientes",
-      },
-    ],
-  },
-  {
-    key: "reports",
-    label: "Reportes",
-    icon: FileText,
-    color: "indigo",
-    permissions: [
-      {
-        id: "reports.view",
-        label: "Ver reportes",
-        description: "Acceso a reportes y exportaciones",
-      },
-      {
-        id: "reports.export",
-        label: "Exportar datos",
-        description: "Descargar reportes en CSV/Excel",
-      },
-    ],
-  },
-  {
-    key: "config",
-    label: "Configuración",
-    icon: Settings,
-    color: "red",
-    permissions: [
-      {
-        id: "config.users",
-        label: "Gestionar usuarios",
-        description: "CRUD de usuarios del sistema",
-      },
-      {
-        id: "config.roles",
-        label: "Gestionar roles",
-        description: "Crear y editar roles y permisos",
-      },
-      {
-        id: "config.company",
-        label: "Configurar empresa",
-        description: "Cambiar nombre, colores y ajustes",
-      },
-    ],
-  },
-];
+// ── Metadatos visuales por moduleCode del backend ───────────────────────────
+type IconComponent = React.ComponentType<{ className?: string }>;
+
+const MODULE_META: Record<string, { icon: IconComponent; color: string }> = {
+  DASHBOARD:  { icon: BarChart2,    color: "blue"   },
+  PEDIDOS:    { icon: ShoppingCart, color: "orange" },
+  INVENTARIO: { icon: Package,      color: "green"  },
+  CLIENTES:   { icon: Users,        color: "purple" },
+  CONFIG:     { icon: Settings,     color: "red"    },
+};
+
+// Etiquetas legibles para cada acción
+const ACTION_LABELS: Record<string, string> = {
+  canView:   "Ver",
+  canCreate: "Crear",
+  canEdit:   "Editar",
+  canDelete: "Eliminar",
+};
 
 const MODULE_COLORS: Record<string, string> = {
-  blue: "bg-blue-100 text-blue-700 border-blue-200",
-  green: "bg-green-100 text-green-700 border-green-200",
+  blue:   "bg-blue-100 text-blue-700 border-blue-200",
+  green:  "bg-green-100 text-green-700 border-green-200",
   orange: "bg-orange-100 text-orange-700 border-orange-200",
   purple: "bg-purple-100 text-purple-700 border-purple-200",
-  indigo: "bg-indigo-100 text-indigo-700 border-indigo-200",
-  red: "bg-red-100 text-red-700 border-red-200",
+  red:    "bg-red-100 text-red-700 border-red-200",
 };
 
 const MODULE_CHECK_COLORS: Record<string, string> = {
-  blue: "bg-blue-600",
-  green: "bg-green-600",
+  blue:   "bg-blue-600",
+  green:  "bg-green-600",
   orange: "bg-orange-500",
   purple: "bg-purple-600",
-  indigo: "bg-indigo-600",
-  red: "bg-red-600",
+  red:    "bg-red-600",
 };
 
 // ── Tipos de tab dentro del modal ────────────────────────────────────────────
@@ -219,12 +88,17 @@ export function ChangeRoleModal({
   // ── Create tab state ──
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleDesc, setNewRoleDesc] = useState("");
+  const [newRoleCode, setNewRoleCode] = useState("");
   const [creatingRole, setCreatingRole] = useState(false);
   const [createError, setCreateError] = useState("");
 
   // ── Permissions tab state ──
   const [permRoleId, setPermRoleId] = useState<number | "">("");
+  const [backendModules, setBackendModules] = useState<import("@/services/users").RolePermission[]>([]);
   const [selectedPerms, setSelectedPerms] = useState<Set<string>>(new Set());
+  const [loadingPerms, setLoadingPerms] = useState(false);
+  const [permsError, setPermsError] = useState("");
+  const [savingPerms, setSavingPerms] = useState(false);
 
   // Sync when user changes
   if (user && user.id !== lastUserId) {
@@ -256,10 +130,34 @@ export function ChangeRoleModal({
   // Load permissions when switching to permissions tab
   useEffect(() => {
     if (tab === "permissions" && permRoleId !== "") {
-      const role = roles.find((r) => r.id === permRoleId);
-      setSelectedPerms(new Set(role?.permissions ?? []));
+      fetchPermissions(permRoleId as number);
     }
-  }, [tab, permRoleId, roles]);
+  }, [tab, permRoleId]);
+
+  const fetchPermissions = async (roleId: number) => {
+    setLoadingPerms(true);
+    setPermsError("");
+    setBackendModules([]);
+    setSelectedPerms(new Set());
+    try {
+      const data = await getRolePermissions(roleId);
+      setBackendModules(data);
+      // Construir set de permisos activos usando "MODULEKEY.canAction"
+      const active: string[] = [];
+      for (const mod of data) {
+        if (mod.canView)   active.push(`${mod.moduleCode}.canView`);
+        if (mod.canCreate) active.push(`${mod.moduleCode}.canCreate`);
+        if (mod.canEdit)   active.push(`${mod.moduleCode}.canEdit`);
+        if (mod.canDelete) active.push(`${mod.moduleCode}.canDelete`);
+      }
+      setSelectedPerms(new Set(active));
+    } catch (err) {
+      console.error("Error cargando permisos:", err);
+      setPermsError("No se pudieron cargar los permisos del rol");
+    } finally {
+      setLoadingPerms(false);
+    }
+  };
 
   const loadRoles = async () => {
     setLoadingRoles(true);
@@ -302,14 +200,16 @@ export function ChangeRoleModal({
         ? onRoleCreate({
             name: newRoleName.trim(),
             description: newRoleDesc.trim() || undefined,
+            code: newRoleCode.trim() || undefined,
           })
         : createRole({
             name: newRoleName.trim(),
             description: newRoleDesc.trim() || undefined,
+            code: newRoleCode.trim() || undefined,
           }));
-
       setNewRoleName("");
       setNewRoleDesc("");
+      setNewRoleCode("");
       await loadRoles();
 
       // Auto-select the new role
@@ -336,22 +236,46 @@ export function ChangeRoleModal({
     });
   };
 
-  const toggleModule = (moduleKey: string) => {
-    const mod = PERMISSION_MODULES.find((m) => m.key === moduleKey);
-    if (!mod) return;
-    const allSelected = mod.permissions.every((p) => selectedPerms.has(p.id));
+  const toggleModule = (moduleCode: string) => {
+    const actions = ["canView", "canCreate", "canEdit", "canDelete"];
+    const keys = actions.map((a) => `${moduleCode}.${a}`);
+    const allSelected = keys.every((k) => selectedPerms.has(k));
     setSelectedPerms((prev) => {
       const next = new Set(prev);
-      mod.permissions.forEach((p) => {
-        if (allSelected) next.delete(p.id);
-        else next.add(p.id);
+      keys.forEach((k) => {
+        if (allSelected) next.delete(k);
+        else next.add(k);
       });
       return next;
     });
   };
 
+  const handleSavePerms = async () => {
+    if (permRoleId === "") return;
+    setSavingPerms(true);
+    setPermsError("");
+    try {
+      const permissions = backendModules.map((mod) => ({
+        moduleId: mod.moduleId,
+        canView: selectedPerms.has(`${mod.moduleCode}.canView`),
+        canCreate: selectedPerms.has(`${mod.moduleCode}.canCreate`),
+        canEdit: selectedPerms.has(`${mod.moduleCode}.canEdit`),
+        canDelete: selectedPerms.has(`${mod.moduleCode}.canDelete`),
+      }));
+      await updateRolePermissions(permRoleId as number, { permissions });
+      await fetchPermissions(permRoleId as number);
+      handleClose();
+    } catch (err) {
+      setPermsError(
+        err instanceof Error ? err.message : "Error al guardar permisos",
+      );
+    } finally {
+      setSavingPerms(false);
+    }
+  };
+
   const permRole = roles.find((r) => r.id === permRoleId);
-  const totalPerms = PERMISSION_MODULES.flatMap((m) => m.permissions).length;
+  const totalPerms = backendModules.length * 4; // 4 acciones por módulo
 
   if (!user) return null;
 
@@ -620,8 +544,8 @@ export function ChangeRoleModal({
                   Codigo
                 </label>
                 <textarea
-                  value={newRoleDesc}
-                  onChange={(e) => setNewRoleDesc(e.target.value)}
+                  value={newRoleCode}
+                  onChange={(e) => setNewRoleCode(e.target.value)}
                   placeholder="Codigo del rol..."
                   rows={3}
                   className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
@@ -709,8 +633,8 @@ export function ChangeRoleModal({
                     onChange={(e) => {
                       const id = e.target.value ? Number(e.target.value) : "";
                       setPermRoleId(id);
-                      const role = roles.find((r) => r.id === id);
-                      setSelectedPerms(new Set(role?.permissions ?? []));
+                      setSelectedPerms(new Set());
+                      if (id !== "") fetchPermissions(id as number);
                     }}
                     className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white"
                   >
@@ -740,93 +664,86 @@ export function ChangeRoleModal({
                   </div>
 
                   {/* Módulos */}
+                  {loadingPerms ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                      ))}
+                    </div>
+                  ) : permsError ? (
+                    <div className="flex items-center justify-between gap-2 p-3.5 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        {permsError}
+                      </div>
+                      <button
+                        onClick={() => fetchPermissions(permRoleId as number)}
+                        className="text-xs underline font-medium"
+                      >
+                        Reintentar
+                      </button>
+                    </div>
+                  ) : (
                   <div className="space-y-3.5 max-h-80 overflow-y-auto pr-1">
-                    {PERMISSION_MODULES.map((module) => {
-                      const Icon = module.icon;
-                      const modulePerms = module.permissions;
-                      const allSelected = modulePerms.every((p) =>
-                        selectedPerms.has(p.id),
-                      );
-                      const someSelected = modulePerms.some((p) =>
-                        selectedPerms.has(p.id),
-                      );
-                      const colorClass = MODULE_COLORS[module.color];
-                      const checkColor = MODULE_CHECK_COLORS[module.color];
+                    {backendModules.map((mod) => {
+                      const meta = MODULE_META[mod.moduleCode] ?? { icon: Settings, color: "blue" };
+                      const Icon = meta.icon;
+                      const colorClass = MODULE_COLORS[meta.color] ?? MODULE_COLORS.blue;
+                      const checkColor = MODULE_CHECK_COLORS[meta.color] ?? MODULE_CHECK_COLORS.blue;
+                      const actions = (["canView", "canCreate", "canEdit", "canDelete"] as const);
+                      const keys = actions.map((a) => `${mod.moduleCode}.${a}`);
+                      const allSelected = keys.every((k) => selectedPerms.has(k));
+                      const someSelected = keys.some((k) => selectedPerms.has(k));
+                      const activeCount = keys.filter((k) => selectedPerms.has(k)).length;
 
                       return (
-                        <div
-                          key={module.key}
-                          className="border border-gray-200 rounded-xl overflow-hidden"
-                        >
+                        <div key={mod.moduleCode} className="border border-gray-200 rounded-xl overflow-hidden">
                           {/* Módulo header */}
                           <button
-                            onClick={() => toggleModule(module.key)}
+                            onClick={() => toggleModule(mod.moduleCode)}
                             className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                           >
                             <div className="flex items-center gap-2.5">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${colorClass}`}
-                              >
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${colorClass}`}>
                                 <Icon className="w-3 h-3" />
-                                {module.label}
+                                {mod.moduleName}
                               </span>
                               <span className="text-xs text-gray-400">
-                                {
-                                  modulePerms.filter((p) =>
-                                    selectedPerms.has(p.id),
-                                  ).length
-                                }
-                                /{modulePerms.length}
+                                {activeCount}/{actions.length}
                               </span>
                             </div>
-                            <div
-                              className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-all ${
-                                allSelected
-                                  ? `${checkColor} border-transparent`
-                                  : someSelected
-                                    ? "bg-gray-200 border-gray-300"
-                                    : "bg-white border-gray-300"
-                              }`}
-                            >
-                              {allSelected && (
-                                <Check className="w-3 h-3 text-white" />
-                              )}
-                              {someSelected && !allSelected && (
-                                <div className="w-2 h-0.5 bg-gray-500 rounded" />
-                              )}
+                            <div className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-all ${
+                              allSelected
+                                ? `${checkColor} border-transparent`
+                                : someSelected
+                                  ? "bg-gray-200 border-gray-300"
+                                  : "bg-white border-gray-300"
+                            }`}>
+                              {allSelected && <Check className="w-3 h-3 text-white" />}
+                              {someSelected && !allSelected && <div className="w-2 h-0.5 bg-gray-500 rounded" />}
                             </div>
                           </button>
 
-                          {/* Permisos individuales */}
+                          {/* Acciones individuales */}
                           <div className="divide-y divide-gray-100">
-                            {modulePerms.map((perm) => {
-                              const isActive = selectedPerms.has(perm.id);
+                            {actions.map((action) => {
+                              const key = `${mod.moduleCode}.${action}`;
+                              const isActive = selectedPerms.has(key);
                               return (
                                 <button
-                                  key={perm.id}
-                                  onClick={() => togglePerm(perm.id)}
+                                  key={key}
+                                  onClick={() => togglePerm(key)}
                                   className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
                                 >
-                                  <div>
-                                    <p className="text-sm text-gray-800 font-medium">
-                                      {perm.label}
-                                    </p>
-                                    {perm.description && (
-                                      <p className="text-xs text-gray-400 mt-0.5">
-                                        {perm.description}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div
-                                    className={`w-5 h-5 rounded flex items-center justify-center border-2 flex-shrink-0 ml-3 transition-all ${
-                                      isActive
-                                        ? `${checkColor} border-transparent`
-                                        : "bg-white border-gray-300"
-                                    }`}
-                                  >
-                                    {isActive && (
-                                      <Check className="w-3 h-3 text-white" />
-                                    )}
+                                  <p className="text-sm text-gray-800 font-medium">
+                                    {ACTION_LABELS[action]}
+                                  </p>
+                                  <div className={`w-5 h-5 rounded flex items-center justify-center border-2 flex-shrink-0 ml-3 transition-all ${
+                                    isActive
+                                      ? `${checkColor} border-transparent`
+                                      : "bg-white border-gray-300"
+                                  }`}>
+                                    {isActive && <Check className="w-3 h-3 text-white" />}
                                   </div>
                                 </button>
                               );
@@ -836,6 +753,7 @@ export function ChangeRoleModal({
                       );
                     })}
                   </div>
+                  )} {/* fin loadingPerms ? ... : permsError ? ... : (...) */}
 
                   <div className="flex gap-3 pt-3">
                     <Button
@@ -848,11 +766,11 @@ export function ChangeRoleModal({
                       Limpiar
                     </Button>
                     <Button
-                      onClick={handleClose}
+                      onClick={handleSavePerms}
                       className="flex-1"
-                      disabled={submitting}
+                      disabled={submitting || savingPerms || typeof permRoleId !== "number"}
                     >
-                      {submitting
+                      {savingPerms
                         ? "Guardando..."
                         : `Guardar Permisos (${selectedPerms.size})`}
                     </Button>

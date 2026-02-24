@@ -118,7 +118,7 @@ async function tryRefreshToken(): Promise<boolean> {
       return false;
     }
 
-    saveTokens(json.data.accessToken, json.data.refreshToken);
+    saveTokens(json.data.auth.accessToken, json.data.auth.refreshToken);
     // Dispatch event so AuthProvider can sync its React state
     window.dispatchEvent(new Event('auth-tokens-updated'));
     return true;

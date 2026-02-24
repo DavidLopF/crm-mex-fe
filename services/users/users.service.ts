@@ -1,6 +1,8 @@
 import { get, post, put, del, getPaginated } from '@/services/http-client';
 import {
   Role,
+  RolePermission,
+  UpdateRolePermissionsDto,
   UserDetail,
   UserFiltersDto,
   PaginatedUsersDto,
@@ -59,13 +61,44 @@ export async function getRoles(filters: RoleFiltersDto = {}): Promise<PaginatedR
 }
 /**
  * Obtener todos los roles (para selects)
- * GET /api/roles — devuelve { success, data: Role[] } sin paginación
+ * GET /api/roles?page=1&limit=100
  */
 export async function getAllRoles(): Promise<Role[]> {
   try {
-    return await get<Role[]>(ROLES_PATH);
+    const response = await getPaginated<Role[]>(ROLES_PATH, { page: 1, limit: 100 });
+    return response.data;
   } catch (err) {
     console.error('Error al obtener roles:', err);
+    throw err;
+  }
+}
+
+/**
+ * Obtener permisos de un rol
+ * GET /api/roles/:roleId/permissions
+ */
+export async function getRolePermissions(roleId: number | string): Promise<RolePermission[]> {
+  try {
+    return await get<RolePermission[]>(`${ROLES_PATH}/${roleId}/permissions`);
+  } catch (err) {
+    console.error('Error al obtener permisos del rol:', err);
+    throw err;
+  }
+}
+
+/**
+ * Actualizar permisos de un rol
+ * PUT /api/roles/:roleId/permissions
+ * Body: { permissions: [{ moduleId, canView, canCreate, canEdit, canDelete }] }
+ */
+export async function updateRolePermissions(
+  roleId: number | string,
+  data: UpdateRolePermissionsDto,
+): Promise<RolePermission[]> {
+  try {
+    return await put<RolePermission[]>(`${ROLES_PATH}/${roleId}/permissions`, data);
+  } catch (err) {
+    console.error('Error al actualizar permisos del rol:', err);
     throw err;
   }
 }

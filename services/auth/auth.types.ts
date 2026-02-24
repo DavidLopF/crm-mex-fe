@@ -12,10 +12,21 @@ export interface AuthTokens {
   expiresIn: string;
 }
 
+/** Permiso por módulo tal como viene en el login/refresh */
+export interface ModulePermission {
+  moduleCode: string;
+  moduleName: string;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
 /** Respuesta completa del login (data) */
 export interface LoginResponse {
   auth: AuthTokens;
   fullName: string;
+  permissions: ModulePermission[];
 }
 
 export interface RefreshDto {

@@ -16,6 +16,7 @@ import {
 import { useState } from 'react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
+import { ROUTE_TO_MODULE } from '@/lib/hooks';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -29,7 +30,14 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { settings } = useCompany();
-  const { logout } = useAuth();
+  const { logout, can } = useAuth();
+
+  // Filtrar navegación según permisos de canView
+  const visibleNavigation = navigation.filter((item) => {
+    const moduleCode = ROUTE_TO_MODULE[item.href];
+    if (!moduleCode) return true; // si no hay mapeo, mostrar siempre
+    return can(moduleCode, 'canView');
+  });
 
   return (
     <aside
@@ -77,7 +85,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
