@@ -40,9 +40,9 @@ export async function getOrderProducts(
       total: response.pagination.total,
       page: response.pagination.page,
       limit: response.pagination.limit,
-      totalPages: response.pagination.totalPages,
-      hasNextPage: response.pagination.hasNextPage,
-      hasPrevPage: response.pagination.hasPrevPage,
+      totalPages: response.pagination.totalPages ?? Math.ceil(response.pagination.total / (response.pagination.limit || 10)),
+      hasNextPage: response.pagination.hasNextPage ?? false,
+      hasPrevPage: response.pagination.hasPrevPage ?? false,
     };
   } catch (err) {
     console.error('Error al obtener productos para pedidos:', err);

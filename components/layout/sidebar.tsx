@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   Menu,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 import { ROUTE_TO_MODULE } from '@/lib/hooks';
@@ -29,13 +29,19 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { settings } = useCompany();
   const { logout, can } = useAuth();
 
-  // Filtrar navegación según permisos de canView
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), []);
+
+  // Before hydration completes, show all navigation items to avoid SSR mismatch.
+  // After mount, filter by actual permissions loaded from localStorage.
   const visibleNavigation = navigation.filter((item) => {
+    if (!mounted) return true;
     const moduleCode = ROUTE_TO_MODULE[item.href];
-    if (!moduleCode) return true; // si no hay mapeo, mostrar siempre
+    if (!moduleCode) return true;
     return can(moduleCode, 'canView');
   });
 
