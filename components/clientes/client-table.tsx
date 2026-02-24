@@ -28,6 +28,9 @@ interface ClientTableProps {
   onStatusFilterChange?: (filter: 'all' | 'active' | 'inactive') => void;
   totalItems?: number;
   submitting?: boolean;
+  canCreate?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 export function ClientTable({
@@ -45,6 +48,9 @@ export function ClientTable({
   onStatusFilterChange,
   totalItems,
   submitting,
+  canCreate = true,
+  canEdit = true,
+  canDelete = true,
 }: ClientTableProps) {
   const [internalSearch, setInternalSearch] = useState('');
   const [internalPage, setInternalPage] = useState(1);
@@ -202,10 +208,12 @@ export function ClientTable({
           </div>
         </div>
 
+        {canCreate && (
         <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4" />
           Nuevo Cliente
         </Button>
+        )}
       </div>
 
       {/* Tabla */}
@@ -303,6 +311,7 @@ export function ClientTable({
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+                        {canEdit && (
                         <button
                           onClick={() => handleEditClient(client)}
                           className="p-2 hover:bg-amber-50 rounded-lg transition-colors text-gray-400 hover:text-amber-600 disabled:opacity-50"
@@ -311,6 +320,8 @@ export function ClientTable({
                         >
                           <Edit className="w-4 h-4" />
                         </button>
+                        )}
+                        {canDelete && (
                         <button
                           onClick={() => handleDeleteClick(client)}
                           className="p-2 hover:bg-red-50 rounded-lg transition-colors text-gray-400 hover:text-red-600"
@@ -318,6 +329,7 @@ export function ClientTable({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -1,10 +1,14 @@
+'use client';
+
 import { Package, ShoppingCart, Users, DollarSign, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
 import { StatCard, SalesChart, RecentOrders, TopProducts, LowStockAlert } from '@/components/dashboard';
 import { dashboardStats, ventasUltimos7Dias, topProductos, pedidosRecientes, productosStockBajo } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
+import { PermissionGuard } from '@/components/layout';
 
 export default function DashboardPage() {
   return (
+    <PermissionGuard moduleCode="DASHBOARD">
     <main className="p-6">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -87,5 +91,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </main>
+    </PermissionGuard>
   );
 }

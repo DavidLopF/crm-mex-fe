@@ -13,8 +13,9 @@ import {
   CreateClientDto,
   UpdateClientDto,
 } from '@/services/clients';
-import { useDebounce, useToast } from '@/lib/hooks';
+import { useDebounce, useToast, usePermissions } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
+import { PermissionGuard } from '@/components/layout';
 
 export default function ClientesPage() {
   const [clients, setClients] = useState<ClientDetail[]>([]);
@@ -130,6 +131,7 @@ export default function ClientesPage() {
   };
 
   return (
+    <PermissionGuard moduleCode="CLIENTES">
     <main className="p-6">
       {/* Toast notifications */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
@@ -166,5 +168,6 @@ export default function ClientesPage() {
         )}
       </div>
     </main>
+    </PermissionGuard>
   );
 }

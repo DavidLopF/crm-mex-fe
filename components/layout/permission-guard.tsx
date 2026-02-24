@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { ShieldX } from 'lucide-react';
 
 interface PermissionGuardProps {

@@ -44,6 +44,7 @@ export async function getRoles(filters: RoleFiltersDto = {}): Promise<PaginatedR
 
     if (filters.page !== undefined) params.page = filters.page;
     if (filters.limit !== undefined) params.limit = filters.limit;
+    if (filters.search !== undefined && filters.search !== '') params.search = filters.search;
 
     const response = await getPaginated<Role[]>(ROLES_PATH, params);
 

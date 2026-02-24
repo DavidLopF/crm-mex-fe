@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { useCompany } from '@/lib/company-context';
 import type { UpdateCompanySettingsDto } from '@/services/company';
 import { updateCompanySettings } from '@/services/company';
+import { PermissionGuard } from '@/components/layout';
 
 type Tab = 'users' | 'roles' | 'company';
 
@@ -247,6 +248,7 @@ export default function ConfiguracionPage() {
   ];
 
   return (
+    <PermissionGuard moduleCode="CONFIG">
     <main className="p-6">
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
 
@@ -333,5 +335,6 @@ export default function ConfiguracionPage() {
         )}
       </div>
     </main>
+    </PermissionGuard>
   );
 }

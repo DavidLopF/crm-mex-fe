@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Search, Plus, Edit, Trash2, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, Badge } from '@/components/ui';
-import { formatDateTime } from '@/lib/utils';
 import { CreateRoleModal } from './create-role-modal';
 import { EditRoleModal } from './edit-role-modal';
 import { DeleteRoleModal } from './delete-role-modal';
@@ -136,12 +135,6 @@ export function RolesTable({
                 <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Creado
-                </th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -178,11 +171,6 @@ export function RolesTable({
                         {role.isActive ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-sm text-gray-500">
-                        {formatDateTime(role.createdAt)}
-                      </span>
-                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-1">
                         <button
@@ -209,29 +197,80 @@ export function RolesTable({
         </div>
 
         {/* Paginación */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
-            <p className="text-sm text-gray-500">
-              Mostrando página {currentPage} de {totalPages} ({totalItems ?? roles.length} roles)
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage <= 1}
-                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+        {(() => {
+          const total = totalItems ?? roles.length;
+          const start = (currentPage - 1) * itemsPerPage + 1;
+          const end = Math.min(currentPage * itemsPerPage, total);
+
+          const getPageNumbers = () => {
+            if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+            const pages: (number | '...')[] = [1];
+            if (currentPage > 3) pages.push('...');
+            for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+              pages.push(i);
+            }
+            if (currentPage < totalPages - 2) pages.push('...');
+            pages.push(totalPages);
+            return pages;
+          };
+
+          return (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
+              <p className="text-sm text-gray-500">
+                {total === 0 ? 'Sin resultados' : `Mostrando ${start}–${end} de ${total} roles`}
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage <= 1}
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs px-2"
+                  title="Primera página"
+                >
+                  «
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {getPageNumbers().map((page, idx) =>
+                  page === '...' ? (
+                    <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm">…</span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page as number)}
+                      className={`min-w-[32px] h-8 rounded-lg border text-sm transition-colors ${
+                        page === currentPage
+                          ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                          : 'border-gray-200 hover:bg-white text-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage >= totalPages}
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs px-2"
+                  title="Última página"
+                >
+                  »
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Modals */}

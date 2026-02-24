@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { InventoryTable, InventoryTableSkeleton, InventoryStats } from '@/components/inventario';
 import { Producto } from '@/types';
 import { getProducts, PaginatedProductsDto, getStadistics, ProductStatistics } from '@/services/products';
-import { useDebounce, useToast } from '@/lib/hooks';
+import { useDebounce, useToast, usePermissions } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
+import { PermissionGuard } from '@/components/layout';
 
 export default function InventarioPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -18,6 +19,7 @@ export default function InventarioPage() {
   
   // Toast notifications
   const toast = useToast();
+  const { canCreate, canEdit, canDelete } = usePermissions('INVENTARIO');
 
   // Debounce para la búsqueda - espera 500ms después de que el usuario deje de escribir
   const debouncedSearch = useDebounce(search, 500);
@@ -85,6 +87,7 @@ export default function InventarioPage() {
   };
 
   return (
+    <PermissionGuard moduleCode="INVENTARIO">
     <main className="p-6">
       {/* Toast notifications */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
@@ -104,9 +107,9 @@ export default function InventarioPage() {
           ) : (
             <InventoryTable 
               productos={productos} 
-              onProductUpdate={handleProductUpdate}
-              onProductCreate={handleProductCreate}
-              onProductDelete={handleProductDelete}
+              onProductUpdate={canEdit ? handleProductUpdate : undefined}
+              onProductCreate={canCreate ? handleProductCreate : undefined}
+              onProductDelete={canDelete ? handleProductDelete : undefined}
               onError={toast.error}
               onSuccess={toast.success}
               externalSearch={search}
@@ -116,10 +119,14 @@ export default function InventarioPage() {
               externalItemsPerPage={limit}
               onItemsPerPageChange={(newLimit) => { setLimit(newLimit); setPage(1); }}
               totalItems={total}
+              canCreate={canCreate}
+              canEdit={canEdit}
+              canDelete={canDelete}
             />
           )}
         </div>
       </div>
     </main>
+    </PermissionGuard>
   );
 }

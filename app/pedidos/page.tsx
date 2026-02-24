@@ -16,6 +16,7 @@ import {
   CreateOrderDto,
 } from '@/services';
 import { useToast } from '@/lib/hooks';
+import { PermissionGuard } from '@/components/layout';
 
 // Mapeo de estados del backend a estados del frontend
 const mapEstadoBackendToFrontend = (statusCode: string): EstadoPedido => {
@@ -254,6 +255,7 @@ export default function PedidosPage() {
   };
 
   return (
+    <PermissionGuard moduleCode="PEDIDOS">
     <main className="h-[calc(100vh-4rem)] flex flex-col p-6">
       <div className="space-y-4 mb-6">
         {/* Header */}
@@ -353,5 +355,6 @@ export default function PedidosPage() {
         onSave={handleCreateOrder}
       />
     </main>
+    </PermissionGuard>
   );
 }

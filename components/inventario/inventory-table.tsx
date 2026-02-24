@@ -26,6 +26,10 @@ interface InventoryTableProps {
   externalItemsPerPage?: number;
   onItemsPerPageChange?: (limit: number) => void;
   totalItems?: number;
+  // Permission flags
+  canCreate?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 export function InventoryTable({ 
@@ -42,6 +46,9 @@ export function InventoryTable({
   externalItemsPerPage,
   onItemsPerPageChange,
   totalItems,
+  canCreate = true,
+  canEdit = true,
+  canDelete = true,
 }: InventoryTableProps) {
   const [internalSearch, setInternalSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -195,10 +202,12 @@ export function InventoryTable({
           </div>
         </div>
 
+        {canCreate && (
         <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="w-4 h-4" />
           Nuevo Producto
         </Button>
+        )}
       </div>
 
       <Card>
@@ -294,6 +303,7 @@ export function InventoryTable({
                         >
                           <Eye className="w-4 h-4 text-gray-500" />
                         </button>
+                        {canEdit && (
                         <button
                           onClick={() => handleEditProduct(producto)}
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
@@ -302,6 +312,8 @@ export function InventoryTable({
                         >
                           <Edit className="w-4 h-4 text-gray-500" />
                         </button>
+                        )}
+                        {canDelete && (
                         <button
                           onClick={() => handleDeleteClick(producto)}
                           className="p-2 hover:bg-red-50 rounded-lg transition-colors"
@@ -309,6 +321,7 @@ export function InventoryTable({
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>
