@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { login as loginService } from '@/services/auth';
 import { useCompany } from '@/lib/company-context';
@@ -286,13 +287,13 @@ export default function LoginPage() {
                 />
                 <span className="text-sm text-gray-600">Recordarme</span>
               </label>
-              <button
-                type="button"
+              <Link
+                href="/forgot-password"
                 className="text-sm font-medium transition-colors hover:underline"
                 style={{ color: settings.primaryColor }}
               >
                 ¿Olvidaste tu contraseña?
-              </button>
+              </Link>
             </div>
 
             {/* Submit button */}

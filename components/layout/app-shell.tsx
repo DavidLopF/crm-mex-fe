@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
 
-  const isPublicPage = pathname === '/login';
+  const isPublicPage = ['/login', '/forgot-password', '/reset-password'].includes(pathname);
 
   // While loading auth state, show a minimal spinner to avoid layout flash
   if (isLoading) {

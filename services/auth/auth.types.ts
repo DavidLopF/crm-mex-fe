@@ -25,3 +25,16 @@ export interface RefreshDto {
 export interface LogoutDto {
   refreshToken: string;
 }
+
+/** POST /api/auth/forgot-password */
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+/** POST /api/auth/reset-password */
+export interface ResetPasswordDto {
+  email: string;
+  code: string;
+  password: string;
+  confirmPassword: string;
+}

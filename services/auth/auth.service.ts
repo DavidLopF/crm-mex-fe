@@ -1,4 +1,4 @@
-import type { LoginDto, LoginResponse, AuthTokens, LogoutDto } from './auth.types';
+import type { LoginDto, LoginResponse, AuthTokens, LogoutDto, ForgotPasswordDto, ResetPasswordDto } from './auth.types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -53,4 +53,22 @@ export async function refreshTokens(refreshToken: string): Promise<AuthTokens> {
  */
 export async function logout(dto: LogoutDto): Promise<void> {
   await authRequest<{ message: string }>('/auth/logout', dto);
+}
+
+/**
+ * POST /api/auth/forgot-password
+ * Body: { email }
+ * Envía un código de recuperación al email.
+ */
+export async function forgotPassword(dto: ForgotPasswordDto): Promise<void> {
+  await authRequest<{ message: string }>('/auth/forgot-password', dto);
+}
+
+/**
+ * POST /api/auth/reset-password
+ * Body: { email, code, password, confirmPassword }
+ * Restablece la contraseña usando el código recibido.
+ */
+export async function resetPassword(dto: ResetPasswordDto): Promise<void> {
+  await authRequest<{ message: string }>('/auth/reset-password', dto);
 }

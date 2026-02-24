@@ -74,11 +74,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Redirect logic ────────────────────────────────────────────────────────
   useEffect(() => {
     if (isLoading) return;
-    const isLoginPage = pathname === '/login';
+    const publicPages = ['/login', '/forgot-password', '/reset-password'];
+    const isPublicPage = publicPages.includes(pathname);
 
-    if (!accessToken && !isLoginPage) {
+    if (!accessToken && !isPublicPage) {
       router.replace('/login');
-    } else if (accessToken && isLoginPage) {
+    } else if (accessToken && isPublicPage) {
       router.replace('/');
     }
   }, [accessToken, isLoading, pathname, router]);
