@@ -1,0 +1,132 @@
+'use client';
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import type { LoginResponse } from '@/services/auth';
+import { logout as logoutService } from '@/services/auth';
+
+const ACCESS_TOKEN_KEY = 'crm-auth-access-token';
+const REFRESH_TOKEN_KEY = 'crm-auth-refresh-token';
+const FULLNAME_KEY = 'crm-auth-fullname';
+
+interface AuthContextValue {
+  accessToken: string | null;
+  fullName: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  /** Guarda tokens + fullName tras login exitoso */
+  setSession: (data: LoginResponse) => void;
+  /** Cierra sesión: revoca refresh token en el server y limpia localStorage */
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextValue>({
+  accessToken: null,
+  fullName: null,
+  isAuthenticated: false,
+  isLoading: true,
+  setSession: () => {},
+  logout: () => {},
+});
+
+function loadString(key: string): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [accessToken, setAccessToken] = useState<string | null>(() => loadString(ACCESS_TOKEN_KEY));
+  const [fullName, setFullName] = useState<string | null>(() => loadString(FULLNAME_KEY));
+  const [isLoading] = useState(() => typeof window === 'undefined');
+
+  // ── Listen for http-client events ─────────────────────────────────────────
+  useEffect(() => {
+    const handleTokensUpdated = () => {
+      setAccessToken(loadString(ACCESS_TOKEN_KEY));
+    };
+    const handleSessionExpired = () => {
+      setAccessToken(null);
+      setFullName(null);
+      router.replace('/login');
+    };
+
+    window.addEventListener('auth-tokens-updated', handleTokensUpdated);
+    window.addEventListener('auth-session-expired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('auth-tokens-updated', handleTokensUpdated);
+      window.removeEventListener('auth-session-expired', handleSessionExpired);
+    };
+  }, [router]);
+
+  // ── Redirect logic ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (isLoading) return;
+    const isLoginPage = pathname === '/login';
+
+    if (!accessToken && !isLoginPage) {
+      router.replace('/login');
+    } else if (accessToken && isLoginPage) {
+      router.replace('/');
+    }
+  }, [accessToken, isLoading, pathname, router]);
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  const setSession = useCallback((data: LoginResponse) => {
+    localStorage.setItem(ACCESS_TOKEN_KEY, data.auth.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, data.auth.refreshToken);
+    localStorage.setItem(FULLNAME_KEY, data.fullName);
+    setAccessToken(data.auth.accessToken);
+    setFullName(data.fullName);
+  }, []);
+
+  const logout = useCallback(async () => {
+    const rt = loadString(REFRESH_TOKEN_KEY);
+    if (rt) {
+      try {
+        await logoutService({ refreshToken: rt });
+      } catch {
+        // ignore
+      }
+    }
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(FULLNAME_KEY);
+    setAccessToken(null);
+    setFullName(null);
+    router.replace('/login');
+  }, [router]);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        accessToken,
+        fullName,
+        isAuthenticated: !!accessToken,
+        isLoading,
+        setSession,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}

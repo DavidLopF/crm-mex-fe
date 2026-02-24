@@ -2,9 +2,11 @@
 
 import { Bell, Search, User } from 'lucide-react';
 import { useCompany } from '@/lib/company-context';
+import { useAuth } from '@/lib/auth-context';
 
 export function Header() {
   const { settings } = useCompany();
+  const { fullName } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
@@ -35,7 +37,7 @@ export function Header() {
               <User className="w-5 h-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-medium text-gray-900">Admin</p>
+              <p className="text-sm font-medium text-gray-900">{fullName || 'Usuario'}</p>
               <p className="text-xs text-gray-500">Administrador</p>
             </div>
           </div>

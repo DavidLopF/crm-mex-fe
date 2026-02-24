@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useCompany } from '@/lib/company-context';
+import { useAuth } from '@/lib/auth-context';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -28,6 +29,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { settings } = useCompany();
+  const { logout } = useAuth();
 
   return (
     <aside
@@ -104,6 +106,7 @@ export function Sidebar() {
 
         <div className="p-3 border-t border-gray-200">
           <button
+            onClick={logout}
             className={cn(
               'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors',
               collapsed && 'justify-center'

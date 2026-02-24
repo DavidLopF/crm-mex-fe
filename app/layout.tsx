@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
 import { Providers } from './providers';
+import { AppShell } from '@/components/layout/app-shell';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,13 +30,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="min-h-screen bg-gray-50">
-            <Sidebar />
-            <div className="ml-64 transition-all duration-300">
-              <Header />
-              {children}
-            </div>
-          </div>
+          <AppShell>
+            {children}
+          </AppShell>
         </Providers>
       </body>
     </html>
