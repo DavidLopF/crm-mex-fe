@@ -1,15 +1,25 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { VentasPorDia } from '@/types';
+import { DashboardSalesChartDay } from '@/services/dashboard';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
 
 interface SalesChartProps {
-  data: VentasPorDia[];
+  data: DashboardSalesChartDay[];
+}
+
+/** "2026-02-25" → "25 Feb" */
+function formatChartDate(dateStr: string): string {
+  const [, , day] = dateStr.split('-');
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const monthIdx = parseInt(dateStr.split('-')[1]) - 1;
+  return `${parseInt(day)} ${months[monthIdx]}`;
 }
 
 export function SalesChart({ data }: SalesChartProps) {
+  const chartData = data.map(d => ({ ...d, fecha: formatChartDate(d.date) }));
+
   return (
     <Card className="col-span-full lg:col-span-2">
       <CardHeader>
@@ -18,7 +28,7 @@ export function SalesChart({ data }: SalesChartProps) {
       <CardContent>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />

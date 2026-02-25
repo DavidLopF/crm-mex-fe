@@ -1,25 +1,27 @@
 import { Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui';
-import { PedidoReciente, EstadoPedido } from '@/types';
+import { DashboardRecentOrder } from '@/services/dashboard';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 
 interface RecentOrdersProps {
-  pedidos: PedidoReciente[];
+  pedidos: DashboardRecentOrder[];
 }
 
-const estadoVariants: Record<EstadoPedido, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
-  cotizado: 'info',
-  transmitido: 'default',
-  en_curso: 'warning',
-  enviado: 'success',
-  cancelado: 'danger',
+type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
+
+const estadoVariants: Record<string, BadgeVariant> = {
+  COTIZADO: 'info',
+  TRANSMITIDO: 'default',
+  EN_CURSO: 'warning',
+  ENVIADO: 'success',
+  CANCELADO: 'danger',
 };
 
-const estadoLabels: Record<EstadoPedido, string> = {
-  cotizado: 'Cotizado',
-  transmitido: 'Transmitido',
-  en_curso: 'En Curso',
-  enviado: 'Enviado',
-  cancelado: 'Cancelado',
+const estadoLabels: Record<string, string> = {
+  COTIZADO: 'Cotizado',
+  TRANSMITIDO: 'Transmitido',
+  EN_CURSO: 'En Curso',
+  ENVIADO: 'Enviado',
+  CANCELADO: 'Cancelado',
 };
 
 export function RecentOrders({ pedidos }: RecentOrdersProps) {
@@ -57,10 +59,10 @@ export function RecentOrders({ pedidos }: RecentOrdersProps) {
               {pedidos.map((pedido) => (
                 <tr key={pedido.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-primary">{pedido.numero}</span>
+                    <span className="text-sm font-medium text-primary">{pedido.code}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-gray-900">{pedido.clienteNombre}</span>
+                    <span className="text-sm text-gray-900">{pedido.client}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm font-medium text-gray-900">
@@ -68,12 +70,12 @@ export function RecentOrders({ pedidos }: RecentOrdersProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant={estadoVariants[pedido.estado]}>
-                      {estadoLabels[pedido.estado]}
+                    <Badge variant={estadoVariants[pedido.statusCode] ?? 'default'}>
+                      {estadoLabels[pedido.statusCode] ?? pedido.status}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-gray-500">{formatDateTime(pedido.fecha)}</span>
+                    <span className="text-sm text-gray-500">{formatDateTime(new Date(pedido.createdAt))}</span>
                   </td>
                 </tr>
               ))}

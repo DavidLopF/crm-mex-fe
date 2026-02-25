@@ -1,9 +1,9 @@
 import { Card, CardHeader, CardTitle, CardContent, Badge } from '@/components/ui';
-import { Producto } from '@/types';
+import { DashboardLowStockProduct } from '@/services/dashboard';
 import { AlertTriangle } from 'lucide-react';
 
 interface LowStockAlertProps {
-  productos: Producto[];
+  productos: DashboardLowStockProduct[];
 }
 
 export function LowStockAlert({ productos }: LowStockAlertProps) {
@@ -36,3 +36,4 @@ export function LowStockAlert({ productos }: LowStockAlertProps) {
     </Card>
   );
 }
+
