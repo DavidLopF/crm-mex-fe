@@ -54,7 +54,7 @@ export async function getOrderProducts(
  * Crea un nuevo pedido
  */
 export async function createOrder(dto: CreateOrderDto): Promise<Order> {
-  return post<Order>('/orders', dto);
+  return post<Order>('/api/orders', dto);
 }
 
 /**

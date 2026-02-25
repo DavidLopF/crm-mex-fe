@@ -386,7 +386,7 @@ export function InventoryTable({
                   }}
                   className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === pageNum
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-white'
                       : 'hover:bg-gray-50 text-gray-600'
                   }`}
                 >

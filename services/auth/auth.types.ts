@@ -26,6 +26,7 @@ export interface ModulePermission {
 export interface LoginResponse {
   auth: AuthTokens;
   fullName: string;
+  roleName?: string;
   permissions: ModulePermission[];
 }
 

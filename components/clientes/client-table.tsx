@@ -265,8 +265,8 @@ export function ClientTable({
                   <tr key={client.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-semibold text-blue-600">
+                        <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-semibold text-primary">
                             {getInitials(client.name)}
                           </span>
                         </div>
@@ -305,7 +305,7 @@ export function ClientTable({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewClient(client)}
-                          className="p-2 hover:bg-blue-50 rounded-lg transition-colors text-gray-400 hover:text-blue-600 disabled:opacity-50"
+                          className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-gray-400 hover:text-primary disabled:opacity-50"
                           title="Ver detalle"
                           disabled={loadingDetail}
                         >
@@ -388,7 +388,7 @@ export function ClientTable({
                     onClick={() => handlePageChange(pageNum)}
                     className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                       currentPage === pageNum
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'hover:bg-gray-50 text-gray-600'
                     }`}
                   >

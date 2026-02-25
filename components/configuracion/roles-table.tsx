@@ -175,7 +175,7 @@ export function RolesTable({
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleEditRole(role)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                           title="Editar"
                         >
                           <Edit className="w-4 h-4" />
@@ -244,7 +244,7 @@ export function RolesTable({
                       onClick={() => handlePageChange(page as number)}
                       className={`min-w-[32px] h-8 rounded-lg border text-sm transition-colors ${
                         page === currentPage
-                          ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                          ? 'bg-primary border-primary text-white font-medium'
                           : 'border-gray-200 hover:bg-white text-gray-700'
                       }`}
                     >

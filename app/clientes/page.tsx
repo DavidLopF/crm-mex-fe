@@ -13,7 +13,7 @@ import {
   CreateClientDto,
   UpdateClientDto,
 } from '@/services/clients';
-import { useDebounce, useToast, usePermissions } from '@/lib/hooks';
+import { useDebounce, useToast } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
 import { PermissionGuard } from '@/components/layout';
 

@@ -10,20 +10,19 @@ import { OrderStatusCode } from '@/services/orders';
 interface OrderCardProps {
   pedido: Pedido;
   onClick: () => void;
-  onDragStart?: (pedido: Pedido) => void;
   onStatusChange?: (orderId: string, newStatusCode: OrderStatusCode) => Promise<void>;
 }
 
 const estadoColors = {
-  cotizado: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'default' as const },
-  transmitido: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'default' as const },
-  en_curso: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'warning' as const },
-  enviado: { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700', badge: 'default' as const },
-  pagado: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'success' as const },
-  cancelado: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'danger' as const },
+  cotizado: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'default' as const, dot: 'bg-blue-500', label: 'Cotizado' },
+  transmitido: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'default' as const, dot: 'bg-purple-500', label: 'Transmitido' },
+  en_curso: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'warning' as const, dot: 'bg-orange-500', label: 'En Curso' },
+  enviado: { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700', badge: 'default' as const, dot: 'bg-cyan-500', label: 'Enviado' },
+  pagado: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'success' as const, dot: 'bg-green-500', label: 'Pagado' },
+  cancelado: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'danger' as const, dot: 'bg-red-500', label: 'Cancelado' },
 };
 
-export function OrderCard({ pedido, onClick, onDragStart, onStatusChange }: OrderCardProps) {
+export function OrderCard({ pedido, onClick, onStatusChange }: OrderCardProps) {
   const colors = estadoColors[pedido.estado];
   const cantidadTotal = pedido.lineas.reduce((sum, linea) => sum + linea.cantidad, 0);
 
@@ -45,32 +44,28 @@ export function OrderCard({ pedido, onClick, onDragStart, onStatusChange }: Orde
     }
   };
 
-  const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/json', JSON.stringify(pedido));
-    if (onDragStart) {
-      onDragStart(pedido);
-    }
-  };
-
   return (
     <div
-      draggable
       onClick={onClick}
-      onDragStart={handleDragStart}
-      className={`p-4 rounded-lg border-2 ${colors.border} ${colors.bg} hover:shadow-md transition-all cursor-move group h-[320px] w-full flex flex-col active:opacity-50`}
+      className={`p-4 rounded-lg border ${colors.border} ${colors.bg} hover:shadow-md transition-all cursor-pointer group w-full flex flex-col`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 flex-shrink-0">
-        <div className="flex-1">
-          <p className="font-mono text-sm font-semibold text-gray-900">{pedido.numero}</p>
-          <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="font-mono text-sm font-semibold text-gray-900">{pedido.numero}</p>
+            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors.text} ${colors.bg} border ${colors.border}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+              {colors.label}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             {formatDateTime(pedido.createdAt)}
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {!pedido.transmitido && pedido.estado === 'cotizado' && (
             <Badge variant="warning" className="text-xs">
               Editable
@@ -98,7 +93,7 @@ export function OrderCard({ pedido, onClick, onDragStart, onStatusChange }: Orde
       </div>
 
       {/* Productos */}
-      <div className="mb-3 flex-1 overflow-y-auto min-h-0">
+      <div className="mb-3">
         <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
           <span className="flex items-center gap-1">
             <Package className="w-3 h-3" />
@@ -138,11 +133,6 @@ export function OrderCard({ pedido, onClick, onDragStart, onStatusChange }: Orde
           </div>
         </div>
       )}
-
-      {/* Indicador de hover */}
-      <div className="mt-3 pt-2 border-t border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <p className="text-xs text-gray-500 text-center">Click para ver detalles</p>
-      </div>
     </div>
   );
 }

@@ -36,8 +36,8 @@ export function StatCard({ title, value, icon: Icon, trend, className, iconClass
               </div>
             )}
           </div>
-          <div className={cn('p-3 rounded-xl', iconClassName || 'bg-blue-100')}>
-            <Icon className={cn('w-6 h-6', iconClassName ? 'text-current' : 'text-blue-600')} />
+          <div className={cn('p-3 rounded-xl', iconClassName || 'bg-primary/10')}>
+            <Icon className={cn('w-6 h-6', iconClassName ? 'text-current' : 'text-primary')} />
           </div>
         </div>
       </CardContent>

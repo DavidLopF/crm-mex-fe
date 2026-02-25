@@ -20,7 +20,7 @@ export function ClientStats({ statistics }: ClientStatsProps) {
         title="Total Clientes"
         value={totalClients}
         icon={Users}
-        iconClassName="bg-blue-100 text-blue-600"
+        iconClassName="bg-primary/10 text-primary"
       />
       <StatCard
         title="Clientes Activos"

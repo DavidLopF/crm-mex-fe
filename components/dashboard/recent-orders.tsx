@@ -27,7 +27,7 @@ export function RecentOrders({ pedidos }: RecentOrdersProps) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Pedidos Recientes</CardTitle>
-        <a href="/pedidos" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+        <a href="/pedidos" className="text-sm text-primary hover:text-primary/80 font-medium">
           Ver todos
         </a>
       </CardHeader>
@@ -57,7 +57,7 @@ export function RecentOrders({ pedidos }: RecentOrdersProps) {
               {pedidos.map((pedido) => (
                 <tr key={pedido.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-blue-600">{pedido.numero}</span>
+                    <span className="text-sm font-medium text-primary">{pedido.numero}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-gray-900">{pedido.clienteNombre}</span>

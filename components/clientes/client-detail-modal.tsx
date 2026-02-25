@@ -24,8 +24,8 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
       <div className="space-y-6">
         {/* Header con avatar e info principal */}
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <User className="w-8 h-8 text-blue-600" />
+          <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <User className="w-8 h-8 text-primary" />
           </div>
           <div className="flex-1">
             <h3 className="text-xl font-bold text-gray-900">{client.name}</h3>
@@ -42,12 +42,12 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
 
         {/* Estadísticas del cliente */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+          <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
             <div className="flex items-center gap-2 mb-1">
-              <ShoppingCart className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">Total Pedidos</span>
+              <ShoppingCart className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Total Pedidos</span>
             </div>
-            <p className="text-2xl font-bold text-blue-900">{client.totalOrders}</p>
+            <p className="text-2xl font-bold text-primary/90">{client.totalOrders}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-4 border border-green-100">
             <div className="flex items-center gap-2 mb-1">

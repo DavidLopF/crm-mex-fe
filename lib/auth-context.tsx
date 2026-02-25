@@ -15,11 +15,13 @@ import { logout as logoutService } from '@/services/auth';
 const ACCESS_TOKEN_KEY = 'crm-auth-access-token';
 const REFRESH_TOKEN_KEY = 'crm-auth-refresh-token';
 const FULLNAME_KEY = 'crm-auth-fullname';
+const ROLENAME_KEY = 'crm-auth-rolename';
 const PERMISSIONS_KEY = 'crm-auth-permissions';
 
 interface AuthContextValue {
   accessToken: string | null;
   fullName: string | null;
+  roleName: string | null;
   permissions: ModulePermission[];
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -34,6 +36,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   accessToken: null,
   fullName: null,
+  roleName: null,
   permissions: [],
   isAuthenticated: false,
   isLoading: true,
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [accessToken, setAccessToken] = useState<string | null>(() => loadString(ACCESS_TOKEN_KEY));
   const [fullName, setFullName] = useState<string | null>(() => loadString(FULLNAME_KEY));
+  const [roleName, setRoleName] = useState<string | null>(() => loadString(ROLENAME_KEY));
   const [permissions, setPermissions] = useState<ModulePermission[]>(() => loadPermissions());
   const [isLoading] = useState(() => typeof window === 'undefined');
 
@@ -77,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleSessionExpired = () => {
       setAccessToken(null);
       setFullName(null);
+      setRoleName(null);
       setPermissions([]);
       router.replace('/login');
     };
@@ -107,9 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(ACCESS_TOKEN_KEY, data.auth.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, data.auth.refreshToken);
     localStorage.setItem(FULLNAME_KEY, data.fullName);
+    if (data.roleName) localStorage.setItem(ROLENAME_KEY, data.roleName);
     localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(data.permissions ?? []));
     setAccessToken(data.auth.accessToken);
     setFullName(data.fullName);
+    setRoleName(data.roleName ?? null);
     setPermissions(data.permissions ?? []);
   }, []);
 
@@ -125,9 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(FULLNAME_KEY);
+    localStorage.removeItem(ROLENAME_KEY);
     localStorage.removeItem(PERMISSIONS_KEY);
     setAccessToken(null);
     setFullName(null);
+    setRoleName(null);
     setPermissions([]);
     router.replace('/login');
   }, [router]);
@@ -145,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         accessToken,
         fullName,
+        roleName,
         permissions,
         isAuthenticated: !!accessToken,
         isLoading,

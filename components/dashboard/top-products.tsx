@@ -13,7 +13,7 @@ export function TopProducts({ productos }: TopProductsProps) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Productos Más Vendidos</CardTitle>
-        <a href="/inventario" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+        <a href="/inventario" className="text-sm text-primary hover:text-primary/80 font-medium">
           Ver todos
         </a>
       </CardHeader>
@@ -36,7 +36,7 @@ export function TopProducts({ productos }: TopProductsProps) {
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-600 rounded-full transition-all"
+                className="h-full bg-primary rounded-full transition-all"
                 style={{ width: `${(producto.vendidos / maxVendidos) * 100}%` }}
               />
             </div>

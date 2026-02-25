@@ -225,8 +225,8 @@ export function UsersTable({
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-semibold text-blue-700">
+                        <div className="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-semibold text-primary">
                             {getInitials(user.fullName)}
                           </span>
                         </div>
@@ -267,7 +267,7 @@ export function UsersTable({
                         </button>
                         <button
                           onClick={() => handleEditUser(user)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                           title="Editar"
                         >
                           <Edit className="w-4 h-4" />
@@ -332,7 +332,7 @@ export function UsersTable({
                       onClick={() => handlePageChange(p as number)}
                       className={`min-w-[32px] px-2.5 py-1.5 text-xs rounded-lg border transition-colors ${
                         p === currentPage
-                          ? 'border-blue-500 bg-blue-500 text-white font-semibold'
+                          ? 'border-primary bg-primary text-white font-semibold'
                           : 'border-gray-200 hover:bg-white text-gray-600'
                       }`}
                     >

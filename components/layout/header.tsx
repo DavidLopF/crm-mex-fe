@@ -1,12 +1,12 @@
 'use client';
 
-import { Bell, Search, User } from 'lucide-react';
+import { Search, User } from 'lucide-react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 
 export function Header() {
   const { settings } = useCompany();
-  const { fullName } = useAuth();
+  const { fullName, roleName } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
@@ -24,11 +24,6 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <Bell className="w-5 h-5 text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-
           <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center"
@@ -38,7 +33,7 @@ export function Header() {
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-gray-900">{fullName || 'Usuario'}</p>
-              <p className="text-xs text-gray-500">Administrador</p>
+              <p className="text-xs text-gray-500">{roleName || 'Sin rol'}</p>
             </div>
           </div>
         </div>

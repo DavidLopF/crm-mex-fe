@@ -1,11 +1,11 @@
 import { get, put } from '@/services/http-client';
 import type { CompanySettings, UpdateCompanySettingsDto } from './company.types';
 
-const BASE_PATH = '/api/company-settings';
+const BASE_PATH = '/api/configurations';
 
 /**
  * Obtener la configuración actual de la empresa
- * GET /api/company-settings
+ * GET /api/configurations
  */
 export async function getCompanySettings(): Promise<CompanySettings> {
   try {
@@ -18,7 +18,7 @@ export async function getCompanySettings(): Promise<CompanySettings> {
 
 /**
  * Actualizar la configuración de la empresa
- * PUT /api/company-settings
+ * PUT /api/configurations
  */
 export async function updateCompanySettings(
   data: UpdateCompanySettingsDto,
