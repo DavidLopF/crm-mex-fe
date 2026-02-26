@@ -239,7 +239,8 @@ export async function updateUser(id: number | string, data: UpdateUserDto): Prom
  */
 export async function changeUserRole(id: number | string, data: ChangeUserRoleDto): Promise<UserDetail> {
   try {
-    return await put<UserDetail>(`${USERS_PATH}/${id}/role`, data);
+    const user = await put<UserDetail>(`${USERS_PATH}/${id}/role`, data);
+    return normalizeUser(user);
   } catch (err) {
     console.error('Error al cambiar rol del usuario:', err);
     throw err;

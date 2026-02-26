@@ -143,8 +143,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
   }, [debouncedSearch, isOpen, clienteId, loadProductos]);
 
   // ── Cargar historial de precios para un producto ──────────────────
-  const toggleHistorial = async (productId: number) => {
-    if (expandedHistorial === productId) {
+  const toggleHistorial = async (variantId: number) => {
+    if (expandedHistorial === variantId) {
       setExpandedHistorial(null);
       setHistorialPrecios([]);
       return;
@@ -152,10 +152,10 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
 
     if (!clienteId) return;
 
-    setExpandedHistorial(productId);
+    setExpandedHistorial(variantId);
     setLoadingHistorial(true);
     try {
-      const data = await getClientPriceHistory(clienteId, productId);
+      const data = await getClientPriceHistory(clienteId, variantId);
       setHistorialPrecios(data);
     } catch {
       setHistorialPrecios([]);
@@ -440,13 +440,13 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                     {clienteId && (
                       <div className="mt-1.5">
                         <button
-                          onClick={() => toggleHistorial(producto.productId)}
+                          onClick={() => toggleHistorial(producto.id)}
                           className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors duration-200"
                         >
                           <History className="w-3 h-3" />
-                          {expandedHistorial === producto.productId ? 'Ocultar historial' : 'Ver historial'}
+                          {expandedHistorial === producto.id ? 'Ocultar historial' : 'Ver historial'}
                         </button>
-                        {expandedHistorial === producto.productId && (
+                        {expandedHistorial === producto.id && (
                           <div className="mt-2 p-2 bg-blue-50 rounded space-y-1 animate-in slide-in-from-top-2 fade-in duration-200">
                             {loadingHistorial ? (
                               <p className="text-xs text-blue-600">Cargando...</p>
@@ -455,15 +455,15 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                             ) : (
                               historialPrecios.slice(0, 3).map((h) => (
                                 <button
-                                  key={h.id}
-                                  onClick={() => agregarAlCarrito(producto, h.price)}
+                                  key={h.orderId}
+                                  onClick={() => agregarAlCarrito(producto, h.unitPrice)}
                                   className="w-full flex items-center justify-between p-1.5 bg-white rounded text-xs hover:bg-blue-100 transition-all duration-200 hover:scale-[1.02]"
                                 >
                                   <div className="text-left">
                                     <span className="text-gray-600">{new Date(h.orderDate).toLocaleDateString('es-MX')}</span>
-                                    <span className="text-gray-400 ml-1">• {h.orderNumber}</span>
+                                    <span className="text-gray-400 ml-1">• {h.orderCode}</span>
                                   </div>
-                                  <span className="font-semibold text-blue-700">{formatCurrency(h.price)}</span>
+                                  <span className="font-semibold text-blue-700">{formatCurrency(h.unitPrice)}</span>
                                 </button>
                               ))
                             )}

@@ -108,14 +108,14 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {client.hystoricalPrices.map((price) => (
                 <div
-                  key={price.id}
+                  key={price.orderId}
                   className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{price.productName}</p>
+                    <p className="text-sm font-medium text-gray-900">{price.variantName}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-gray-500">
-                        Pedido #{price.orderNumber}
+                        Pedido #{price.orderCode}
                       </span>
                       <span className="text-xs text-gray-400">•</span>
                       <span className="text-xs text-gray-500">
@@ -125,7 +125,7 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-gray-900">
-                      {formatCurrency(price.price)}
+                      {formatCurrency(price.unitPrice)}
                     </p>
                     <p className="text-xs text-gray-500">
                       Cant: {price.quantity}

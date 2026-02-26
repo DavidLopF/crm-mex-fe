@@ -205,9 +205,10 @@ export default function ConfiguracionPage() {
   const handleUserRoleChange = async (userId: number, roleId: number) => {
     setSubmitting(true);
     try {
-      const updated = await changeUserRole(userId, { roleId });
-      setUsers(prev => prev.map(u => (u.id === userId ? { ...u, ...updated } : u)));
+      await changeUserRole(userId, { roleId });
       toast.success('Rol del usuario actualizado exitosamente');
+      // Recargamos la lista para obtener el rol actualizado del backend
+      await loadUsers(usersPage, debouncedUsersSearch, usersStatusFilter);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al cambiar el rol: ${msg}`);

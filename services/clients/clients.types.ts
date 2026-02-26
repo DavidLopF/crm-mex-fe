@@ -6,15 +6,19 @@ export interface ClientListItem {
 
 // ── Historial de precios de un cliente para un producto ────────────
 export interface PriceHistoryItem {
-  id: number;
-  productId: number;
-  productName: string;
-  clientId: number;
-  price: number;
-  quantity: number;
   orderId: number;
-  orderNumber: string;
+  orderCode: string;
   orderDate: string;
+  orderStatus: string;
+  variantId: number;
+  variantName: string;
+  sku: string;
+  quantity: number;
+  unitPrice: number;
+  listPrice: number;
+  discount: number;
+  discountPercent: number;
+  lineTotal: number;
   currency: string;
 }
 

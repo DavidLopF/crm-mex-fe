@@ -48,7 +48,11 @@ export function ProductDetailModal({
   // Cargar historial de precios cuando cambia el cliente seleccionado
   useEffect(() => {
     if (selectedClienteId && producto) {
-      loadPriceHistory(selectedClienteId, producto.id);
+      // El endpoint recibe variantId, no productId
+      const variantId = producto.variaciones[0]?.id;
+      if (variantId) {
+        loadPriceHistory(selectedClienteId, variantId);
+      }
     } else {
       setHistorialPrecios([]);
     }
@@ -448,19 +452,22 @@ export function ProductDetailModal({
                 {historialFiltrado.length > 0 ? (
                   <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                     {historialFiltrado.map((item) => (
-                      <div key={item.id} className="border border-gray-200 rounded-lg p-3 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
+                      <div key={item.orderId} className="border border-gray-200 rounded-lg p-3 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <p className="text-xs text-gray-500 mb-1">
+                            <p className="text-xs text-gray-500 mb-0.5">
                               {formatDateTime(new Date(item.orderDate))}
                             </p>
                             <p className="text-xs font-mono text-blue-600 font-medium">
-                              {item.orderNumber}
+                              {item.orderCode}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              {item.orderStatus}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-bold text-gray-900">
-                              {formatCurrency(item.price)}
+                              {formatCurrency(item.unitPrice)}
                             </p>
                             <p className="text-xs text-gray-500 mt-0.5">
                               × {item.quantity} uds
@@ -470,7 +477,7 @@ export function ProductDetailModal({
                         <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
                           <span className="text-xs font-medium text-gray-600">Total</span>
                           <span className="text-sm font-bold text-gray-900">
-                            {formatCurrency(item.price * item.quantity)}
+                            {formatCurrency(item.lineTotal)}
                           </span>
                         </div>
                       </div>
@@ -489,7 +496,7 @@ export function ProductDetailModal({
                           <span className="font-semibold text-gray-800">Total Vendido:</span>
                           <span className="text-lg font-bold text-blue-600">
                             {formatCurrency(
-                              historialFiltrado.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                              historialFiltrado.reduce((sum, item) => sum + item.lineTotal, 0)
                             )}
                           </span>
                         </div>
