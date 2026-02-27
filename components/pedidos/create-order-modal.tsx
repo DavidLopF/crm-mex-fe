@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useDebounce } from '@/lib/hooks';
+import { useCompany } from '@/lib/company-context';
 import { 
   getOrderProducts, 
   OrderProductItem, 
@@ -53,6 +54,13 @@ let carritoCounter = 0;
 const PRODUCTS_PER_PAGE = 3;
 
 export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalProps) {
+  // ── Tema ──────────────────────────────────────────────────────────
+  const { settings } = useCompany();
+  const primary = settings.primaryColor;          // e.g. "#2563eb"
+  // Generate a light tint (10% opacity) for backgrounds
+  const primaryBg = primary + '18';               // hex alpha ~10%
+  const primaryBgMid = primary + '30';            // hex alpha ~19%
+
   // ── Estado principal ──────────────────────────────────────────────
   const [clienteId, setClienteId] = useState<number | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -329,7 +337,7 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
               </div>
               {loadingClientes ? (
                 <div className="flex items-center gap-2 py-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: primary }} />
                   <span className="text-sm text-gray-500">Cargando...</span>
                 </div>
               ) : (
@@ -342,7 +350,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                     setExpandedHistorial(null);
                     setHistorialPrecios([]);
                   }}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all duration-200"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
+                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
                 >
                   <option value="">Seleccione un cliente...</option>
                   {clientes.map(c => (
@@ -351,8 +360,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                 </select>
               )}
               {clienteSeleccionado && (
-                <div className="mt-2 px-3 py-2 bg-blue-50 rounded-lg animate-in slide-in-from-top-2 fade-in duration-200">
-                  <p className="text-sm font-medium text-blue-900">{clienteSeleccionado.name}</p>
+                <div className="mt-2 px-3 py-2 rounded-lg animate-in slide-in-from-top-2 fade-in duration-200" style={{ backgroundColor: primaryBg }}>
+                  <p className="text-sm font-medium" style={{ color: primary }}>{clienteSeleccionado.name}</p>
                 </div>
               )}
             </div>
@@ -364,7 +373,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                 <input
                   type="text"
                   placeholder="Buscar producto, SKU..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
+                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   disabled={!clienteId}
@@ -381,7 +391,7 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                 </div>
               ) : loadingProductos ? (
                 <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primary }} />
                   <p className="text-xs text-gray-500 mt-2">Cargando...</p>
                 </div>
               ) : productos.length === 0 ? (
@@ -392,7 +402,10 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                 productos.map((producto) => (
                   <div
                     key={producto.id}
-                    className="p-3 bg-white rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
+                    className="p-3 bg-white rounded-lg border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
+                    style={{ ['--hover-border' as string]: primary }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = primary)}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = '')}
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
@@ -404,7 +417,7 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                           {getStockBadge(producto.stockStatus)}
                         </div>
                         {producto.variantName && (
-                          <p className="text-xs text-blue-600 font-medium">{producto.variantName}</p>
+                          <p className="text-xs font-medium" style={{ color: primary }}>{producto.variantName}</p>
                         )}
                         <p className="text-xs text-gray-400 truncate">
                           {producto.sku}{producto.category ? ` • ${producto.category}` : ''}
@@ -431,7 +444,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                       <button
                         onClick={() => agregarAlCarrito(producto)}
                         disabled={producto.stock <= 0}
-                        className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-95"
+                        className="p-1.5 rounded-lg text-white disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-95"
+                        style={{ backgroundColor: primary }}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -441,29 +455,32 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                       <div className="mt-1.5">
                         <button
                           onClick={() => toggleHistorial(producto.id)}
-                          className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors duration-200"
+                          className="text-xs hover:opacity-75 flex items-center gap-1 transition-colors duration-200"
+                          style={{ color: primary }}
                         >
                           <History className="w-3 h-3" />
                           {expandedHistorial === producto.id ? 'Ocultar historial' : 'Ver historial'}
                         </button>
                         {expandedHistorial === producto.id && (
-                          <div className="mt-2 p-2 bg-blue-50 rounded space-y-1 animate-in slide-in-from-top-2 fade-in duration-200">
+                          <div className="mt-2 p-2 rounded space-y-1 animate-in slide-in-from-top-2 fade-in duration-200" style={{ backgroundColor: primaryBg }}>
                             {loadingHistorial ? (
-                              <p className="text-xs text-blue-600">Cargando...</p>
+                              <p className="text-xs" style={{ color: primary }}>Cargando...</p>
                             ) : historialPrecios.length === 0 ? (
-                              <p className="text-xs text-blue-600">Sin historial</p>
+                              <p className="text-xs" style={{ color: primary }}>Sin historial</p>
                             ) : (
                               historialPrecios.slice(0, 3).map((h) => (
                                 <button
                                   key={h.orderId}
                                   onClick={() => agregarAlCarrito(producto, h.unitPrice)}
-                                  className="w-full flex items-center justify-between p-1.5 bg-white rounded text-xs hover:bg-blue-100 transition-all duration-200 hover:scale-[1.02]"
+                                  className="w-full flex items-center justify-between p-1.5 bg-white rounded text-xs transition-all duration-200 hover:scale-[1.02]"
+                                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = primaryBgMid)}
+                                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = '')}
                                 >
                                   <div className="text-left">
                                     <span className="text-gray-600">{new Date(h.orderDate).toLocaleDateString('es-MX')}</span>
                                     <span className="text-gray-400 ml-1">• {h.orderCode}</span>
                                   </div>
-                                  <span className="font-semibold text-blue-700">{formatCurrency(h.unitPrice)}</span>
+                                  <span className="font-semibold" style={{ color: primary }}>{formatCurrency(h.unitPrice)}</span>
                                 </button>
                               ))
                             )}
@@ -506,9 +523,9 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
           {/* ═══ Columna 2: Carrito ═══ */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Header Carrito */}
-            <div className="px-6 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 flex-shrink-0">
+            <div className="px-6 py-3 border-b border-gray-200 flex-shrink-0" style={{ background: `linear-gradient(to right, ${primaryBg}, ${primaryBgMid})` }}>
               <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-blue-600" />
+                <ShoppingCart className="w-5 h-5" style={{ color: primary }} />
                 <h3 className="text-sm font-semibold text-gray-900">
                   Carrito ({carrito.length} {carrito.length === 1 ? 'item' : 'items'})
                 </h3>
@@ -536,10 +553,10 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{linea.producto.name}</p>
                               {linea.producto.variantName && (
-                                <p className="text-xs text-blue-600">{linea.producto.variantName}</p>
+                                <p className="text-xs" style={{ color: primary }}>{linea.producto.variantName}</p>
                               )}
                               {linea.usandoPrecioHistorico && (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-blue-600">
+                                <span className="inline-flex items-center gap-1 text-[10px]" style={{ color: primary }}>
                                   <History className="w-2.5 h-2.5" />Precio histórico
                                 </span>
                               )}
@@ -556,7 +573,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                                 min="1"
                                 value={linea.cantidad}
                                 onChange={(e) => actualizarCantidad(linea.id, parseInt(e.target.value))}
-                                className="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                className="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
+                                style={{ '--tw-ring-color': primary } as React.CSSProperties}
                               />
                             </div>
                             <div>
@@ -569,7 +587,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                                   step="0.01"
                                   value={linea.precioUnitario}
                                   onChange={(e) => actualizarPrecio(linea.id, parseFloat(e.target.value))}
-                                  className="w-full pl-4 pr-1 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                  className="w-full pl-4 pr-1 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
+                                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
                                 />
                               </div>
                             </div>
@@ -594,7 +613,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
                 placeholder="Notas del pedido (opcional)..."
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2"
+                style={{ '--tw-ring-color': primary } as React.CSSProperties}
                 rows={2}
               />
             </div>
@@ -607,9 +627,9 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
               <h3 className="text-sm font-semibold text-gray-700 mb-4">Resumen del Pedido</h3>
 
               {clienteSeleccionado && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: primaryBg }}>
                   <p className="text-xs text-gray-500">Cliente</p>
-                  <p className="text-sm font-medium text-blue-900">{clienteSeleccionado.name}</p>
+                  <p className="text-sm font-medium" style={{ color: primary }}>{clienteSeleccionado.name}</p>
                 </div>
               )}
 
@@ -631,7 +651,7 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
               <div className="pt-3 border-t border-gray-200">
                 <div className="flex justify-between items-baseline">
                   <span className="text-sm font-bold text-gray-900">Total</span>
-                  <span className="text-2xl font-bold text-blue-600">{formatCurrency(total)}</span>
+                  <span className="text-2xl font-bold" style={{ color: primary }}>{formatCurrency(total)}</span>
                 </div>
               </div>
             </div>
