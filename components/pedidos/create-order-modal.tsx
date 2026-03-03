@@ -186,22 +186,45 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
   };
 
   // ── Agregar producto al carrito ───────────────────────────────────
+  // Si el producto ya existe en el carrito (misma variante, mismo precio),
+  // incrementa la cantidad en lugar de crear una línea duplicada.
   const agregarAlCarrito = (producto: OrderProductItem, precioPersonalizado?: number) => {
     const precioBase = producto.price;
     const precioFinal = precioPersonalizado ?? precioBase;
 
-    carritoCounter++;
-    const nuevaLinea: LineaCarrito = {
-      id: `${producto.id}-${carritoCounter}`,
-      producto,
-      cantidad: 1,
-      precioUnitario: precioFinal,
-      precioLista: precioBase,
-      subtotal: precioFinal,
-      usandoPrecioHistorico: precioPersonalizado !== undefined,
-    };
+    setCarrito(prev => {
+      // Buscar línea existente: mismo producto id Y mismo precio
+      const idx = prev.findIndex(
+        (l) => l.producto.id === producto.id && l.precioUnitario === precioFinal
+      );
 
-    setCarrito(prev => [...prev, nuevaLinea]);
+      if (idx !== -1) {
+        // Incrementar cantidad de la línea existente
+        return prev.map((linea, i) =>
+          i === idx
+            ? {
+                ...linea,
+                cantidad: linea.cantidad + 1,
+                subtotal: linea.precioUnitario * (linea.cantidad + 1),
+              }
+            : linea
+        );
+      }
+
+      // Línea nueva (precio distinto o primera vez)
+      carritoCounter++;
+      const nuevaLinea: LineaCarrito = {
+        id: `${producto.id}-${carritoCounter}`,
+        producto,
+        cantidad: 1,
+        precioUnitario: precioFinal,
+        precioLista: precioBase,
+        subtotal: precioFinal,
+        usandoPrecioHistorico: precioPersonalizado !== undefined,
+      };
+      return [...prev, nuevaLinea];
+    });
+
     setExpandedHistorial(null);
   };
 

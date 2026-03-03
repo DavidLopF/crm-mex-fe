@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Sidebar } from '@/components/layout/sidebar';
@@ -13,6 +13,7 @@ import { Header } from '@/components/layout/header';
 export function AppShell({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
 
   const isPublicPage = ['/login', '/forgot-password', '/reset-password'].includes(pathname);
 
@@ -36,8 +37,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Authenticated pages: full layout
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="ml-64 transition-all duration-300">
+      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
+      <div
+        className="transition-all duration-300"
+        style={{ marginLeft: collapsed ? '5rem' : '16rem' }}
+      >
         <Header />
         {children}
       </div>
