@@ -50,16 +50,16 @@ export function DeleteSupplierModal({ isOpen, onClose, onConfirm, supplier, subm
             )}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">Órdenes de Compra:</span>
-              <span className="text-sm text-gray-900 font-semibold">{supplier.totalPurchaseOrders}</span>
+              <span className="text-sm text-gray-900 font-semibold">{supplier.totalPurchases}</span>
             </div>
           </div>
         </div>
 
         {/* Advertencia */}
-        {supplier.totalPurchaseOrders > 0 && (
+        {supplier.totalPurchases > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p className="text-sm text-amber-800 text-center">
-              ⚠️ Este proveedor tiene {supplier.totalPurchaseOrders} orden{supplier.totalPurchaseOrders > 1 ? 'es' : ''} de compra asociada{supplier.totalPurchaseOrders > 1 ? 's' : ''}. El proveedor será desactivado pero sus órdenes se mantendrán.
+              ⚠️ Este proveedor tiene {supplier.totalPurchases} orden{supplier.totalPurchases > 1 ? 'es' : ''} de compra asociada{supplier.totalPurchases > 1 ? 's' : ''}. El proveedor será desactivado pero sus órdenes se mantendrán.
             </p>
           </div>
         )}
