@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Users, Shield, Building2 } from 'lucide-react';
 import { RolesTable, UsersTable, ConfigTableSkeleton, CompanySettingsForm } from '@/components/configuracion';
 import {
@@ -15,42 +15,57 @@ import {
   changeUserRole,
 } from '@/services/users';
 import type {
-  Role,
-  UserDetail,
   CreateRoleDto,
   UpdateRoleDto,
   CreateUserDto,
   UpdateUserDto,
 } from '@/services/users';
-import { useDebounce, useToast } from '@/lib/hooks';
+import { useDebounce, useToast, useCrossTabSync } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/lib/company-context';
 import type { UpdateCompanySettingsDto } from '@/services/company';
 import { updateCompanySettings } from '@/services/company';
 import { PermissionGuard } from '@/components/layout';
+import { useConfigStore } from '@/stores';
+import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 
 type Tab = 'users' | 'roles' | 'company';
 
 export default function ConfiguracionPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('users');
+  // ── Store ─────────────────────────────────────────────────────
+  const activeTab = useConfigStore((s) => s.activeTab);
+  const setActiveTab = useConfigStore((s) => s.setActiveTab);
 
-  // ─── Roles state ───────────────────────────────────────────────
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [rolesPage, setRolesPage] = useState(1);
-  const [rolesSearch, setRolesSearch] = useState('');
-  const [rolesTotal, setRolesTotal] = useState<number | undefined>(undefined);
-  const [loadingRoles, setLoadingRoles] = useState(false);
+  const roles = useConfigStore((s) => s.roles);
+  const rolesTotal = useConfigStore((s) => s.rolesTotal);
+  const rolesPage = useConfigStore((s) => s.rolesPage);
+  const rolesSearch = useConfigStore((s) => s.rolesSearch);
+  const loadingRoles = useConfigStore((s) => s.loadingRoles);
+  const setRoles = useConfigStore((s) => s.setRoles);
+  const setLoadingRoles = useConfigStore((s) => s.setLoadingRoles);
+  const setRolesPage = useConfigStore((s) => s.setRolesPage);
+  const setRolesSearch = useConfigStore((s) => s.setRolesSearch);
+  const patchRole = useConfigStore((s) => s.patchRole);
+  const removeRole = useConfigStore((s) => s.removeRole);
 
-  // ─── Users state ───────────────────────────────────────────────
-  const [users, setUsers] = useState<UserDetail[]>([]);
-  const [usersPage, setUsersPage] = useState(1);
-  const [usersSearch, setUsersSearch] = useState('');
-  const [usersStatusFilter, setUsersStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [usersTotal, setUsersTotal] = useState<number | undefined>(undefined);
-  const [loadingUsers, setLoadingUsers] = useState(false);
+  const users = useConfigStore((s) => s.users);
+  const usersTotal = useConfigStore((s) => s.usersTotal);
+  const usersPage = useConfigStore((s) => s.usersPage);
+  const usersSearch = useConfigStore((s) => s.usersSearch);
+  const usersStatusFilter = useConfigStore((s) => s.usersStatusFilter);
+  const loadingUsers = useConfigStore((s) => s.loadingUsers);
+  const setUsers = useConfigStore((s) => s.setUsers);
+  const setLoadingUsers = useConfigStore((s) => s.setLoadingUsers);
+  const setUsersPage = useConfigStore((s) => s.setUsersPage);
+  const setUsersSearch = useConfigStore((s) => s.setUsersSearch);
+  const setUsersStatusFilter = useConfigStore((s) => s.setUsersStatusFilter);
+  const patchUser = useConfigStore((s) => s.patchUser);
+  const removeUser = useConfigStore((s) => s.removeUser);
 
-  const [submitting, setSubmitting] = useState(false);
+  const submitting = useConfigStore((s) => s.submitting);
+  const setSubmitting = useConfigStore((s) => s.setSubmitting);
+
   const toast = useToast();
   const debouncedRolesSearch = useDebounce(rolesSearch, 500);
   const debouncedUsersSearch = useDebounce(usersSearch, 500);
@@ -61,12 +76,11 @@ export default function ConfiguracionPage() {
   // ROLES CRUD
   // ═══════════════════════════════════════════════════════════════
 
-  const loadRoles = async (p = rolesPage, q = rolesSearch) => {
+  const loadRoles = useCallback(async (p = rolesPage, q = rolesSearch) => {
     setLoadingRoles(true);
     try {
       const res = await getRoles({ page: p, limit: LIMIT, search: q });
-      setRoles(res.items);
-      setRolesTotal(res.total);
+      setRoles(res.items, res.total);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Error al cargar roles:', msg);
@@ -74,7 +88,8 @@ export default function ConfiguracionPage() {
     } finally {
       setLoadingRoles(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'roles') {
@@ -89,6 +104,7 @@ export default function ConfiguracionPage() {
       await createRole(data);
       toast.success(`Rol "${data.name}" creado exitosamente`);
       await loadRoles(rolesPage, debouncedRolesSearch);
+      broadcastInvalidation('config-roles');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al crear el rol: ${msg}`);
@@ -101,8 +117,9 @@ export default function ConfiguracionPage() {
     setSubmitting(true);
     try {
       const updated = await updateRole(id, data);
-      setRoles(prev => prev.map(r => (r.id === id ? { ...r, ...updated } : r)));
+      patchRole(id, updated);
       toast.success('Rol actualizado exitosamente');
+      broadcastInvalidation('config-roles');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al actualizar el rol: ${msg}`);
@@ -115,8 +132,9 @@ export default function ConfiguracionPage() {
     setSubmitting(true);
     try {
       await deleteRole(id);
+      removeRole(id);
       toast.success('Rol eliminado exitosamente');
-      await loadRoles(rolesPage, debouncedRolesSearch);
+      broadcastInvalidation('config-roles');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al eliminar el rol: ${msg}`);
@@ -129,7 +147,7 @@ export default function ConfiguracionPage() {
   // USERS CRUD
   // ═══════════════════════════════════════════════════════════════
 
-  const loadUsers = async (p = usersPage, q = usersSearch, filter = usersStatusFilter) => {
+  const loadUsers = useCallback(async (p = usersPage, q = usersSearch, filter = usersStatusFilter) => {
     setLoadingUsers(true);
     try {
       const params: { page: number; limit: number; search: string; active?: boolean } = {
@@ -137,13 +155,11 @@ export default function ConfiguracionPage() {
         limit: LIMIT,
         search: q,
       };
-
       if (filter === 'active') params.active = true;
       else if (filter === 'inactive') params.active = false;
 
       const res = await getUsers(params);
-      setUsers(res.items);
-      setUsersTotal(res.total);
+      setUsers(res.items, res.total);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Error al cargar usuarios:', msg);
@@ -151,7 +167,8 @@ export default function ConfiguracionPage() {
     } finally {
       setLoadingUsers(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'users') {
@@ -160,12 +177,21 @@ export default function ConfiguracionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, usersPage, debouncedUsersSearch, usersStatusFilter]);
 
+  // ── Cross-tab sync ──
+  useCrossTabSync('config-roles', () => {
+    if (activeTab === 'roles') loadRoles(rolesPage, debouncedRolesSearch);
+  });
+  useCrossTabSync('config-users', () => {
+    if (activeTab === 'users') loadUsers(usersPage, debouncedUsersSearch, usersStatusFilter);
+  });
+
   const handleUserCreate = async (data: CreateUserDto) => {
     setSubmitting(true);
     try {
       await createUser(data);
       toast.success(`Usuario "${data.fullName}" creado exitosamente`);
       await loadUsers(usersPage, debouncedUsersSearch, usersStatusFilter);
+      broadcastInvalidation('config-users');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al crear el usuario: ${msg}`);
@@ -178,8 +204,9 @@ export default function ConfiguracionPage() {
     setSubmitting(true);
     try {
       const updated = await updateUser(id, data);
-      setUsers(prev => prev.map(u => (u.id === id ? { ...u, ...updated } : u)));
+      patchUser(id, updated);
       toast.success('Usuario actualizado exitosamente');
+      broadcastInvalidation('config-users');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al actualizar el usuario: ${msg}`);
@@ -192,8 +219,9 @@ export default function ConfiguracionPage() {
     setSubmitting(true);
     try {
       await deleteUser(id);
+      removeUser(id);
       toast.success('Usuario eliminado exitosamente');
-      await loadUsers(usersPage, debouncedUsersSearch, usersStatusFilter);
+      broadcastInvalidation('config-users');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al eliminar el usuario: ${msg}`);
@@ -207,8 +235,8 @@ export default function ConfiguracionPage() {
     try {
       await changeUserRole(userId, { roleId });
       toast.success('Rol del usuario actualizado exitosamente');
-      // Recargamos la lista para obtener el rol actualizado del backend
       await loadUsers(usersPage, debouncedUsersSearch, usersStatusFilter);
+      broadcastInvalidation('config-users');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al cambiar el rol: ${msg}`);
@@ -294,11 +322,11 @@ export default function ConfiguracionPage() {
               onUserDelete={handleUserDelete}
               onUserRoleChange={handleUserRoleChange}
               externalSearch={usersSearch}
-              onSearchChange={(v) => { setUsersSearch(v); setUsersPage(1); }}
+              onSearchChange={(v) => { setUsersSearch(v); }}
               externalPage={usersPage}
               onPageChange={(p) => setUsersPage(p)}
               externalStatusFilter={usersStatusFilter}
-              onStatusFilterChange={(f) => { setUsersStatusFilter(f); setUsersPage(1); }}
+              onStatusFilterChange={(f) => { setUsersStatusFilter(f); }}
               totalItems={usersTotal}
               itemsPerPage={LIMIT}
               submitting={submitting}
@@ -316,7 +344,7 @@ export default function ConfiguracionPage() {
               onRoleUpdate={handleRoleUpdate}
               onRoleDelete={handleRoleDelete}
               externalSearch={rolesSearch}
-              onSearchChange={(v) => { setRolesSearch(v); setRolesPage(1); }}
+              onSearchChange={(v) => { setRolesSearch(v); }}
               externalPage={rolesPage}
               onPageChange={(p) => setRolesPage(p)}
               totalItems={rolesTotal}

@@ -1,4 +1,4 @@
-import { get, post, put, del, getPaginated } from '@/services/http-client';
+import { get, post, put, del, getPaginated, patch } from '@/services/http-client';
 import {
   SupplierDetail,
   SupplierListItem,
@@ -13,7 +13,11 @@ import {
   PaginatedPurchaseOrdersDto,
   CreatePurchaseOrderDto,
   UpdatePurchaseOrderDto,
+  UpdatePurchaseOrderCostsDto,
   PurchaseOrderStatistics,
+  SupplierProductItem,
+  AddSupplierProductDto,
+  BulkAddSupplierProductsDto,
 } from './suppliers.types';
 
 const SUPPLIERS_PATH = '/api/suppliers';
@@ -78,6 +82,8 @@ interface RawPurchaseOrderItem {
   qtyReceived: number;
   unitCost: string | number;
   lineTotal: string | number;
+  landedUnitCost?: string | number;
+  landedLineTotal?: string | number;
   currency: string;
   description?: string;
 }
@@ -97,6 +103,18 @@ interface RawPurchaseOrder {
   receivedDate: string | null;
   createdAt: string;
   updatedAt: string;
+  // Landed cost porcentajes
+  freightPct?: string | number;
+  customsPct?: string | number;
+  taxPct?: string | number;
+  handlingPct?: string | number;
+  otherPct?: string | number;
+  // Landed cost montos calculados
+  freightCost?: string | number;
+  customsCost?: string | number;
+  taxCost?: string | number;
+  handlingCost?: string | number;
+  otherCost?: string | number;
   supplier: {
     id: number;
     name: string;
@@ -112,6 +130,26 @@ interface RawPurchaseOrder {
 }
 
 function parsePurchaseOrder(raw: RawPurchaseOrder): PurchaseOrder {
+  const subtotal = parseFloat(String(raw.subtotal)) || 0;
+
+  // Parse landed cost percentages
+  const freightPct = parseFloat(String(raw.freightPct ?? 0)) || 0;
+  const customsPct = parseFloat(String(raw.customsPct ?? 0)) || 0;
+  const taxPct = parseFloat(String(raw.taxPct ?? 0)) || 0;
+  const handlingPct = parseFloat(String(raw.handlingPct ?? 0)) || 0;
+  const otherPct = parseFloat(String(raw.otherPct ?? 0)) || 0;
+  const totalPctSum = freightPct + customsPct + taxPct + handlingPct + otherPct;
+
+  // Landed cost amounts — use backend values if provided, else calculate
+  const freightCost = parseFloat(String(raw.freightCost ?? 0)) || (subtotal * freightPct / 100);
+  const customsCost = parseFloat(String(raw.customsCost ?? 0)) || (subtotal * customsPct / 100);
+  const taxCost = parseFloat(String(raw.taxCost ?? 0)) || (subtotal * taxPct / 100);
+  const handlingCost = parseFloat(String(raw.handlingCost ?? 0)) || (subtotal * handlingPct / 100);
+  const otherCost = parseFloat(String(raw.otherCost ?? 0)) || (subtotal * otherPct / 100);
+
+  // Multiplier for per-item landed cost
+  const landedMultiplier = 1 + totalPctSum / 100;
+
   return {
     id: raw.id,
     code: raw.code,
@@ -120,7 +158,7 @@ function parsePurchaseOrder(raw: RawPurchaseOrder): PurchaseOrder {
     supplier: raw.supplier,
     statusId: raw.statusId,
     status: resolveStatus(raw.statusId, raw.statusCode),
-    subtotal: parseFloat(String(raw.subtotal)) || 0,
+    subtotal,
     tax: parseFloat(String(raw.tax)) || 0,
     total: parseFloat(String(raw.total)) || 0,
     currency: raw.currency,
@@ -129,17 +167,35 @@ function parsePurchaseOrder(raw: RawPurchaseOrder): PurchaseOrder {
     receivedDate: raw.receivedDate,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
-    items: (raw.items ?? []).map((item) => ({
-      id: item.id,
-      purchaseOrderId: item.purchaseOrderId,
-      variantId: item.variantId,
-      qty: item.qty,
-      qtyReceived: item.qtyReceived,
-      unitCost: parseFloat(String(item.unitCost)) || 0,
-      lineTotal: parseFloat(String(item.lineTotal)) || 0,
-      currency: item.currency,
-      description: item.description,
-    })),
+    // Landed cost %
+    freightPct,
+    customsPct,
+    taxPct,
+    handlingPct,
+    otherPct,
+    // Landed cost $
+    freightCost,
+    customsCost,
+    taxCost,
+    handlingCost,
+    otherCost,
+    items: (raw.items ?? []).map((item) => {
+      const unitCost = parseFloat(String(item.unitCost)) || 0;
+      const lineTotal = parseFloat(String(item.lineTotal)) || 0;
+      return {
+        id: item.id,
+        purchaseOrderId: item.purchaseOrderId,
+        variantId: item.variantId,
+        qty: item.qty,
+        qtyReceived: item.qtyReceived,
+        unitCost,
+        lineTotal,
+        landedUnitCost: parseFloat(String(item.landedUnitCost ?? 0)) || (unitCost * landedMultiplier),
+        landedLineTotal: parseFloat(String(item.landedLineTotal ?? 0)) || (lineTotal * landedMultiplier),
+        currency: item.currency,
+        description: item.description,
+      };
+    }),
   };
 }
 
@@ -380,6 +436,23 @@ export async function updatePurchaseOrder(id: number | string, data: UpdatePurch
 }
 
 /**
+ * Actualizar costos de internación de una orden de compra
+ * PATCH /api/purchase-orders/:id/costs
+ */
+export async function updatePurchaseOrderCosts(
+  id: number | string,
+  data: UpdatePurchaseOrderCostsDto,
+): Promise<PurchaseOrder> {
+  try {
+    const response = await patch<RawPurchaseOrder>(`${PURCHASE_ORDERS_PATH}/${id}/costs`, data);
+    return parsePurchaseOrder(response);
+  } catch (err) {
+    console.error('Error al actualizar costos de internación:', err);
+    throw err;
+  }
+}
+
+/**
  * Eliminar (cancelar) una orden de compra
  * DELETE /api/purchase-orders/:id
  */
@@ -402,6 +475,75 @@ export async function getPurchaseOrderStatistics(): Promise<PurchaseOrderStatist
     return response;
   } catch (err) {
     console.error('Error al obtener estadísticas de órdenes de compra:', err);
+    throw err;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── RELACIÓN PROVEEDOR ↔ PRODUCTO ────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+
+/**
+ * Obtener productos asociados a un proveedor
+ * GET /api/suppliers/:id/products
+ */
+export async function getSupplierProducts(supplierId: number | string): Promise<SupplierProductItem[]> {
+  try {
+    const response = await get<SupplierProductItem[]>(`${SUPPLIERS_PATH}/${supplierId}/products`);
+    // Guard: el backend puede retornar un array directo o envuelto
+    return Array.isArray(response) ? response : [];
+  } catch (err) {
+    console.error('Error al obtener productos del proveedor:', err);
+    throw err;
+  }
+}
+
+/**
+ * Asociar un producto a un proveedor (upsert)
+ * POST /api/suppliers/:id/products
+ */
+export async function addSupplierProduct(
+  supplierId: number | string,
+  data: AddSupplierProductDto,
+): Promise<SupplierProductItem> {
+  try {
+    const response = await post<SupplierProductItem>(`${SUPPLIERS_PATH}/${supplierId}/products`, data);
+    return response;
+  } catch (err) {
+    console.error('Error al asociar producto al proveedor:', err);
+    throw err;
+  }
+}
+
+/**
+ * Asociar varios productos a un proveedor de una sola vez
+ * POST /api/suppliers/:id/products/bulk
+ */
+export async function addSupplierProductsBulk(
+  supplierId: number | string,
+  data: BulkAddSupplierProductsDto,
+): Promise<SupplierProductItem[]> {
+  try {
+    const response = await post<SupplierProductItem[]>(`${SUPPLIERS_PATH}/${supplierId}/products/bulk`, data);
+    return Array.isArray(response) ? response : [];
+  } catch (err) {
+    console.error('Error al asociar productos en bulk al proveedor:', err);
+    throw err;
+  }
+}
+
+/**
+ * Desasociar (desactivar) un producto de un proveedor
+ * DELETE /api/suppliers/:id/products/:productId
+ */
+export async function removeSupplierProduct(
+  supplierId: number | string,
+  productId: number | string,
+): Promise<void> {
+  try {
+    await del<void>(`${SUPPLIERS_PATH}/${supplierId}/products/${productId}`);
+  } catch (err) {
+    console.error('Error al desasociar producto del proveedor:', err);
     throw err;
   }
 }

@@ -10,6 +10,7 @@ import { DeleteConfirmModal } from './delete-confirm-modal';
 import { Producto } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { getProductById } from '@/services/products';
+import type { ApiProductDetail } from '@/services/products';
 
 interface InventoryTableProps {
   productos: Producto[];
@@ -54,6 +55,7 @@ export function InventoryTable({
   const [selectedCategory, setSelectedCategory] = useState('');
   const [internalPage, setInternalPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [selectedProductRaw, setSelectedProductRaw] = useState<ApiProductDetail | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -96,13 +98,15 @@ export function InventoryTable({
     setLoadingDetail(true);
     try {
       // Cargar el detalle completo desde el backend
-      const { producto: detalle } = await getProductById(producto.id);
+      const { producto: detalle, raw } = await getProductById(producto.id);
       setSelectedProduct(detalle);
+      setSelectedProductRaw(raw);
       setIsDetailModalOpen(true);
     } catch (error) {
       console.error('Error cargando detalle del producto:', error);
       // Fallback: usar el producto de la lista si falla
       setSelectedProduct(producto);
+      setSelectedProductRaw(null);
       setIsDetailModalOpen(true);
     } finally {
       setLoadingDetail(false);
@@ -113,13 +117,15 @@ export function InventoryTable({
     setLoadingDetail(true);
     try {
       // Cargar el detalle completo desde el backend para editar
-      const { producto: detalle } = await getProductById(producto.id);
+      const { producto: detalle, raw } = await getProductById(producto.id);
       setSelectedProduct(detalle);
+      setSelectedProductRaw(raw);
       setIsDetailModalOpen(true);
     } catch (error) {
       console.error('Error cargando detalle del producto:', error);
       // Fallback: usar el producto de la lista si falla
       setSelectedProduct(producto);
+      setSelectedProductRaw(null);
       setIsDetailModalOpen(true);
     } finally {
       setLoadingDetail(false);
@@ -412,6 +418,7 @@ export function InventoryTable({
 
       <ProductDetailModal
         producto={selectedProduct}
+        rawDetail={selectedProductRaw}
         isOpen={isDetailModalOpen}
         onClose={handleCloseModal}
         onEdit={handleProductUpdate}

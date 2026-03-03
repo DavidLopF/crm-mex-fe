@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { OrdersBoard, OrderDetailModal, CreateOrderModal } from '@/components/pedidos';
@@ -15,8 +15,10 @@ import {
   createOrder,
   CreateOrderDto,
 } from '@/services';
-import { useToast } from '@/lib/hooks';
+import { useToast, useCrossTabSync } from '@/lib/hooks';
 import { PermissionGuard } from '@/components/layout';
+import { useOrdersStore } from '@/stores';
+import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 
 // Mapeo de estados del backend a estados del frontend
 const mapEstadoBackendToFrontend = (statusCode: string): EstadoPedido => {
@@ -84,20 +86,20 @@ const mapOrdersToPedidos = (orderStatuses: OrderStatus[]): Pedido[] => {
 };
 
 export default function PedidosPage() {
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const pedidos = useOrdersStore((s) => s.pedidos);
+  const loading = useOrdersStore((s) => s.loading);
+  const searchTerm = useOrdersStore((s) => s.searchTerm);
+  const setPedidos = useOrdersStore((s) => s.setPedidos);
+  const setLoading = useOrdersStore((s) => s.setLoading);
+  const setSearchTerm = useOrdersStore((s) => s.setSearchTerm);
+  const updatePedidoEstado = useOrdersStore((s) => s.updatePedidoEstado);
+
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const toast = useToast();
 
-  // Cargar pedidos desde el backend
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
       const orderStatuses = await getOrders();
@@ -108,7 +110,18 @@ export default function PedidosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cargar pedidos desde el backend
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  // ── Cross-tab sync: recargar cuando otra pestaña muta pedidos ──
+  useCrossTabSync('orders', () => {
+    loadOrders();
+  });
 
   const handleOrderClick = (pedido: Pedido) => {
     setSelectedOrder(pedido);
@@ -125,6 +138,7 @@ export default function PedidosPage() {
       await createOrder(dto);
       toast.success('Pedido creado exitosamente');
       await loadOrders();
+      broadcastInvalidation(['orders', 'inventory']);
     } catch (error) {
       console.error('Error al crear pedido:', error);
       toast.error(
@@ -140,44 +154,28 @@ export default function PedidosPage() {
       const currentStatusCode = getStatusCodeFromEstado(pedido.estado);
       const newStatusCode = mapEstadoFrontendToBackendCode(nuevoEstado);
 
-      // Validar la transición
       const validation = canTransitionToStatus(currentStatusCode, newStatusCode);
-      
       if (!validation.valid) {
         toast.error(validation.error || 'Transición no válida');
         return;
       }
 
-      // Actualizar optimistamente el UI
-      setPedidos(prevPedidos =>
-        prevPedidos.map(p =>
-          p.id === pedido.id
-            ? { 
-                ...p, 
-                estado: nuevoEstado,
-                transmitido: nuevoEstado !== 'cotizado'
-              }
-            : p
-        )
-      );
+      // Actualizar optimistamente en el store
+      updatePedidoEstado(pedido.id, nuevoEstado);
 
-      // Llamar a la API
-      const userId = 1; // TODO: Obtener desde contexto/autenticación
-      await changeOrderStatus(parseInt(pedido.id), {
-        newStatusCode,
-        userId,
-      });
+      const userId = 1;
+      await changeOrderStatus(parseInt(pedido.id), { newStatusCode, userId });
 
       toast.success(`Pedido movido a ${nuevoEstado.toUpperCase()}`);
+      broadcastInvalidation(['orders', 'inventory']);
     } catch (error) {
       console.error('Error al cambiar estado:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Error al cambiar el estado del pedido'
       );
-      
-      // Revertir el cambio en caso de error
+      // Revertir recargando desde el backend
       await loadOrders();
     }
   };
@@ -200,35 +198,21 @@ export default function PedidosPage() {
       const pedido = pedidos.find(p => p.id === orderId);
       if (!pedido) return;
 
-      // Mapear el nuevo código a estado frontend
       const nuevoEstado = mapEstadoBackendToFrontend(ORDER_STATUS_LABELS[newStatusCode]);
 
-      // Actualizar optimistamente el UI
-      setPedidos(prevPedidos =>
-        prevPedidos.map(p =>
-          p.id === orderId
-            ? { 
-                ...p, 
-                estado: nuevoEstado,
-                transmitido: nuevoEstado !== 'cotizado'
-              }
-            : p
-        )
-      );
+      // Actualizar optimistamente en el store
+      updatePedidoEstado(orderId, nuevoEstado);
 
-      // Llamar a la API
-      const userId = 1; // TODO: Obtener desde contexto/autenticación
-      await changeOrderStatus(parseInt(orderId), {
-        newStatusCode,
-        userId,
-      });
+      const userId = 1;
+      await changeOrderStatus(parseInt(orderId), { newStatusCode, userId });
 
       toast.success('Estado del pedido actualizado correctamente');
+      broadcastInvalidation(['orders', 'inventory']);
     } catch (error) {
       console.error('Error al cambiar estado:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Error al cambiar el estado del pedido'
       );
       

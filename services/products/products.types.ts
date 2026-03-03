@@ -116,6 +116,48 @@ export interface ApiProductDetail {
   createdAt: string;
   updatedAt: string;
   variants: ApiVariant[];
+
+  // ── Costos reales (landed cost) ──
+  /** Costo promedio ponderado (landed) calculado de las OC */
+  lastPurchaseCost: number | null;
+  /** Menor costo de compra registrado */
+  lowestPurchaseCost: number | null;
+  /** Mayor costo de compra registrado */
+  highestPurchaseCost: number | null;
+  /** Margen %: (price - cost) / price × 100 */
+  margin: number | null;
+
+  // ── Proveedores asociados ──
+  suppliers: ApiProductSupplier[];
+
+  // ── Historial de compras ──
+  purchaseHistory: ApiProductPurchaseHistory[];
+}
+
+// ── Proveedor asociado a un producto ────────────────────────────────
+export interface ApiProductSupplier {
+  supplierId: number;
+  supplierName: string;
+  supplierCost: number;
+  supplierSku: string | null;
+  currency: string;
+  leadTimeDays: number | null;
+  minOrderQty: number | null;
+  isPreferred: boolean;
+  lastLandedCost: number | null;
+}
+
+// ── Historial de compra de un producto ──────────────────────────────
+export interface ApiProductPurchaseHistory {
+  purchaseOrderId: number;
+  purchaseOrderCode: string;
+  supplierName: string;
+  date: string;
+  qty: number;
+  unitCost: number;
+  landedUnitCost: number;
+  currency: string;
+  status: string;
 }
 
 // ── Categorías ──────────────────────────────────────────────────────

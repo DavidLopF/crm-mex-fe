@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Truck, ClipboardList } from 'lucide-react';
 import {
   SupplierTable,
@@ -18,55 +18,81 @@ import {
   getSupplierStatistics,
   getPurchaseOrders,
   createPurchaseOrder,
+  updatePurchaseOrder,
+  updatePurchaseOrderCosts,
   deletePurchaseOrder,
   getPurchaseOrderStatistics,
+  PURCHASE_ORDER_STATUS_LABELS,
+  getPurchaseOrderById,
 } from '@/services/suppliers';
 import type {
-  SupplierDetail,
-  SupplierStatistics,
   CreateSupplierDto,
   UpdateSupplierDto,
-  PurchaseOrder,
-  PurchaseOrderStatistics as POStats,
   CreatePurchaseOrderDto,
   PurchaseOrderStatus,
+  UpdatePurchaseOrderCostsDto,
 } from '@/services/suppliers';
-import { useDebounce, useToast } from '@/lib/hooks';
+import { useDebounce, useToast, useCrossTabSync } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
 import { PermissionGuard } from '@/components/layout';
+import { usePurchaseOrdersStore, useSuppliersStore } from '@/stores';
+import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 
 type ActiveTab = 'suppliers' | 'purchase-orders';
 
 export default function ProveedoresPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('suppliers');
-
-  // ── Suppliers state ──
-  const [suppliers, setSuppliers] = useState<SupplierDetail[]>([]);
-  const [supplierPage, setSupplierPage] = useState(1);
-  const [supplierLimit, setSupplierLimit] = useState(10);
-  const [supplierSearch, setSupplierSearch] = useState('');
-  const [supplierStatusFilter, setSupplierStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [supplierTotal, setSupplierTotal] = useState<number | undefined>(undefined);
-  const [supplierLoading, setSupplierLoading] = useState(false);
-  const [supplierStats, setSupplierStats] = useState<SupplierStatistics | undefined>(undefined);
-
-  // ── Purchase orders state ──
-  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-  const [orderPage, setOrderPage] = useState(1);
-  const [orderLimit, setOrderLimit] = useState(10);
-  const [orderSearch, setOrderSearch] = useState('');
-  const [orderStatusFilter, setOrderStatusFilter] = useState<PurchaseOrderStatus | 'all'>('all');
-  const [orderTotal, setOrderTotal] = useState<number | undefined>(undefined);
-  const [orderLoading, setOrderLoading] = useState(false);
-  const [orderStats, setOrderStats] = useState<POStats | undefined>(undefined);
-
-  const [submitting, setSubmitting] = useState(false);
   const toast = useToast();
+
+  // ── Suppliers store ──
+  const suppliers = useSuppliersStore((s) => s.suppliers);
+  const supplierTotal = useSuppliersStore((s) => s.total);
+  const supplierPage = useSuppliersStore((s) => s.page);
+  const supplierLimit = useSuppliersStore((s) => s.limit);
+  const supplierSearch = useSuppliersStore((s) => s.search);
+  const supplierStatusFilter = useSuppliersStore((s) => s.statusFilter);
+  const supplierLoading = useSuppliersStore((s) => s.loading);
+  const supplierStats = useSuppliersStore((s) => s.stats);
+  const supplierSubmitting = useSuppliersStore((s) => s.submitting);
+
+  const setSuppliersData = useSuppliersStore((s) => s.setSuppliers);
+  const setSupplierStats = useSuppliersStore((s) => s.setStats);
+  const setSupplierLoading = useSuppliersStore((s) => s.setLoading);
+  const setSupplierSubmitting = useSuppliersStore((s) => s.setSubmitting);
+  const setSupplierPage = useSuppliersStore((s) => s.setPage);
+  const setSupplierLimit = useSuppliersStore((s) => s.setLimit);
+  const setSupplierSearch = useSuppliersStore((s) => s.setSearch);
+  const setSupplierStatusFilter = useSuppliersStore((s) => s.setStatusFilter);
+  const patchSupplier = useSuppliersStore((s) => s.patchSupplier);
+  const removeSupplierFromStore = useSuppliersStore((s) => s.removeSupplier);
+
+  // ── Purchase orders store ──
+  const orders = usePurchaseOrdersStore((s) => s.orders);
+  const orderTotal = usePurchaseOrdersStore((s) => s.total);
+  const orderPage = usePurchaseOrdersStore((s) => s.page);
+  const orderLimit = usePurchaseOrdersStore((s) => s.limit);
+  const orderSearch = usePurchaseOrdersStore((s) => s.search);
+  const orderStatusFilter = usePurchaseOrdersStore((s) => s.statusFilter);
+  const orderLoading = usePurchaseOrdersStore((s) => s.loading);
+  const orderStats = usePurchaseOrdersStore((s) => s.stats);
+  const orderSubmitting = usePurchaseOrdersStore((s) => s.submitting);
+
+  const setOrdersData = usePurchaseOrdersStore((s) => s.setOrders);
+  const setOrderStats = usePurchaseOrdersStore((s) => s.setStats);
+  const setOrderLoading = usePurchaseOrdersStore((s) => s.setLoading);
+  const setOrderSubmitting = usePurchaseOrdersStore((s) => s.setSubmitting);
+  const setOrderPage = usePurchaseOrdersStore((s) => s.setPage);
+  const setOrderLimit = usePurchaseOrdersStore((s) => s.setLimit);
+  const setOrderSearch = usePurchaseOrdersStore((s) => s.setSearch);
+  const setOrderStatusFilter = usePurchaseOrdersStore((s) => s.setStatusFilter);
+  const upsertOrder = usePurchaseOrdersStore((s) => s.upsertOrder);
+  const removeOrderFromStore = usePurchaseOrdersStore((s) => s.removeOrder);
+
   const debouncedSupplierSearch = useDebounce(supplierSearch, 500);
   const debouncedOrderSearch = useDebounce(orderSearch, 500);
 
   // ── Load suppliers ──
-  const loadSuppliers = async (
+  const loadSuppliers = useCallback(async (
     p = supplierPage,
     q = supplierSearch,
     l = supplierLimit,
@@ -87,8 +113,7 @@ export default function ProveedoresPage() {
         filters.inactive = true;
       }
       const res = await getSuppliers(filters);
-      setSuppliers(res.items);
-      setSupplierTotal(res.total);
+      setSuppliersData(res.items, res.total);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Error al cargar proveedores:', msg);
@@ -96,19 +121,21 @@ export default function ProveedoresPage() {
     } finally {
       setSupplierLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const loadSupplierStats = async () => {
+  const loadSupplierStats = useCallback(async () => {
     try {
       const stats = await getSupplierStatistics();
       setSupplierStats(stats);
     } catch (err) {
       console.error('Error cargando estadísticas de proveedores:', err);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Load purchase orders ──
-  const loadOrders = async (
+  const loadOrders = useCallback(async (
     p = orderPage,
     q = orderSearch,
     l = orderLimit,
@@ -122,8 +149,7 @@ export default function ProveedoresPage() {
         search: q,
         status: status,
       });
-      setOrders(res.items);
-      setOrderTotal(res.total);
+      setOrdersData(res.items, res.total);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('Error al cargar órdenes de compra:', msg);
@@ -131,22 +157,24 @@ export default function ProveedoresPage() {
     } finally {
       setOrderLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const loadOrderStats = async () => {
+  const loadOrderStats = useCallback(async () => {
     try {
       const stats = await getPurchaseOrderStatistics();
       setOrderStats(stats);
     } catch (err) {
       console.error('Error cargando estadísticas de órdenes:', err);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Effects ──
   useEffect(() => {
     loadSupplierStats();
     loadOrderStats();
-  }, []);
+  }, [loadSupplierStats, loadOrderStats]);
 
   useEffect(() => {
     loadSuppliers(supplierPage, debouncedSupplierSearch, supplierLimit, supplierStatusFilter);
@@ -158,83 +186,159 @@ export default function ProveedoresPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderPage, debouncedOrderSearch, orderLimit, orderStatusFilter]);
 
+  // ── Cross-tab sync ──
+  useCrossTabSync('suppliers', () => {
+    loadSuppliers(supplierPage, debouncedSupplierSearch, supplierLimit, supplierStatusFilter);
+    loadSupplierStats();
+  });
+  useCrossTabSync('purchase-orders', () => {
+    loadOrders(orderPage, debouncedOrderSearch, orderLimit, orderStatusFilter);
+    loadOrderStats();
+  });
+
   // ── Supplier handlers ──
   const handleSupplierCreate = async (data: CreateSupplierDto) => {
-    setSubmitting(true);
+    setSupplierSubmitting(true);
     try {
       await createSupplier(data);
       toast.success(`Proveedor "${data.name}" creado exitosamente`);
       await loadSuppliers(supplierPage, debouncedSupplierSearch, supplierLimit, supplierStatusFilter);
       loadSupplierStats();
+      broadcastInvalidation('suppliers');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al crear el proveedor: ${msg}`);
     } finally {
-      setSubmitting(false);
+      setSupplierSubmitting(false);
     }
   };
 
   const handleSupplierUpdate = async (id: number, data: UpdateSupplierDto) => {
-    setSubmitting(true);
+    setSupplierSubmitting(true);
     try {
       const updated = await updateSupplier(id, data);
-      setSuppliers(prev => prev.map(s => s.id === id ? { ...s, ...updated } : s));
+      patchSupplier(id, updated);
       toast.success('Proveedor actualizado exitosamente');
       loadSupplierStats();
+      broadcastInvalidation('suppliers');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al actualizar el proveedor: ${msg}`);
     } finally {
-      setSubmitting(false);
+      setSupplierSubmitting(false);
     }
   };
 
   const handleSupplierDelete = async (id: number) => {
-    setSubmitting(true);
+    setSupplierSubmitting(true);
     try {
       await deleteSupplier(id);
+      removeSupplierFromStore(id);
       toast.success('Proveedor eliminado exitosamente');
-      await loadSuppliers(supplierPage, debouncedSupplierSearch, supplierLimit, supplierStatusFilter);
       loadSupplierStats();
+      broadcastInvalidation('suppliers');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al eliminar el proveedor: ${msg}`);
     } finally {
-      setSubmitting(false);
+      setSupplierSubmitting(false);
     }
   };
 
   // ── Purchase order handlers ──
   const handleOrderCreate = async (data: CreatePurchaseOrderDto) => {
-    setSubmitting(true);
+    setOrderSubmitting(true);
     try {
       await createPurchaseOrder(data);
       toast.success('Orden de compra creada exitosamente');
       await loadOrders(orderPage, debouncedOrderSearch, orderLimit, orderStatusFilter);
       loadOrderStats();
       loadSupplierStats();
+      broadcastInvalidation(['purchase-orders', 'suppliers']);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al crear la orden de compra: ${msg}`);
     } finally {
-      setSubmitting(false);
+      setOrderSubmitting(false);
     }
   };
 
   const handleOrderDelete = async (id: number) => {
-    setSubmitting(true);
+    setOrderSubmitting(true);
     try {
       await deletePurchaseOrder(id);
+      removeOrderFromStore(id);
       toast.success('Orden de compra cancelada exitosamente');
-      await loadOrders(orderPage, debouncedOrderSearch, orderLimit, orderStatusFilter);
       loadOrderStats();
+      broadcastInvalidation('purchase-orders');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al cancelar la orden de compra: ${msg}`);
     } finally {
-      setSubmitting(false);
+      setOrderSubmitting(false);
     }
   };
+
+  const handleOrderStatusChange = async (id: number, newStatus: PurchaseOrderStatus) => {
+    try {
+      await updatePurchaseOrder(id, { status: newStatus });
+      const label = PURCHASE_ORDER_STATUS_LABELS[newStatus];
+      toast.success(`Orden actualizada a "${label}"`);
+      // Actualizar la orden en el store con el detalle completo del servidor
+      try {
+        const fresh = await getPurchaseOrderById(id);
+        upsertOrder(fresh);
+      } catch {
+        // fallback: patch con el nuevo status
+        upsertOrder({ ...orders.find((o) => o.id === id)!, status: newStatus });
+      }
+      loadOrderStats();
+      broadcastInvalidation(['purchase-orders', 'inventory']);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error al cambiar estado: ${msg}`);
+      throw err;
+    }
+  };
+
+  const handleOrderCostsUpdate = async (id: number, data: UpdatePurchaseOrderCostsDto) => {
+    try {
+      const updated = await updatePurchaseOrderCosts(id, data);
+      // Actualizar en store
+      upsertOrder(updated);
+      toast.success('Costos de internación actualizados');
+      broadcastInvalidation('purchase-orders');
+      return updated;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error al actualizar costos: ${msg}`);
+      throw err;
+    }
+  };
+
+  /**
+   * Callback tras crear una recepción parcial.
+   * Recarga la orden actualizada del backend y la inyecta en el store.
+   */
+  const handleReceptionCreated = useCallback(async (orderId?: number) => {
+    // Recargar stats
+    loadOrderStats();
+    // Si tenemos el id, recargar solo esa orden
+    if (orderId) {
+      try {
+        const fresh = await getPurchaseOrderById(orderId);
+        upsertOrder(fresh);
+      } catch {
+        // fallback: recargar todo
+        loadOrders(orderPage, debouncedOrderSearch, orderLimit, orderStatusFilter);
+      }
+    } else {
+      loadOrders(orderPage, debouncedOrderSearch, orderLimit, orderStatusFilter);
+    }
+    // Notificar a otras pestañas (las recepciones afectan inventario también)
+    broadcastInvalidation(['purchase-orders', 'inventory']);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderPage, debouncedOrderSearch, orderLimit, orderStatusFilter]);
 
   return (
     <PermissionGuard moduleCode="PROVEEDORES">
@@ -289,15 +393,15 @@ export default function ProveedoresPage() {
                   onSupplierUpdate={handleSupplierUpdate}
                   onSupplierDelete={handleSupplierDelete}
                   externalSearch={supplierSearch}
-                  onSearchChange={(v) => { setSupplierSearch(v); setSupplierPage(1); }}
+                  onSearchChange={(v) => { setSupplierSearch(v); }}
                   externalPage={supplierPage}
                   onPageChange={(p) => setSupplierPage(p)}
                   externalItemsPerPage={supplierLimit}
-                  onItemsPerPageChange={(l) => { setSupplierLimit(l); setSupplierPage(1); }}
+                  onItemsPerPageChange={(l) => { setSupplierLimit(l); }}
                   externalStatusFilter={supplierStatusFilter}
-                  onStatusFilterChange={(f) => { setSupplierStatusFilter(f); setSupplierPage(1); }}
+                  onStatusFilterChange={(f) => { setSupplierStatusFilter(f); }}
                   totalItems={supplierTotal}
-                  submitting={submitting}
+                  submitting={supplierSubmitting}
                 />
               )}
             </>
@@ -313,16 +417,19 @@ export default function ProveedoresPage() {
                   orders={orders}
                   onOrderCreate={handleOrderCreate}
                   onOrderDelete={handleOrderDelete}
+                  onOrderStatusChange={handleOrderStatusChange}
+                  onOrderCostsUpdate={handleOrderCostsUpdate}
+                  onReceptionCreated={handleReceptionCreated}
                   externalSearch={orderSearch}
-                  onSearchChange={(v) => { setOrderSearch(v); setOrderPage(1); }}
+                  onSearchChange={(v) => { setOrderSearch(v); }}
                   externalPage={orderPage}
                   onPageChange={(p) => setOrderPage(p)}
                   externalItemsPerPage={orderLimit}
-                  onItemsPerPageChange={(l) => { setOrderLimit(l); setOrderPage(1); }}
+                  onItemsPerPageChange={(l) => { setOrderLimit(l); }}
                   externalStatusFilter={orderStatusFilter}
-                  onStatusFilterChange={(f) => { setOrderStatusFilter(f); setOrderPage(1); }}
+                  onStatusFilterChange={(f) => { setOrderStatusFilter(f); }}
                   totalItems={orderTotal}
-                  submitting={submitting}
+                  submitting={orderSubmitting}
                 />
               )}
             </>

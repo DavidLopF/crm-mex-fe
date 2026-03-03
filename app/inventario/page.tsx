@@ -1,36 +1,46 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useCallback } from 'react';
 import { InventoryTable, InventoryTableSkeleton, InventoryStats } from '@/components/inventario';
 import { Producto } from '@/types';
-import { getProducts, PaginatedProductsDto, getStadistics, ProductStatistics } from '@/services/products';
-import { useDebounce, useToast, usePermissions } from '@/lib/hooks';
+import { getProducts, PaginatedProductsDto, getStadistics } from '@/services/products';
+import { useDebounce, useToast, usePermissions, useCrossTabSync } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
 import { PermissionGuard } from '@/components/layout';
+import { useInventoryStore } from '@/stores';
+import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 
 export default function InventarioPage() {
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
-  const [search, setSearch] = useState<string>('');
-  const [total, setTotal] = useState<number | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
-  const [statistics, setStatistics] = useState<ProductStatistics | undefined>(undefined);
-  
+  const products = useInventoryStore((s) => s.products);
+  const page = useInventoryStore((s) => s.page);
+  const limit = useInventoryStore((s) => s.limit);
+  const search = useInventoryStore((s) => s.search);
+  const total = useInventoryStore((s) => s.total);
+  const loading = useInventoryStore((s) => s.loading);
+  const statistics = useInventoryStore((s) => s.statistics);
+
+  const setProducts = useInventoryStore((s) => s.setProducts);
+  const setStatistics = useInventoryStore((s) => s.setStatistics);
+  const setLoading = useInventoryStore((s) => s.setLoading);
+  const setPage = useInventoryStore((s) => s.setPage);
+  const setLimit = useInventoryStore((s) => s.setLimit);
+  const setSearch = useInventoryStore((s) => s.setSearch);
+  const patchProduct = useInventoryStore((s) => s.patchProduct);
+  const removeProduct = useInventoryStore((s) => s.removeProduct);
+  const upsertProduct = useInventoryStore((s) => s.upsertProduct);
+
   // Toast notifications
   const toast = useToast();
   const { canCreate, canEdit, canDelete } = usePermissions('INVENTARIO');
 
-  // Debounce para la búsqueda - espera 500ms después de que el usuario deje de escribir
   const debouncedSearch = useDebounce(search, 500);
 
-  const load = async (p = page, q = search, l = limit) => {
+  const load = useCallback(async (p = page, q = search, l = limit) => {
     setLoading(true);
     try {
       const filters = { page: p, limit: l, search: q };
       const res: PaginatedProductsDto = await getProducts(filters);
-      setProductos(res.items);
-      setTotal(res.total);
+      setProducts(res.items, res.total);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error al cargar productos:', errorMessage);
@@ -38,9 +48,10 @@ export default function InventarioPage() {
     } finally {
       setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const loadStatistics = async () => {
+  const loadStatistics = useCallback(async () => {
     try {
       const stats = await getStadistics();
       setStatistics(stats);
@@ -48,23 +59,27 @@ export default function InventarioPage() {
       console.error('Error cargando estadísticas:', err);
       toast.error('No se pudieron cargar las estadísticas del inventario.');
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Cargar estadísticas solo una vez al montar
   useEffect(() => {
     loadStatistics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadStatistics]);
 
   useEffect(() => {
     load(page, debouncedSearch, limit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, debouncedSearch, limit]);
 
+  // ── Cross-tab sync: recargar cuando otra pestaña muta inventario ──
+  useCrossTabSync('inventory', () => {
+    load(page, debouncedSearch, limit);
+    loadStatistics();
+  });
+
   const handleProductUpdate = (updatedProduct: Producto) => {
-    setProductos(prev => 
-      prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
-    );
+    patchProduct(updatedProduct.id, updatedProduct);
+    broadcastInvalidation('inventory');
     toast.success('Producto actualizado exitosamente');
   };
 
@@ -75,21 +90,22 @@ export default function InventarioPage() {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    setProductos(prev => [producto, ...prev]);
-    loadStatistics(); // Recargar estadísticas
+    upsertProduct(producto);
+    loadStatistics();
+    broadcastInvalidation('inventory');
     toast.success(`Producto "${newProduct.nombre}" creado exitosamente`);
   };
 
   const handleProductDelete = (productoId: string) => {
-    setProductos(prev => prev.filter(p => p.id !== productoId));
-    loadStatistics(); // Recargar estadísticas
+    removeProduct(productoId);
+    loadStatistics();
+    broadcastInvalidation('inventory');
     toast.success('Producto eliminado exitosamente');
   };
 
   return (
     <PermissionGuard moduleCode="INVENTARIO">
     <main className="p-6">
-      {/* Toast notifications */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
       
       <div className="space-y-6">
@@ -106,18 +122,18 @@ export default function InventarioPage() {
             <InventoryTableSkeleton rows={limit} />
           ) : (
             <InventoryTable 
-              productos={productos} 
+              productos={products} 
               onProductUpdate={canEdit ? handleProductUpdate : undefined}
               onProductCreate={canCreate ? handleProductCreate : undefined}
               onProductDelete={canDelete ? handleProductDelete : undefined}
               onError={toast.error}
               onSuccess={toast.success}
               externalSearch={search}
-              onSearchChange={(v) => { setSearch(v); setPage(1); }}
+              onSearchChange={(v) => { setSearch(v); }}
               externalPage={page}
               onPageChange={(p) => setPage(p)}
               externalItemsPerPage={limit}
-              onItemsPerPageChange={(newLimit) => { setLimit(newLimit); setPage(1); }}
+              onItemsPerPageChange={(newLimit) => { setLimit(newLimit); }}
               totalItems={total}
               canCreate={canCreate}
               canEdit={canEdit}

@@ -7,6 +7,8 @@ export type {
   ApiProductDetail,
   ApiVariant,
   ApiWarehouse,
+  ApiProductSupplier,
+  ApiProductPurchaseHistory,
   CategoryDto,
   CreateProductDto,
   CreateProductVariantDto,

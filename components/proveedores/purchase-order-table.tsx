@@ -10,16 +10,22 @@ import {
   PURCHASE_ORDER_STATUS_COLORS,
   CreatePurchaseOrderDto,
 } from '@/services/suppliers';
+import type { UpdatePurchaseOrderCostsDto } from '@/services/suppliers';
 import { getPurchaseOrderById } from '@/services/suppliers/suppliers.service';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { PurchaseOrderDetailModal } from './purchase-order-detail-modal';
-import { CreatePurchaseOrderModal } from './create-purchase-order-modal';
+import { CreatePurchaseOrderFullscreen } from './create-purchase-order-fullscreen';
 import { DeletePurchaseOrderModal } from './delete-purchase-order-modal';
+import { ChangePOStatusMenu } from './change-po-status-menu';
+import { CreateReceptionModal } from './create-reception-modal';
 
 interface PurchaseOrderTableProps {
   orders: PurchaseOrder[];
   onOrderCreate?: (data: CreatePurchaseOrderDto) => void;
   onOrderDelete?: (id: number) => void;
+  onOrderStatusChange?: (id: number, newStatus: PurchaseOrderStatus) => Promise<void>;
+  onOrderCostsUpdate?: (id: number, data: UpdatePurchaseOrderCostsDto) => Promise<PurchaseOrder | void>;
+  onReceptionCreated?: () => void;
   // Server-driven controlled props
   externalSearch?: string;
   onSearchChange?: (value: string) => void;
@@ -49,6 +55,9 @@ export function PurchaseOrderTable({
   orders,
   onOrderCreate,
   onOrderDelete,
+  onOrderStatusChange,
+  onOrderCostsUpdate,
+  onReceptionCreated,
   externalSearch,
   onSearchChange,
   externalPage,
@@ -70,7 +79,9 @@ export function PurchaseOrderTable({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isReceptionModalOpen, setIsReceptionModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
+  const [receptionOrder, setReceptionOrder] = useState<PurchaseOrder | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   const itemsPerPage = 10;
@@ -138,6 +149,40 @@ export function PurchaseOrderTable({
     } else {
       setInternalPage(newPage);
     }
+  };
+
+  /**
+   * Intercepta cambios de estado: si el destino es 'partial' o 'received',
+   * abre el modal de recepción en vez de cambiar el estado directamente.
+   * El backend transicionará el estado automáticamente al registrar la recepción.
+   */
+  const handleStatusChangeOrReception = async (order: PurchaseOrder, newStatus: PurchaseOrderStatus) => {
+    if (newStatus === 'partial' || newStatus === 'received') {
+      // Cargar detalle completo para tener items actualizados
+      try {
+        const full = await getPurchaseOrderById(order.id);
+        setReceptionOrder(full);
+      } catch {
+        setReceptionOrder(order);
+      }
+      setIsReceptionModalOpen(true);
+      return;
+    }
+    // Para otros estados, cambiar directamente
+    if (onOrderStatusChange) {
+      await onOrderStatusChange(order.id, newStatus);
+    }
+  };
+
+  const handleReceptionCreatedFromTable = async () => {
+    // Recargar la orden en caso de que el detail modal esté abierto
+    if (receptionOrder) {
+      try {
+        const updated = await getPurchaseOrderById(receptionOrder.id);
+        setReceptionOrder(updated);
+      } catch { /* mantener */ }
+    }
+    if (onReceptionCreated) onReceptionCreated();
   };
 
   return (
@@ -210,7 +255,13 @@ export function PurchaseOrderTable({
                   Estado
                 </th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Recepción
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Artículos
+                </th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                  Subtotal
                 </th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Total
@@ -226,7 +277,7 @@ export function PurchaseOrderTable({
             <tbody className="divide-y divide-gray-100">
               {currentOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={9} className="px-6 py-12 text-center">
                     <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No se encontraron órdenes de compra</p>
                     <p className="text-gray-400 text-sm mt-1">Intenta cambiar los filtros de búsqueda</p>
@@ -251,12 +302,51 @@ export function PurchaseOrderTable({
                       </span>
                     </td>
                     <td className="px-6 py-4">
+                      {(() => {
+                        const totalQty = order.items.reduce((s, i) => s + i.qty, 0);
+                        const totalRec = order.items.reduce((s, i) => s + i.qtyReceived, 0);
+                        const pct = totalQty > 0 ? Math.round((totalRec / totalQty) * 100) : 0;
+                        const barColor =
+                          pct === 0
+                            ? 'bg-gray-300'
+                            : pct >= 100
+                              ? 'bg-green-500'
+                              : pct >= 50
+                                ? 'bg-yellow-500'
+                                : 'bg-orange-400';
+                        return (
+                          <div className="min-w-[80px]">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] text-gray-500">{totalRec}/{totalQty}</span>
+                              <span className="text-[10px] font-medium text-gray-600">{pct}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${barColor}`}
+                                style={{ width: `${Math.min(pct, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-6 py-4">
                       <span className="text-sm text-gray-600">{order.items.length}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600">
+                        {formatCurrency(order.subtotal)}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold text-gray-900">
                         {formatCurrency(order.total)}
                       </span>
+                      {(order.freightPct + order.customsPct + order.taxPct + order.handlingPct + order.otherPct) > 0 && (
+                        <span className="block text-[10px] text-blue-500">
+                          +{(order.freightPct + order.customsPct + order.taxPct + order.handlingPct + order.otherPct).toFixed(1)}% importación
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-500">
@@ -273,6 +363,12 @@ export function PurchaseOrderTable({
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+                        {onOrderStatusChange && (
+                          <ChangePOStatusMenu
+                            currentStatus={order.status}
+                            onChangeStatus={(newStatus) => handleStatusChangeOrReception(order, newStatus)}
+                          />
+                        )}
                         {canDelete && order.status !== 'received' && order.status !== 'cancelled' && (
                           <button
                             onClick={() => handleDeleteClick(order)}
@@ -363,8 +459,39 @@ export function PurchaseOrderTable({
         isOpen={isDetailModalOpen}
         onClose={() => { setIsDetailModalOpen(false); setSelectedOrder(null); }}
         order={selectedOrder}
+        onStatusChange={onOrderStatusChange ? async (newStatus) => {
+          if (selectedOrder) {
+            await onOrderStatusChange(selectedOrder.id, newStatus);
+            // Recargar detalle actualizado
+            try {
+              const updated = await getPurchaseOrderById(selectedOrder.id);
+              setSelectedOrder(updated);
+            } catch { /* mantener el estado actual */ }
+          }
+        } : undefined}
+        onCostsUpdate={onOrderCostsUpdate ? async (id, data) => {
+          const result = await onOrderCostsUpdate(id, data);
+          // Recargar detalle actualizado
+          try {
+            const updated = await getPurchaseOrderById(id);
+            setSelectedOrder(updated);
+            return updated;
+          } catch {
+            return result;
+          }
+        } : undefined}
+        onReceptionCreated={async () => {
+          // Recargar detalle actualizado tras recepción
+          if (selectedOrder) {
+            try {
+              const updated = await getPurchaseOrderById(selectedOrder.id);
+              setSelectedOrder(updated);
+            } catch { /* mantener estado actual */ }
+          }
+          if (onReceptionCreated) onReceptionCreated();
+        }}
       />
-      <CreatePurchaseOrderModal
+      <CreatePurchaseOrderFullscreen
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreate}
@@ -376,6 +503,12 @@ export function PurchaseOrderTable({
         onConfirm={handleConfirmDelete}
         order={selectedOrder}
         submitting={submitting}
+      />
+      <CreateReceptionModal
+        isOpen={isReceptionModalOpen}
+        onClose={() => { setIsReceptionModalOpen(false); setReceptionOrder(null); }}
+        order={receptionOrder}
+        onCreated={handleReceptionCreatedFromTable}
       />
     </div>
   );

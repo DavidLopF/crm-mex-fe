@@ -10,3 +10,4 @@ export * from './company';
 export * from './auth';
 export * from './dashboard';
 export * from './suppliers';
+export * from './receptions';

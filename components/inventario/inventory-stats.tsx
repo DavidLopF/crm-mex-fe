@@ -12,7 +12,6 @@ export function InventoryStats({ productos, statistics }: InventoryStatsProps) {
   // Si tenemos estadísticas del servidor, usarlas; sino, calcular desde el array local
   const totalProductos = statistics?.totalProducts ?? (productos ?? []).length;
   const stockDisponible = statistics?.totalStockOnHand ?? (productos ?? []).reduce((sum, p) => sum + p.stockTotal, 0);
-  const stockReservado = statistics?.totalStockReserved ?? 0;
   const productosActivos = statistics?.activeProducts ?? (productos ?? []).filter(p => p.activo).length;
   const productosInactivos = statistics?.inactiveProducts ?? (productos ?? []).filter(p => !p.activo).length;
 
@@ -29,12 +28,6 @@ export function InventoryStats({ productos, statistics }: InventoryStatsProps) {
         value={stockDisponible}
         icon={TrendingUp}
         iconClassName="bg-green-100 text-green-600"
-      />
-      <StatCard
-        title="Stock Reservado"
-        value={stockReservado}
-        icon={ShoppingCart}
-        iconClassName="bg-orange-100 text-orange-600"
       />
       <StatCard
         title="Productos Activos"

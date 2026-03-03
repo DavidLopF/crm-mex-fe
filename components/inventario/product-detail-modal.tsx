@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp } from 'lucide-react';
+import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp, Truck, Star, ClipboardList, ArrowUpDown } from 'lucide-react';
 import { Modal, Button, Badge, Card, CardContent, Select } from '@/components/ui';
 import { Producto } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { getAllClients, getClientPriceHistory, ClientListItem, PriceHistoryItem } from '@/services/clients';
 import { updateProduct, UpdateProductDto, getCategories, CategoryDto } from '@/services/products';
+import type { ApiProductDetail, ApiProductSupplier, ApiProductPurchaseHistory } from '@/services/products';
 
 interface ProductDetailModalProps {
   producto: Producto | null;
+  rawDetail?: ApiProductDetail | null;
   isOpen: boolean;
   onClose: () => void;
   onEdit?: (producto: Producto) => void;
@@ -20,6 +22,7 @@ interface ProductDetailModalProps {
 
 export function ProductDetailModal({ 
   producto, 
+  rawDetail,
   isOpen, 
   onClose, 
   onEdit,
@@ -120,7 +123,6 @@ export function ProductDetailModal({
         description: editedProduct.descripcion,
         categoryId: categoriaEncontrada?.id,
         price: editedProduct.precio,
-        cost: editedProduct.costo,
         image: editedProduct.imagen,
         isActive: editedProduct.activo,
         variants: editedProduct.variaciones.map(v => ({
@@ -298,19 +300,14 @@ export function ProductDetailModal({
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Tag className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-700">Costo</span>
+                    <span className="text-sm font-medium text-gray-700">Costo Promedio</span>
                   </div>
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      value={editedProduct?.costo || 0}
-                      onChange={(e) => setEditedProduct(prev => prev ? { ...prev, costo: parseFloat(e.target.value) || 0 } : null)}
-                      className="text-2xl font-bold text-blue-600 w-full border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      step="0.01"
-                    />
-                  ) : (
-                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(currentProduct.costo)}</p>
-                  )}
+                  <p className="text-2xl font-bold text-blue-600">
+                    {rawDetail?.cost != null
+                      ? formatCurrency(rawDetail.cost)
+                      : formatCurrency(currentProduct.costo)}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">Calculado desde órdenes de compra</p>
                 </CardContent>
               </Card>
             </div>
@@ -341,6 +338,175 @@ export function ProductDetailModal({
             </Card>
           </div>
         </div>
+
+        {/* Costos Reales desde Órdenes de Compra */}
+        {rawDetail && (rawDetail.lastPurchaseCost !== null || (rawDetail.suppliers && rawDetail.suppliers.length > 0)) && (
+          <div className="space-y-4">
+            <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-gray-600" />
+              Costos Reales (Landed Cost)
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card>
+                <CardContent className="p-3 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Costo Promedio</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {rawDetail.cost != null ? formatCurrency(rawDetail.cost) : '—'}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-3 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Última Compra</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {rawDetail.lastPurchaseCost != null ? formatCurrency(rawDetail.lastPurchaseCost) : '—'}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-3 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Costo Más Bajo</p>
+                  <p className="text-lg font-bold text-green-600">
+                    {rawDetail.lowestPurchaseCost != null ? formatCurrency(rawDetail.lowestPurchaseCost) : '—'}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-3 text-center">
+                  <p className="text-xs text-gray-500 mb-1">Costo Más Alto</p>
+                  <p className="text-lg font-bold text-red-600">
+                    {rawDetail.highestPurchaseCost != null ? formatCurrency(rawDetail.highestPurchaseCost) : '—'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Margen */}
+            {rawDetail.margin != null && (
+              <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <ArrowUpDown className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Margen estimado:</span>
+                <Badge variant={rawDetail.margin >= 30 ? 'success' : rawDetail.margin >= 15 ? 'warning' : 'danger'}>
+                  {rawDetail.margin.toFixed(1)}%
+                </Badge>
+              </div>
+            )}
+
+            {rawDetail.lastPurchaseCost == null && (
+              <div className="text-center py-3 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <p className="text-xs">Sin historial de compras — los costos se calcularán al registrar órdenes de compra</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Proveedores asociados */}
+        {rawDetail && rawDetail.suppliers && rawDetail.suppliers.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <Truck className="w-4 h-4 text-gray-600" />
+              Proveedores ({rawDetail.suppliers.length})
+            </h3>
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">Proveedor</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">SKU Prov.</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Costo FOB</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Último Landed</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Lead Time</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Min. Pedido</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Pref.</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {rawDetail.suppliers.map((sup: ApiProductSupplier, idx: number) => (
+                    <tr key={`${sup.supplierId}-${idx}`} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 font-medium text-gray-900">{sup.supplierName}</td>
+                      <td className="px-3 py-2 text-gray-500 font-mono text-xs">{sup.supplierSku || '—'}</td>
+                      <td className="px-3 py-2 text-right text-gray-900">
+                        {formatCurrency(sup.supplierCost)} {sup.currency && sup.currency !== 'MXN' && (
+                          <span className="text-xs text-gray-400 ml-1">{sup.currency}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-700">
+                        {sup.lastLandedCost != null ? formatCurrency(sup.lastLandedCost) : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-center text-gray-600">
+                        {sup.leadTimeDays != null ? `${sup.leadTimeDays}d` : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-center text-gray-600">
+                        {sup.minOrderQty != null ? sup.minOrderQty : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {sup.isPreferred && (
+                          <Star className="w-4 h-4 text-amber-500 mx-auto fill-amber-500" />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Historial de Compras (Purchase Orders) */}
+        {rawDetail && rawDetail.purchaseHistory && rawDetail.purchaseHistory.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-gray-600" />
+              Historial de Compras ({rawDetail.purchaseHistory.length})
+            </h3>
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">Fecha</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">OC</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">Proveedor</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Qty</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Costo FOB</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Costo Landed</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Estado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {rawDetail.purchaseHistory.map((ph: ApiProductPurchaseHistory, idx: number) => (
+                    <tr key={`${ph.purchaseOrderId}-${idx}`} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-gray-600 text-xs">
+                        {formatDateTime(new Date(ph.date))}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-xs text-blue-600 font-medium">
+                        {ph.purchaseOrderCode}
+                      </td>
+                      <td className="px-3 py-2 text-gray-900">{ph.supplierName}</td>
+                      <td className="px-3 py-2 text-right text-gray-900 font-medium">{ph.qty}</td>
+                      <td className="px-3 py-2 text-right text-gray-700">
+                        {formatCurrency(ph.unitCost)} {ph.currency && ph.currency !== 'MXN' && (
+                          <span className="text-xs text-gray-400 ml-1">{ph.currency}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-900 font-medium">
+                        {ph.landedUnitCost != null ? formatCurrency(ph.landedUnitCost) : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Badge variant={
+                          ph.status === 'Recibida' || ph.status === 'received' ? 'success' :
+                          ph.status === 'Cancelada' || ph.status === 'cancelled' ? 'danger' :
+                          'warning'
+                        }>
+                          {ph.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Fila inferior: Variaciones y Stock | Historial de Precios */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

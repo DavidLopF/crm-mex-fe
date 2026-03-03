@@ -10,8 +10,13 @@ export {
   getPurchaseOrderById,
   createPurchaseOrder,
   updatePurchaseOrder,
+  updatePurchaseOrderCosts,
   deletePurchaseOrder,
   getPurchaseOrderStatistics,
+  getSupplierProducts,
+  addSupplierProduct,
+  addSupplierProductsBulk,
+  removeSupplierProduct,
 } from './suppliers.service';
 
 export type {
@@ -32,10 +37,18 @@ export type {
   CreatePurchaseOrderItemDto,
   CreatePurchaseOrderDto,
   UpdatePurchaseOrderDto,
+  UpdatePurchaseOrderCostsDto,
   PurchaseOrderStatistics,
+  SupplierProductItem,
+  AddSupplierProductDto,
+  BulkAddSupplierProductsDto,
 } from './suppliers.types';
 
 export {
   PURCHASE_ORDER_STATUS_LABELS,
   PURCHASE_ORDER_STATUS_COLORS,
+  PO_STATUS_TRANSITION_RULES,
+  canTransitionPO,
+  getAvailablePOTransitions,
+  LANDED_COST_FIELDS,
 } from './suppliers.types';

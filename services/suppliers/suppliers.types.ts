@@ -141,6 +141,84 @@ export const PURCHASE_ORDER_STATUS_COLORS: Record<PurchaseOrderStatus, string> =
   cancelled: 'bg-red-100 text-red-700',
 };
 
+// ── Reglas de transición de estados de órdenes de compra ───────────
+export interface POStatusTransitionRule {
+  allowedFrom: PurchaseOrderStatus[];
+  label: string;
+  errorMessage: string;
+}
+
+/**
+ * Mapa de transiciones permitidas.
+ * Clave = estado destino, valor = desde qué estados se puede llegar.
+ *
+ *  draft → sent → confirmed → partial → received
+ *                           ↘ received
+ *  (cualquiera excepto received) → cancelled
+ *  cancelled → draft  (reabrir)
+ */
+export const PO_STATUS_TRANSITION_RULES: Record<PurchaseOrderStatus, POStatusTransitionRule> = {
+  draft: {
+    allowedFrom: ['cancelled'],
+    label: 'Reabrir como Borrador',
+    errorMessage: 'Solo se puede reabrir a Borrador desde Cancelada',
+  },
+  sent: {
+    allowedFrom: ['draft'],
+    label: 'Marcar como Enviada',
+    errorMessage: 'La orden debe estar en Borrador para marcar como Enviada',
+  },
+  confirmed: {
+    allowedFrom: ['sent'],
+    label: 'Confirmar Orden',
+    errorMessage: 'La orden debe estar Enviada para confirmarla',
+  },
+  partial: {
+    allowedFrom: ['confirmed'],
+    label: 'Recepción Parcial',
+    errorMessage: 'La orden debe estar Confirmada para marcar como Parcial',
+  },
+  received: {
+    allowedFrom: ['confirmed', 'partial'],
+    label: 'Marcar como Recibida',
+    errorMessage: 'La orden debe estar Confirmada o Parcial para marcar como Recibida',
+  },
+  cancelled: {
+    allowedFrom: ['draft', 'sent', 'confirmed', 'partial'],
+    label: 'Cancelar Orden',
+    errorMessage: 'No se puede cancelar una orden ya Recibida o Cancelada',
+  },
+};
+
+/**
+ * Valida si una transición de estado es válida
+ */
+export function canTransitionPO(
+  currentStatus: PurchaseOrderStatus,
+  newStatus: PurchaseOrderStatus,
+): { valid: boolean; error?: string } {
+  if (currentStatus === newStatus) {
+    return { valid: false, error: 'La orden ya está en ese estado' };
+  }
+  const rule = PO_STATUS_TRANSITION_RULES[newStatus];
+  if (!rule) {
+    return { valid: false, error: 'Estado destino no válido' };
+  }
+  if (!rule.allowedFrom.includes(currentStatus)) {
+    return { valid: false, error: rule.errorMessage };
+  }
+  return { valid: true };
+}
+
+/**
+ * Devuelve los estados a los que se puede transicionar desde el estado actual
+ */
+export function getAvailablePOTransitions(currentStatus: PurchaseOrderStatus): PurchaseOrderStatus[] {
+  return (Object.entries(PO_STATUS_TRANSITION_RULES) as [PurchaseOrderStatus, POStatusTransitionRule][])
+    .filter(([, rule]) => rule.allowedFrom.includes(currentStatus))
+    .map(([status]) => status);
+}
+
 // ── Item de orden de compra ────────────────────────────────────────
 export interface PurchaseOrderItem {
   id: number;
@@ -150,6 +228,10 @@ export interface PurchaseOrderItem {
   qtyReceived: number;
   unitCost: number;
   lineTotal: number;
+  /** Costo unitario con landed cost aplicado: unitCost × (1 + Σpcts/100) */
+  landedUnitCost: number;
+  /** Línea total con landed cost: landedUnitCost × qty */
+  landedLineTotal: number;
   currency: string;
   description?: string;
 }
@@ -188,6 +270,25 @@ export interface PurchaseOrder {
   createdAt: string;
   updatedAt: string;
   items: PurchaseOrderItem[];
+
+  // ── Landed cost: porcentajes ──
+  /** Porcentaje de flete sobre subtotal */
+  freightPct: number;
+  /** Porcentaje de aduana/despacho sobre subtotal */
+  customsPct: number;
+  /** Porcentaje de impuestos de internación sobre subtotal */
+  taxPct: number;
+  /** Porcentaje de manejo/almacenaje sobre subtotal */
+  handlingPct: number;
+  /** Porcentaje otros costos sobre subtotal */
+  otherPct: number;
+
+  // ── Landed cost: montos calculados (subtotal × pct / 100) ──
+  freightCost: number;
+  customsCost: number;
+  taxCost: number;
+  handlingCost: number;
+  otherCost: number;
 }
 
 // ── Filtros para GET /api/purchase-orders ──────────────────────────
@@ -224,6 +325,13 @@ export interface CreatePurchaseOrderDto {
   items: CreatePurchaseOrderItemDto[];
   notes?: string;
   expectedDeliveryDate?: string;
+  currency?: string;
+  // Landed cost porcentajes (opcionales al crear)
+  freightPct?: number;
+  customsPct?: number;
+  taxPct?: number;
+  handlingPct?: number;
+  otherPct?: number;
 }
 
 // ── DTO para actualizar una orden de compra ────────────────────────
@@ -234,6 +342,24 @@ export interface UpdatePurchaseOrderDto {
   items?: CreatePurchaseOrderItemDto[];
 }
 
+// ── DTO para actualizar costos de internación (PATCH) ──────────────
+export interface UpdatePurchaseOrderCostsDto {
+  freightPct?: number;
+  customsPct?: number;
+  taxPct?: number;
+  handlingPct?: number;
+  otherPct?: number;
+}
+
+// ── Etiquetas de costos de internación para UI ─────────────────────
+export const LANDED_COST_FIELDS = [
+  { key: 'freightPct' as const, label: 'Flete', icon: '🚛' },
+  { key: 'customsPct' as const, label: 'Aduana', icon: '🏛️' },
+  { key: 'taxPct' as const, label: 'Impuestos', icon: '📋' },
+  { key: 'handlingPct' as const, label: 'Manejo', icon: '📦' },
+  { key: 'otherPct' as const, label: 'Otros', icon: '➕' },
+] as const;
+
 // ── Estadísticas de órdenes de compra ──────────────────────────────
 export interface PurchaseOrderStatistics {
   totalOrders: number;
@@ -243,4 +369,44 @@ export interface PurchaseOrderStatistics {
   receivedOrders: number;
   cancelledOrders: number;
   totalSpent: number;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── RELACIÓN PROVEEDOR ↔ PRODUCTO (Supplier Products) ────────────────
+// ══════════════════════════════════════════════════════════════════════
+
+// ── Producto asociado a un proveedor (GET /api/suppliers/:id/products) ──
+export interface SupplierProductItem {
+  id: number;
+  supplierId: number;
+  productId: number;
+  supplierCost: number;
+  supplierSku: string | null;
+  currency: string;
+  leadTimeDays: number | null;
+  minOrderQty: number | null;
+  isPreferred: boolean;
+  product: {
+    id: number;
+    name: string;
+    category: { id: number; name: string };
+    variants: { id: number; sku: string; variantName: string }[];
+  };
+}
+
+// ── DTO para asociar un producto a un proveedor ────────────────────
+export interface AddSupplierProductDto {
+  productId: number;
+  supplierCost: number;
+  supplierSku?: string;
+  currency?: string;
+  leadTimeDays?: number;
+  minOrderQty?: number;
+  isPreferred?: boolean;
+  notes?: string;
+}
+
+// ── DTO para bulk-add ──────────────────────────────────────────────
+export interface BulkAddSupplierProductsDto {
+  products: AddSupplierProductDto[];
 }
