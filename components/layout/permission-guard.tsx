@@ -26,6 +26,13 @@ export function PermissionGuard({ moduleCode, children }: PermissionGuardProps) 
     return <>{children}</>;
   }
 
+  // Si el módulo no existe aún en el backend, mostrarlo por defecto
+  // Solo bloquear si el módulo existe explícitamente y tiene canView: false
+  const modulePermission = permissions.find((p) => p.moduleCode === moduleCode);
+  if (!modulePermission) {
+    return <>{children}</>;
+  }
+
   const hasAccess = can(moduleCode, 'canView');
 
   if (hasAccess) {

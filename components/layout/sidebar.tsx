@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   Menu,
+  Truck,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Inventario', href: '/inventario', icon: Package },
   { name: 'Pedidos', href: '/pedidos', icon: ShoppingCart },
   { name: 'Clientes', href: '/clientes', icon: Users },
+  { name: 'Proveedores', href: '/proveedores', icon: Truck },
   { name: 'Configuración', href: '/configuracion', icon: Settings },
 ];
 
@@ -31,17 +33,22 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { settings } = useCompany();
-  const { logout, can } = useAuth();
+  const { logout, can, permissions } = useAuth();
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   // Before hydration completes, show all navigation items to avoid SSR mismatch.
   // After mount, filter by actual permissions loaded from localStorage.
+  // If a module code is NOT present in the backend permissions list at all,
+  // show the item by default (unknown module = not restricted).
+  // Only hide when the module explicitly exists AND canView === false.
   const visibleNavigation = navigation.filter((item) => {
     if (!mounted) return true;
     const moduleCode = ROUTE_TO_MODULE[item.href];
     if (!moduleCode) return true;
+    const modulePermission = permissions.find((p) => p.moduleCode === moduleCode);
+    if (!modulePermission) return true;
     return can(moduleCode, 'canView');
   });
 

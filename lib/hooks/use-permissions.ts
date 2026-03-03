@@ -11,6 +11,7 @@ const ROUTE_TO_MODULE: Record<string, string> = {
   '/inventario': 'INVENTARIO',
   '/pedidos': 'PEDIDOS',
   '/clientes': 'CLIENTES',
+  '/proveedores': 'PROVEEDORES',
   '/configuracion': 'CONFIG',
 };
 
