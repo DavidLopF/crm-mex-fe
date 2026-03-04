@@ -1,5 +1,9 @@
 'use client';
 
+
+
+
+
 import { useEffect, useState } from 'react';
 import { Package, ShoppingCart, Users, DollarSign, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
 import { StatCard, SalesChart, RecentOrders, TopProducts, LowStockAlert } from '@/components/dashboard';
