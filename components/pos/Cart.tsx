@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { usePosStore } from '@/stores';
 import { createSale } from '@/services/pos';
 import { useToast } from '@/lib/hooks';
+import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import { RemisionModal } from './RemisionModal';
 
 interface CartProps {
@@ -14,17 +16,23 @@ interface CartProps {
 }
 
 export function Cart({ onClose }: CartProps) {
-  const cart = usePosStore((s) => s.cart);
-  const clientName = usePosStore((s) => s.clientName);
-  const clientId = usePosStore((s) => s.clientId);
-  const notes = usePosStore((s) => s.notes);
-  const updateQty = usePosStore((s) => s.updateQty);
-  const removeFromCart = usePosStore((s) => s.removeFromCart);
-  const clearCart = usePosStore((s) => s.clearCart);
-  const setClientName = usePosStore((s) => s.setClientName);
-  const setNotes = usePosStore((s) => s.setNotes);
-  const setLastSale = usePosStore((s) => s.setLastSale);
-  const lastSale = usePosStore((s) => s.lastSale);
+  const {
+    cart, clientName, clientId, notes, lastSale,
+    updateQty, removeFromCart, clearCart,
+    setClientName, setNotes, setLastSale,
+  } = usePosStore(useShallow((s) => ({
+    cart: s.cart,
+    clientName: s.clientName,
+    clientId: s.clientId,
+    notes: s.notes,
+    lastSale: s.lastSale,
+    updateQty: s.updateQty,
+    removeFromCart: s.removeFromCart,
+    clearCart: s.clearCart,
+    setClientName: s.setClientName,
+    setNotes: s.setNotes,
+    setLastSale: s.setLastSale,
+  })));
 
   const [submitting, setSubmitting] = useState(false);
   const [showRemision, setShowRemision] = useState(false);
@@ -53,6 +61,9 @@ export function Cart({ onClose }: CartProps) {
       });
       setLastSale(sale);
       setShowRemision(true);
+      // Invalidar inventario inmediatamente para que otras vistas/pestañas
+      // reflejen el stock actualizado tras la venta
+      broadcastInvalidation('inventory');
       toast.success('Remisión generada exitosamente');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al crear la venta');

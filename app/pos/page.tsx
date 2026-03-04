@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { ShoppingCart } from 'lucide-react';
 import { ProductGrid, Cart } from '@/components/pos';
 import { PermissionGuard } from '@/components/layout';
@@ -8,9 +9,11 @@ import { usePosStore } from '@/stores';
 
 export default function PosPage() {
   const [showMobileCart, setShowMobileCart] = useState(false);
-  const cart = usePosStore((s) => s.cart);
-  const getCartTotal = usePosStore((s) => s.getCartTotal);
-  const getCartItemCount = usePosStore((s) => s.getCartItemCount);
+  const { cart, getCartTotal, getCartItemCount } = usePosStore(useShallow((s) => ({
+    cart: s.cart,
+    getCartTotal: s.getCartTotal,
+    getCartItemCount: s.getCartItemCount,
+  })));
 
   const itemCount = getCartItemCount();
   const total = getCartTotal();

@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Plus, Search } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { OrdersBoard, OrderDetailModal, CreateOrderModal } from '@/components/pedidos';
 import { Pedido, EstadoPedido } from '@/types';
-import { 
-  getOrders, 
-  OrderStatus, 
-  changeOrderStatus, 
+import {
+  getOrders,
+  OrderStatus,
+  changeOrderStatus,
   OrderStatusCode,
   ORDER_STATUS_LABELS,
   canTransitionToStatus,
@@ -86,9 +87,14 @@ const mapOrdersToPedidos = (orderStatuses: OrderStatus[]): Pedido[] => {
 };
 
 export default function PedidosPage() {
-  const pedidos = useOrdersStore((s) => s.pedidos);
-  const loading = useOrdersStore((s) => s.loading);
-  const searchTerm = useOrdersStore((s) => s.searchTerm);
+  // ── Data & UI state (single shallow subscription) ──
+  const { pedidos, loading, searchTerm } = useOrdersStore(useShallow((s) => ({
+    pedidos: s.pedidos,
+    loading: s.loading,
+    searchTerm: s.searchTerm,
+  })));
+
+  // ── Actions (stable references) ──
   const setPedidos = useOrdersStore((s) => s.setPedidos);
   const setLoading = useOrdersStore((s) => s.setLoading);
   const setSearchTerm = useOrdersStore((s) => s.setSearchTerm);

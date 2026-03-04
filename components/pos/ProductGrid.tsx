@@ -1,18 +1,23 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Search, Package, Plus } from 'lucide-react';
 import { getPosProducts, type PosProductDto } from '@/services/pos';
 import { usePosStore } from '@/stores';
+import { useCrossTabSync } from '@/lib/hooks';
 import { QuantitySelector } from './QuantitySelector';
 
 export function ProductGrid() {
   const [products, setProducts] = useState<PosProductDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<PosProductDto | null>(null);
-  const searchTerm = usePosStore((s) => s.searchTerm);
-  const setSearchTerm = usePosStore((s) => s.setSearchTerm);
-  const cart = usePosStore((s) => s.cart);
+
+  const { searchTerm, setSearchTerm, cart } = usePosStore(useShallow((s) => ({
+    searchTerm: s.searchTerm,
+    setSearchTerm: s.setSearchTerm,
+    cart: s.cart,
+  })));
 
   const loadProducts = useCallback(async () => {
     try {
@@ -30,6 +35,11 @@ export function ProductGrid() {
     const timer = setTimeout(loadProducts, 300);
     return () => clearTimeout(timer);
   }, [loadProducts]);
+
+  // ── Recargar productos cuando el inventario cambia (venta, recepción, etc.) ──
+  useCrossTabSync('inventory', () => {
+    loadProducts();
+  });
 
   const getBestPrice = (p: PosProductDto) => {
     if (p.priceTiers.length === 0) return p.defaultPrice;

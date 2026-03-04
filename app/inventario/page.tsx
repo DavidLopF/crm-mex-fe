@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { InventoryTable, InventoryTableSkeleton, InventoryStats } from '@/components/inventario';
 import { Producto } from '@/types';
 import { getProducts, PaginatedProductsDto, getStadistics } from '@/services/products';
@@ -11,14 +12,20 @@ import { useInventoryStore } from '@/stores';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 
 export default function InventarioPage() {
-  const products = useInventoryStore((s) => s.products);
-  const page = useInventoryStore((s) => s.page);
-  const limit = useInventoryStore((s) => s.limit);
-  const search = useInventoryStore((s) => s.search);
-  const total = useInventoryStore((s) => s.total);
-  const loading = useInventoryStore((s) => s.loading);
-  const statistics = useInventoryStore((s) => s.statistics);
+  // ── Data & UI state (single shallow subscription) ──
+  const {
+    products, page, limit, search, total, loading, statistics,
+  } = useInventoryStore(useShallow((s) => ({
+    products: s.products,
+    page: s.page,
+    limit: s.limit,
+    search: s.search,
+    total: s.total,
+    loading: s.loading,
+    statistics: s.statistics,
+  })));
 
+  // ── Actions (stable references — no re-render on data change) ──
   const setProducts = useInventoryStore((s) => s.setProducts);
   const setStatistics = useInventoryStore((s) => s.setStatistics);
   const setLoading = useInventoryStore((s) => s.setLoading);
