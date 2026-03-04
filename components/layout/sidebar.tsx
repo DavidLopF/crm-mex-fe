@@ -13,6 +13,8 @@ import {
   ChevronLeft,
   Menu,
   Truck,
+  Store,
+  BarChart3,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
@@ -25,6 +27,8 @@ const navigation = [
   { name: 'Pedidos', href: '/pedidos', icon: ShoppingCart },
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Proveedores', href: '/proveedores', icon: Truck },
+  { name: 'Punto de Venta', href: '/pos', icon: Store },
+  { name: 'Reportes POS', href: '/pos/reportes', icon: BarChart3 },
   { name: 'Configuración', href: '/configuracion', icon: Settings },
 ];
 
