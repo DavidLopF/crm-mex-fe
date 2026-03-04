@@ -1,32 +1,38 @@
 'use client';
 
-
-
-
-
-
-
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Package, ShoppingCart, Users, DollarSign, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
 import { StatCard, SalesChart, RecentOrders, TopProducts, LowStockAlert } from '@/components/dashboard';
 import { formatCurrency } from '@/lib/utils';
 import { PermissionGuard } from '@/components/layout';
 import { getDashboard, DashboardSummary } from '@/services/dashboard';
+import { useAuth } from '@/lib/auth-context';
 
 function todayLabel(): string {
   return new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export default function DashboardPage() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace('/login');
+      return;
+    }
     getDashboard()
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const stats = data;
 
