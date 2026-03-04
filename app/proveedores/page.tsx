@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Truck, ClipboardList } from 'lucide-react';
 import {
   SupplierTable,
@@ -44,17 +45,24 @@ export default function ProveedoresPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('suppliers');
   const toast = useToast();
 
-  // ── Suppliers store ──
-  const suppliers = useSuppliersStore((s) => s.suppliers);
-  const supplierTotal = useSuppliersStore((s) => s.total);
-  const supplierPage = useSuppliersStore((s) => s.page);
-  const supplierLimit = useSuppliersStore((s) => s.limit);
-  const supplierSearch = useSuppliersStore((s) => s.search);
-  const supplierStatusFilter = useSuppliersStore((s) => s.statusFilter);
-  const supplierLoading = useSuppliersStore((s) => s.loading);
-  const supplierStats = useSuppliersStore((s) => s.stats);
-  const supplierSubmitting = useSuppliersStore((s) => s.submitting);
+  // ── Suppliers store (data — single shallow subscription) ──
+  const {
+    suppliers, supplierTotal, supplierPage, supplierLimit,
+    supplierSearch, supplierStatusFilter, supplierLoading,
+    supplierStats, supplierSubmitting,
+  } = useSuppliersStore(useShallow((s) => ({
+    suppliers: s.suppliers,
+    supplierTotal: s.total,
+    supplierPage: s.page,
+    supplierLimit: s.limit,
+    supplierSearch: s.search,
+    supplierStatusFilter: s.statusFilter,
+    supplierLoading: s.loading,
+    supplierStats: s.stats,
+    supplierSubmitting: s.submitting,
+  })));
 
+  // ── Suppliers store (actions — stable references) ──
   const setSuppliersData = useSuppliersStore((s) => s.setSuppliers);
   const setSupplierStats = useSuppliersStore((s) => s.setStats);
   const setSupplierLoading = useSuppliersStore((s) => s.setLoading);
@@ -66,17 +74,24 @@ export default function ProveedoresPage() {
   const patchSupplier = useSuppliersStore((s) => s.patchSupplier);
   const removeSupplierFromStore = useSuppliersStore((s) => s.removeSupplier);
 
-  // ── Purchase orders store ──
-  const orders = usePurchaseOrdersStore((s) => s.orders);
-  const orderTotal = usePurchaseOrdersStore((s) => s.total);
-  const orderPage = usePurchaseOrdersStore((s) => s.page);
-  const orderLimit = usePurchaseOrdersStore((s) => s.limit);
-  const orderSearch = usePurchaseOrdersStore((s) => s.search);
-  const orderStatusFilter = usePurchaseOrdersStore((s) => s.statusFilter);
-  const orderLoading = usePurchaseOrdersStore((s) => s.loading);
-  const orderStats = usePurchaseOrdersStore((s) => s.stats);
-  const orderSubmitting = usePurchaseOrdersStore((s) => s.submitting);
+  // ── Purchase orders store (data — single shallow subscription) ──
+  const {
+    orders, orderTotal, orderPage, orderLimit,
+    orderSearch, orderStatusFilter, orderLoading,
+    orderStats, orderSubmitting,
+  } = usePurchaseOrdersStore(useShallow((s) => ({
+    orders: s.orders,
+    orderTotal: s.total,
+    orderPage: s.page,
+    orderLimit: s.limit,
+    orderSearch: s.search,
+    orderStatusFilter: s.statusFilter,
+    orderLoading: s.loading,
+    orderStats: s.stats,
+    orderSubmitting: s.submitting,
+  })));
 
+  // ── Purchase orders store (actions — stable references) ──
   const setOrdersData = usePurchaseOrdersStore((s) => s.setOrders);
   const setOrderStats = usePurchaseOrdersStore((s) => s.setStats);
   const setOrderLoading = usePurchaseOrdersStore((s) => s.setLoading);

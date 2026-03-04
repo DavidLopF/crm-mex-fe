@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { ClientTable, ClientTableSkeleton, ClientStats } from '@/components/clientes';
 import {
   getClients,
@@ -18,16 +19,23 @@ import { useClientsStore } from '@/stores';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 
 export default function ClientesPage() {
-  const clients = useClientsStore((s) => s.clients);
-  const page = useClientsStore((s) => s.page);
-  const limit = useClientsStore((s) => s.limit);
-  const search = useClientsStore((s) => s.search);
-  const statusFilter = useClientsStore((s) => s.statusFilter);
-  const total = useClientsStore((s) => s.total);
-  const loading = useClientsStore((s) => s.loading);
-  const submitting = useClientsStore((s) => s.submitting);
-  const statistics = useClientsStore((s) => s.statistics);
+  // ── Data & UI state (single shallow subscription) ──
+  const {
+    clients, page, limit, search, statusFilter,
+    total, loading, submitting, statistics,
+  } = useClientsStore(useShallow((s) => ({
+    clients: s.clients,
+    page: s.page,
+    limit: s.limit,
+    search: s.search,
+    statusFilter: s.statusFilter,
+    total: s.total,
+    loading: s.loading,
+    submitting: s.submitting,
+    statistics: s.statistics,
+  })));
 
+  // ── Actions (stable references) ──
   const setClients = useClientsStore((s) => s.setClients);
   const setStatistics = useClientsStore((s) => s.setStatistics);
   const setLoading = useClientsStore((s) => s.setLoading);
