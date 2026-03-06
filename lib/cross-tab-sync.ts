@@ -5,9 +5,12 @@
 // abierta Pestaña A (Pedidos) y Pestaña B (Inventario), crear un pedido
 // en A no actualiza el inventario en B.
 //
-// Solución: Cuando cualquier store muta datos, emitimos un mensaje
-// por BroadcastChannel con el nombre del módulo que cambió. Las demás
-// pestañas escuchan y re-fetch los datos afectados.
+// Solución dual:
+//  • OTRAS pestañas → BroadcastChannel (canal entre pestañas del mismo origen)
+//  • MISMA pestaña  → window.CustomEvent ('crm-local-invalidation')
+//
+// Esto resuelve el caso donde la acción y el componente que escucha
+// (ej. ProductGrid) están en la misma pestaña del navegador.
 //
 // Uso en pages:
 //   1. En el handler que muta: llamar `broadcastInvalidation('inventory')`
@@ -33,6 +36,8 @@ interface InvalidationMessage {
 }
 
 const CHANNEL_NAME = 'crm-mex-invalidation';
+/** Nombre del CustomEvent para notificaciones dentro de la misma pestaña */
+const LOCAL_EVENT = 'crm-local-invalidation';
 
 /**
  * Id único de esta pestaña — se genera una vez al cargar.
@@ -59,28 +64,34 @@ function getChannel(): BroadcastChannel | null {
 // ─── Emitir ──────────────────────────────────────────────────────────
 
 /**
- * Notifica a todas las demás pestañas que un módulo cambió.
- * Llamar después de cualquier mutación exitosa (create, update, delete).
+ * Notifica que un módulo cambió:
+ *  - A OTRAS pestañas via BroadcastChannel
+ *  - A la MISMA pestaña via window.CustomEvent
  *
- * Se puede pasar un array de módulos cuando una acción afecta a varios
- * (e.g. crear un pedido afecta 'orders' + 'inventory').
+ * Llamar después de cualquier mutación exitosa (create, update, delete).
+ * Se puede pasar un array de módulos cuando una acción afecta a varios.
  */
 export function broadcastInvalidation(
   modules: InvalidationModule | InvalidationModule[],
 ): void {
-  const ch = getChannel();
-  if (!ch) return;
-
   const list = Array.isArray(modules) ? modules : [modules];
   const ts = Date.now();
 
+  const ch = getChannel();
+
   for (const mod of list) {
-    const msg: InvalidationMessage = {
-      module: mod,
-      ts,
-      sourceTabId: TAB_ID,
-    };
-    ch.postMessage(msg);
+    // 1. Notificar otras pestañas via BroadcastChannel
+    if (ch) {
+      const msg: InvalidationMessage = { module: mod, ts, sourceTabId: TAB_ID };
+      ch.postMessage(msg);
+    }
+
+    // 2. Notificar componentes de la MISMA pestaña via CustomEvent
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent(LOCAL_EVENT, { detail: { module: mod } }),
+      );
+    }
   }
 }
 
@@ -89,15 +100,20 @@ export function broadcastInvalidation(
 type CleanupFn = () => void;
 
 /**
- * Suscribe un callback que se ejecuta cuando OTRA pestaña invalida
- * el módulo indicado. Devuelve una función cleanup.
+ * Suscribe un callback que se ejecuta cuando cualquier pestaña
+ * (incluyendo la actual) invalida el módulo indicado.
+ *
+ * Escucha dos canales:
+ *  • BroadcastChannel → invalidaciones de OTRAS pestañas
+ *  • window CustomEvent → invalidaciones de la MISMA pestaña
+ *
+ * Devuelve una función cleanup para usar en useEffect.
  *
  * Ejemplo:
  * ```ts
  * useEffect(() => {
  *   return onCrossTabInvalidation('inventory', () => {
  *     loadProducts();
- *     loadStatistics();
  *   });
  * }, []);
  * ```
@@ -106,21 +122,31 @@ export function onCrossTabInvalidation(
   modules: InvalidationModule | InvalidationModule[],
   callback: () => void,
 ): CleanupFn {
-  const ch = getChannel();
-  if (!ch) return () => {};
-
   const set = new Set(Array.isArray(modules) ? modules : [modules]);
 
-  const handler = (event: MessageEvent<InvalidationMessage>) => {
+  // ── Canal entre pestañas (BroadcastChannel) ──────────────────────
+  const ch = getChannel();
+  const crossTabHandler = (event: MessageEvent<InvalidationMessage>) => {
     const msg = event.data;
-    // Ignorar mensajes de esta misma pestaña
+    // Ignorar si viene de esta misma pestaña (ya lo maneja el LocalEvent)
     if (msg.sourceTabId === TAB_ID) return;
-    // Solo reaccionar a los módulos que nos interesan
-    if (set.has(msg.module)) {
-      callback();
+    if (set.has(msg.module)) callback();
+  };
+  ch?.addEventListener('message', crossTabHandler);
+
+  // ── Evento local (misma pestaña) ──────────────────────────────────
+  const localHandler = (event: Event) => {
+    const { module } = (event as CustomEvent<{ module: InvalidationModule }>).detail;
+    if (set.has(module)) callback();
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener(LOCAL_EVENT, localHandler);
+  }
+
+  return () => {
+    ch?.removeEventListener('message', crossTabHandler);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener(LOCAL_EVENT, localHandler);
     }
   };
-
-  ch.addEventListener('message', handler);
-  return () => ch.removeEventListener('message', handler);
 }

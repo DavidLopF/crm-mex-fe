@@ -15,6 +15,7 @@ import {
   Truck,
   Store,
   BarChart3,
+  Layers,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Proveedores', href: '/proveedores', icon: Truck },
   { name: 'Punto de Venta', href: '/pos', icon: Store },
+  { name: 'Precios por Volumen', href: '/pos/precios', icon: Layers },
   { name: 'Reportes POS', href: '/pos/reportes', icon: BarChart3 },
   { name: 'Configuración', href: '/configuracion', icon: Settings },
 ];

@@ -35,6 +35,8 @@ export interface CreateSaleDto {
   notes?: string;
   items: CreateSaleItemDto[];
   sellerId?: number;
+  /** true → aplica 16% IVA sobre el subtotal */
+  includesIva?: boolean;
 }
 
 export interface SaleItemResponseDto {
@@ -59,6 +61,10 @@ export interface SaleResponseDto {
   sellerName: string | null;
   currency: string | null;
   subtotal: number;
+  /** Tasa de IVA aplicada (0 = sin IVA, 0.16 = 16%) */
+  taxRate: number;
+  /** Monto de IVA = subtotal × taxRate */
+  taxAmount: number;
   total: number;
   notes: string | null;
   items: SaleItemResponseDto[];
@@ -83,6 +89,7 @@ export interface SalesQueryParams {
   to?: string;
   statusCode?: string;
   search?: string;
+  sellerId?: number;
   page?: number;
   limit?: number;
 }

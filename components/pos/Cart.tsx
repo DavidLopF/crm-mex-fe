@@ -6,9 +6,10 @@ import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown } from 'lucid
 import { Button } from '@/components/ui';
 import { usePosStore } from '@/stores';
 import { createSale } from '@/services/pos';
-import { useToast } from '@/lib/hooks';
+import { useGlobalToast } from '@/lib/hooks';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
-import { RemisionModal } from './RemisionModal';
+
+const IVA_RATE = 0.16;
 
 interface CartProps {
   /** Callback para cerrar el drawer en móvil */
@@ -17,28 +18,28 @@ interface CartProps {
 
 export function Cart({ onClose }: CartProps) {
   const {
-    cart, clientName, clientId, notes, lastSale,
+    cart, clientName, clientId, notes,
     updateQty, removeFromCart, clearCart,
-    setClientName, setNotes, setLastSale,
+    setClientName, setNotes,
   } = usePosStore(useShallow((s) => ({
     cart: s.cart,
     clientName: s.clientName,
     clientId: s.clientId,
     notes: s.notes,
-    lastSale: s.lastSale,
     updateQty: s.updateQty,
     removeFromCart: s.removeFromCart,
     clearCart: s.clearCart,
     setClientName: s.setClientName,
     setNotes: s.setNotes,
-    setLastSale: s.setLastSale,
   })));
 
   const [submitting, setSubmitting] = useState(false);
-  const [showRemision, setShowRemision] = useState(false);
-  const toast = useToast();
+  const [includesIva, setIncludesIva] = useState(false);
+  const toast = useGlobalToast();
 
-  const total = cart.reduce((sum, i) => sum + i.lineTotal, 0);
+  const subtotal = cart.reduce((sum, i) => sum + i.lineTotal, 0);
+  const taxAmount = includesIva ? Math.round(subtotal * IVA_RATE * 100) / 100 : 0;
+  const total = subtotal + taxAmount;
   const itemCount = cart.reduce((sum, i) => sum + i.qty, 0);
 
   const formatPrice = (price: number) =>
@@ -58,26 +59,21 @@ export function Cart({ onClose }: CartProps) {
         notes: notes || undefined,
         currency: 'MXN',
         items: cart.map((i) => ({ variantId: i.variantId, qty: i.qty })),
+        includesIva,
       });
-      setLastSale(sale);
-      setShowRemision(true);
-      // Invalidar inventario inmediatamente para que otras vistas/pestañas
-      // reflejen el stock actualizado tras la venta
+      // Invalidar inventario para que otras vistas reflejen el stock
       broadcastInvalidation('inventory');
-      toast.success('Remisión generada exitosamente');
+      toast.success('Pendiente de cobro', {
+        title: '🧾 Remisión generada',
+        code: sale.code,
+        duration: 7000,
+      });
+      clearCart();
+      onClose?.();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al crear la venta');
+      toast.error(err instanceof Error ? err.message : 'Error al crear la venta', { title: 'No se pudo crear' });
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleRemisionClose = (clearAfter?: boolean) => {
-    setShowRemision(false);
-    if (clearAfter) {
-      clearCart();
-      setLastSale(null);
-      onClose?.();
     }
   };
 
@@ -222,14 +218,51 @@ export function Cart({ onClose }: CartProps) {
           />
         </div>
 
-        {/* ── Total + Botón ── */}
-        <div className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0">
-          <div className="flex items-baseline justify-between mb-4">
-            <span className="text-sm text-gray-500">Total a cobrar</span>
-            <span className="text-3xl font-bold text-gray-900 tracking-tight">
-              {formatPrice(total)}
+        {/* ── IVA toggle + Total + Botón ── */}
+        <div className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0 space-y-3">
+
+          {/* Toggle IVA */}
+          <button
+            type="button"
+            onClick={() => setIncludesIva((v) => !v)}
+            className={`
+              w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all
+              ${includesIva
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+              }
+            `}
+          >
+            <span className="text-sm font-medium">Incluye IVA (16%)</span>
+            {/* Switch visual */}
+            <span className={`w-10 h-5 flex items-center rounded-full transition-colors ${includesIva ? 'bg-primary' : 'bg-gray-300'}`}>
+              <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${includesIva ? 'translate-x-5' : 'translate-x-0'}`} />
             </span>
+          </button>
+
+          {/* Desglose */}
+          <div className="space-y-1">
+            {includesIva && (
+              <>
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span>Subtotal</span>
+                  <span>{formatPrice(subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-green-700">
+                  <span>IVA 16%</span>
+                  <span>+ {formatPrice(taxAmount)}</span>
+                </div>
+                <div className="border-t border-gray-200 pt-1" />
+              </>
+            )}
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-gray-500">Total a cobrar</span>
+              <span className="text-3xl font-bold text-gray-900 tracking-tight">
+                {formatPrice(total)}
+              </span>
+            </div>
           </div>
+
           <Button
             className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-sm"
             onClick={handleGenerateRemision}
@@ -241,10 +274,6 @@ export function Cart({ onClose }: CartProps) {
         </div>
       </div>
 
-      {/* Modal de remisión */}
-      {showRemision && lastSale && (
-        <RemisionModal sale={lastSale} onClose={handleRemisionClose} />
-      )}
     </>
   );
 }

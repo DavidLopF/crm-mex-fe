@@ -1,9 +1,10 @@
 'use client';
 
-import { Printer, CheckCircle, XCircle } from 'lucide-react';
+import { Printer, CheckCircle, XCircle, Copy, Check } from 'lucide-react';
 import { Button, Modal } from '@/components/ui';
 import { changeSaleStatus, type SaleResponseDto } from '@/services/pos';
-import { useToast } from '@/lib/hooks';
+import { useGlobalToast } from '@/lib/hooks';
+import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import { useState } from 'react';
 
 interface Props {
@@ -13,8 +14,16 @@ interface Props {
 }
 
 export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
-  const toast = useToast();
+  const toast = useGlobalToast();
   const [processing, setProcessing] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(sale.code).then(() => {
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    });
+  };
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
@@ -33,10 +42,19 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
     try {
       setProcessing(true);
       await changeSaleStatus(sale.id, 'PAGADA');
-      toast.success('Venta marcada como pagada');
+      // El backend descuenta el stock al confirmar pago → notificar a todos
+      // los componentes (misma pestaña y otras) para que recarguen el inventario
+      broadcastInvalidation('inventory');
+      toast.success('Pago registrado y stock actualizado', {
+        title: '✅ ¡Venta confirmada!',
+        code: sale.code,
+        duration: 6000,
+      });
       onClose(true);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al confirmar pago');
+      toast.error(err instanceof Error ? err.message : 'Error al confirmar pago', {
+        title: 'Error al confirmar',
+      });
     } finally {
       setProcessing(false);
     }
@@ -46,10 +64,15 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
     try {
       setProcessing(true);
       await changeSaleStatus(sale.id, 'ANULADA');
-      toast.success('Venta anulada');
+      toast.warning('La venta fue marcada como anulada', {
+        title: 'Venta anulada',
+        code: sale.code,
+      });
       onClose(true);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al anular la venta');
+      toast.error(err instanceof Error ? err.message : 'Error al anular la venta', {
+        title: 'Error al anular',
+      });
     } finally {
       setProcessing(false);
     }
@@ -63,7 +86,21 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
           {/* Header de remisión */}
           <div className="text-center border-b pb-4 mb-4">
             <h2 className="text-xl font-bold text-gray-900">NOTA DE VENTA</h2>
-            <p className="text-lg font-mono text-primary mt-1">{sale.code}</p>
+            {/* Código con botón copiar */}
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <p className="text-lg font-mono text-primary">{sale.code}</p>
+              <button
+                onClick={handleCopyCode}
+                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary transition-colors print:hidden"
+                title="Copiar código"
+                type="button"
+              >
+                {codeCopied
+                  ? <Check className="w-4 h-4 text-green-500" />
+                  : <Copy className="w-4 h-4" />
+                }
+              </button>
+            </div>
             <p className="text-sm text-gray-500 mt-1">{formatDate(sale.createdAt)}</p>
           </div>
 
@@ -109,8 +146,20 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
             </tbody>
           </table>
 
-          {/* Total */}
-          <div className="border-t-2 border-gray-900 pt-3">
+          {/* Total (con desglose IVA si aplica) */}
+          <div className="border-t-2 border-gray-900 pt-3 space-y-1">
+            {sale.taxAmount > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Subtotal</span>
+                  <span>{formatPrice(sale.subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>IVA ({Math.round(sale.taxRate * 100)}%)</span>
+                  <span>{formatPrice(sale.taxAmount)}</span>
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-gray-900">TOTAL</span>
               <span className="text-2xl font-bold text-gray-900">{formatPrice(sale.total)}</span>

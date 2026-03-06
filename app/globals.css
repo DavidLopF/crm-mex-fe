@@ -68,6 +68,52 @@ body {
   animation: slideIn 0.3s ease-out;
 }
 
+/* Global toast — entrada desde la derecha con rebote suave */
+@keyframes toastIn {
+  0% {
+    opacity: 0;
+    transform: translateX(110%) scale(0.9);
+  }
+  60% {
+    transform: translateX(-6px) scale(1.02);
+  }
+  80% {
+    transform: translateX(3px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Global toast — salida hacia la derecha */
+@keyframes toastOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    max-height: 200px;
+    margin-bottom: 0;
+  }
+  60% {
+    opacity: 0;
+    transform: translateX(110%) scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(110%);
+    max-height: 0;
+    margin-bottom: -12px;
+  }
+}
+
+.animate-toast-in {
+  animation: toastIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-toast-out {
+  animation: toastOut 0.35s ease-in both;
+}
+
 /* Login 3D float animation */
 @keyframes float {
   0%, 100% {

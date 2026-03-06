@@ -1,12 +1,42 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, FileText } from 'lucide-react';
+import { Search, Eye, FileText, User, Copy, Check } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { getSales, getSaleById, type SaleResponseDto } from '@/services/pos';
+import { get } from '@/services/http-client';
+import { useAuth } from '@/lib/auth-context';
 import { RemisionModal } from './RemisionModal';
 
+/** Botón copiar inline para códigos en la tabla */
+function CopyCodeBtn({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const handle = () => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); handle(); }}
+      className="ml-1 p-0.5 rounded hover:bg-gray-200 text-gray-300 hover:text-gray-600 transition-colors"
+      title="Copiar código"
+    >
+      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+    </button>
+  );
+}
+
+interface UserItem {
+  id: number;
+  fullName: string;
+}
+
 export function SalesList() {
+  const { can } = useAuth();
+  const canEdit = can('POS', 'canEdit');
+
   const [sales, setSales] = useState<SaleResponseDto[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -15,9 +45,21 @@ export function SalesList() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterFrom, setFilterFrom] = useState('');
   const [filterTo, setFilterTo] = useState('');
+  const [filterSellerId, setFilterSellerId] = useState<number | ''>('');
+  const [users, setUsers] = useState<UserItem[]>([]);
   const [selectedSale, setSelectedSale] = useState<SaleResponseDto | null>(null);
 
   const limit = 15;
+
+  // Carga lista de usuarios para el filtro de vendedor
+  useEffect(() => {
+    get<UserItem[]>('/api/users', { limit: 100, active: 'true' })
+      .then((data) => {
+        // La respuesta de /api/users devuelve el array directamente tras el unwrap
+        setUsers(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setUsers([]));
+  }, []);
 
   const loadSales = useCallback(async () => {
     try {
@@ -27,6 +69,7 @@ export function SalesList() {
         statusCode: filterStatus || undefined,
         from: filterFrom || undefined,
         to: filterTo || undefined,
+        sellerId: filterSellerId !== '' ? Number(filterSellerId) : undefined,
         page,
         limit,
       });
@@ -37,7 +80,7 @@ export function SalesList() {
     } finally {
       setLoading(false);
     }
-  }, [search, filterStatus, filterFrom, filterTo, page]);
+  }, [search, filterStatus, filterFrom, filterTo, filterSellerId, page]);
 
   useEffect(() => {
     const timer = setTimeout(loadSales, 300);
@@ -50,6 +93,14 @@ export function SalesList() {
       setSelectedSale(sale);
     } catch (err) {
       console.error('Error cargando venta:', err);
+    }
+  };
+
+  const handleModalClose = (statusChanged?: boolean) => {
+    setSelectedSale(null);
+    if (statusChanged) {
+      // Recargar la lista cuando se cambió el estado (pago o anulación)
+      loadSales();
     }
   };
 
@@ -80,16 +131,19 @@ export function SalesList() {
       <Card className="p-4">
         {/* Filtros */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
+          {/* Búsqueda por código / cliente / vendedor */}
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar por código o cliente..."
+              placeholder="Buscar por código, cliente o vendedor..."
               className="w-full pl-10 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </div>
+
+          {/* Filtro por estado */}
           <select
             className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
             value={filterStatus}
@@ -100,6 +154,23 @@ export function SalesList() {
             <option value="PAGADA">Pagada</option>
             <option value="ANULADA">Anulada</option>
           </select>
+
+          {/* Filtro por vendedor */}
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <select
+              className="pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+              value={filterSellerId}
+              onChange={(e) => { setFilterSellerId(e.target.value === '' ? '' : Number(e.target.value)); setPage(1); }}
+            >
+              <option value="">Todos los vendedores</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>{u.fullName}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Rango de fechas */}
           <input
             type="date"
             className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
@@ -134,6 +205,7 @@ export function SalesList() {
                     <th className="text-left py-2 px-3">Código</th>
                     <th className="text-left py-2 px-3">Fecha</th>
                     <th className="text-left py-2 px-3">Cliente</th>
+                    <th className="text-left py-2 px-3">Vendedor</th>
                     <th className="text-center py-2 px-3">Items</th>
                     <th className="text-right py-2 px-3">Total</th>
                     <th className="text-center py-2 px-3">Estado</th>
@@ -143,9 +215,15 @@ export function SalesList() {
                 <tbody>
                   {sales.map((sale) => (
                     <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-2.5 px-3 font-mono text-xs">{sale.code}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="flex items-center gap-0.5">
+                          <span className="font-mono text-xs">{sale.code}</span>
+                          <CopyCodeBtn code={sale.code} />
+                        </span>
+                      </td>
                       <td className="py-2.5 px-3 text-gray-600">{formatDate(sale.createdAt)}</td>
                       <td className="py-2.5 px-3">{sale.clientName || 'Público general'}</td>
+                      <td className="py-2.5 px-3 text-gray-600">{sale.sellerName || '—'}</td>
                       <td className="py-2.5 px-3 text-center">{sale.items.length}</td>
                       <td className="py-2.5 px-3 text-right font-semibold">{formatPrice(sale.total)}</td>
                       <td className="py-2.5 px-3 text-center">
@@ -195,12 +273,12 @@ export function SalesList() {
         )}
       </Card>
 
-      {/* Modal de detalle */}
+      {/* Modal de detalle — readOnly según permiso canEdit del módulo POS */}
       {selectedSale && (
         <RemisionModal
           sale={selectedSale}
-          onClose={() => setSelectedSale(null)}
-          readOnly
+          onClose={handleModalClose}
+          readOnly={!canEdit}
         />
       )}
     </>
