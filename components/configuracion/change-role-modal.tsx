@@ -14,6 +14,8 @@ import {
   Settings,
   AlertCircle,
   X,
+  Layers,
+  BarChart,
 } from "lucide-react";
 import { Modal, Button } from "@/components/ui";
 import type { UserDetail, Role, CreateRoleDto } from "@/services/users";
@@ -23,11 +25,13 @@ import { getAllRoles, createRole, getRolePermissions, updateRolePermissions } fr
 type IconComponent = React.ComponentType<{ className?: string }>;
 
 const MODULE_META: Record<string, { icon: IconComponent; color: string }> = {
-  DASHBOARD:  { icon: BarChart2,    color: "blue"   },
-  PEDIDOS:    { icon: ShoppingCart, color: "orange" },
-  INVENTARIO: { icon: Package,      color: "green"  },
-  CLIENTES:   { icon: Users,        color: "purple" },
-  CONFIG:     { icon: Settings,     color: "red"    },
+  DASHBOARD:    { icon: BarChart2,    color: "blue"   },
+  PEDIDOS:      { icon: ShoppingCart, color: "orange" },
+  INVENTARIO:   { icon: Package,      color: "green"  },
+  CLIENTES:     { icon: Users,        color: "purple" },
+  CONFIG:       { icon: Settings,     color: "red"    },
+  PRECIOS:      { icon: Layers,       color: "teal"   },
+  REPORTES_POS: { icon: BarChart,     color: "indigo" },
 };
 
 // Etiquetas legibles para cada acción
@@ -44,6 +48,8 @@ const MODULE_COLORS: Record<string, string> = {
   orange: "bg-orange-100 text-orange-700 border-orange-200",
   purple: "bg-purple-100 text-purple-700 border-purple-200",
   red:    "bg-red-100 text-red-700 border-red-200",
+  teal:   "bg-teal-100 text-teal-700 border-teal-200",
+  indigo: "bg-indigo-100 text-indigo-700 border-indigo-200",
 };
 
 const MODULE_CHECK_COLORS: Record<string, string> = {
@@ -52,6 +58,8 @@ const MODULE_CHECK_COLORS: Record<string, string> = {
   orange: "bg-orange-500",
   purple: "bg-purple-600",
   red:    "bg-red-600",
+  teal:   "bg-teal-600",
+  indigo: "bg-indigo-600",
 };
 
 // ── Tipos de tab dentro del modal ────────────────────────────────────────────

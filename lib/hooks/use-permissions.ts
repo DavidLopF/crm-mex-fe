@@ -13,6 +13,8 @@ const ROUTE_TO_MODULE: Record<string, string> = {
   '/clientes': 'CLIENTES',
   '/proveedores': 'PROVEEDORES',
   '/pos': 'POS',
+  '/pos/precios': 'PRECIOS',
+  '/pos/reportes': 'REPORTES_POS',
   '/configuracion': 'CONFIG',
 };
 
