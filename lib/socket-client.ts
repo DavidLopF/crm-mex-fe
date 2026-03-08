@@ -48,7 +48,7 @@ export function connectSocket(): void {
     eventSource = null;
   }
 
-  const url = `${API_URL}/api/sse?token=${encodeURIComponent(token)}`;
+  const url = `${API_URL}/sse?token=${encodeURIComponent(token)}`;
   eventSource = new EventSource(url);
 
   // ── Escuchar eventos de invalidación del servidor ─────────────
