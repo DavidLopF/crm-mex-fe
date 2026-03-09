@@ -157,7 +157,7 @@ export function UsersTable({
             />
           </div>
 
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex flex-wrap gap-1 bg-gray-100 rounded-lg p-1">
             {(['all', 'active', 'inactive'] as const).map((status) => (
               <button
                 key={status}
@@ -223,7 +223,7 @@ export function UsersTable({
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center">
                           <span className="text-xs font-semibold text-primary">
@@ -233,7 +233,7 @@ export function UsersTable({
                         <span className="text-sm font-medium text-gray-900">{user.fullName}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-600">{user.email}</span>
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -256,7 +256,7 @@ export function UsersTable({
                         {formatDateTime(user.createdAt)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleChangeRoleClick(user)}

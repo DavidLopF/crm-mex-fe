@@ -16,6 +16,7 @@ export interface PosProductDto {
   productName: string;
   variantName: string | null;
   category: string;
+  imageUrl: string | null;
   stockTotal: number;
   defaultPrice: number;
   currency: string | null;

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Plus, Minus, X, Upload } from 'lucide-react';
+import { Plus, Minus, X } from 'lucide-react';
 import { Modal, Button, Card, CardContent, Select } from '@/components/ui';
+import { ImageUploader } from '@/components/ui/image-uploader';
 import { Producto, ProductoVariacion } from '@/types';
 import { getCategories, createProduct, CategoryDto, CreateProductDto } from '@/services/products';
 
@@ -124,7 +124,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
         defaultPrice: precio,
         cost: costo || undefined,
         currency: 'MXN',
-        image: imagen || undefined,
+        imageUrl: imagen || undefined,
         variants: variaciones.map(v => ({
           variantName: `${v.nombre}: ${v.valor}`,
           stock: v.stock,
@@ -244,31 +244,15 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL de Imagen
+                Imagen del Producto
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={imagen}
-                  onChange={(e) => setImagen(e.target.value)}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Upload className="w-5 h-5 text-gray-600" />
-                </button>
-              </div>
-              {imagen && (
-                <div className="mt-3 aspect-square rounded-lg overflow-hidden bg-gray-100 max-w-[200px]">
-                  <Image
-                    src={imagen}
-                    alt="Preview"
-                    width={200}
-                    height={200}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              <ImageUploader
+                folder="products"
+                currentUrl={imagen || null}
+                onUrlChange={(url) => setImagen(url ?? '')}
+                hint="JPG, PNG, WEBP · Máx 5 MB"
+                previewSize="lg"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

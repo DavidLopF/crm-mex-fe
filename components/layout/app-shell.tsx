@@ -7,27 +7,19 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { useSocketInit } from '@/lib/hooks/use-socket-init';
 
-/**
- * Componente invisible que inicializa la conexión Socket.IO.
- * Se renderiza solo cuando el usuario está autenticado.
- */
 function SocketInitializer() {
   useSocketInit();
   return null;
 }
 
-/**
- * Renders the app shell (sidebar + header) only for authenticated pages.
- * Login and other public pages render children directly.
- */
 export function AppShell({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const isPublicPage = ['/login', '/forgot-password', '/reset-password'].includes(pathname);
 
-  // While loading auth state, show a minimal spinner to avoid layout flash
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -39,21 +31,33 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
-  // Public pages: no sidebar/header
   if (isPublicPage || !isAuthenticated) {
     return <>{children}</>;
   }
 
-  // Authenticated pages: full layout
   return (
     <div className="min-h-screen bg-gray-50">
       <SocketInitializer />
-      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
-      <div
-        className="transition-all duration-300"
-        style={{ marginLeft: collapsed ? '5rem' : '16rem' }}
-      >
-        <Header />
+
+      {/* Backdrop oscuro en móvil cuando el sidebar está abierto */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        collapsed={collapsed}
+        onCollapsedChange={setCollapsed}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
+
+      {/* En móvil: sin margen izquierdo (sidebar es drawer flotante)
+          En desktop: margen según estado collapsed */}
+      <div className={`transition-all duration-300 ${collapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+        <Header onMenuClick={() => setMobileOpen(true)} />
         {children}
       </div>
     </div>

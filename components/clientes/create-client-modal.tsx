@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Modal, Button } from '@/components/ui';
+import { ImageUploader } from '@/components/ui/image-uploader';
 import { CreateClientDto } from '@/services/clients';
 
 interface CreateClientModalProps {
@@ -14,10 +15,12 @@ interface CreateClientModalProps {
 export function CreateClientModal({ isOpen, onClose, onSave, submitting }: CreateClientModalProps) {
   const [name, setName] = useState('');
   const [document, setDocument] = useState('');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const handleReset = () => {
     setName('');
     setDocument('');
+    setPhotoUrl(null);
   };
 
   const handleClose = () => {
@@ -33,7 +36,8 @@ export function CreateClientModal({ isOpen, onClose, onSave, submitting }: Creat
     onSave({
       name: name.trim(),
       document: document.trim() || undefined,
-    });
+      photoUrl: photoUrl ?? undefined,
+    } as CreateClientDto);
 
     handleReset();
   };
@@ -46,6 +50,20 @@ export function CreateClientModal({ isOpen, onClose, onSave, submitting }: Creat
       size="md"
     >
       <div className="space-y-5">
+        {/* Foto */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Foto del cliente
+          </label>
+          <ImageUploader
+            folder="clients"
+            currentUrl={photoUrl}
+            onUrlChange={setPhotoUrl}
+            hint="JPG, PNG · Máx 5 MB"
+            previewSize="md"
+          />
+        </div>
+
         {/* Nombre */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

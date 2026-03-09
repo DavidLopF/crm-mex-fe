@@ -50,7 +50,7 @@ export function KanbanColumn({ estado, pedidos, onOrderClick, onDrop, onStatusCh
 
   return (
     <div 
-      className={`w-[280px] flex-shrink-0 bg-gray-50 rounded-b-lg transition-all p-3 space-y-3 ${isDragOver ? 'ring-2 ring-blue-400 ring-offset-2 shadow-lg bg-blue-50' : ''}`}
+      className={`w-[220px] sm:w-[260px] md:w-[280px] flex-shrink-0 bg-gray-50 rounded-b-lg transition-all p-3 space-y-3 ${isDragOver ? 'ring-2 ring-blue-400 ring-offset-2 shadow-lg bg-blue-50' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

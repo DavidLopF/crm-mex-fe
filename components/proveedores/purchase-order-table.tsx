@@ -245,31 +245,31 @@ export function PurchaseOrderTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Código
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Proveedor
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Estado
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Recepción
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Artículos
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Subtotal
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Total
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Fecha
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Acciones
                 </th>
               </tr>
@@ -286,22 +286,22 @@ export function PurchaseOrderTable({
               ) : (
                 currentOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm font-mono font-semibold text-primary">
                         {order.code}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm font-medium text-gray-900">
                         {order.supplierName}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${PURCHASE_ORDER_STATUS_COLORS[order.status]}`}>
                         {PURCHASE_ORDER_STATUS_LABELS[order.status]}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       {(() => {
                         const totalQty = order.items.reduce((s, i) => s + i.qty, 0);
                         const totalRec = order.items.reduce((s, i) => s + i.qtyReceived, 0);
@@ -330,15 +330,15 @@ export function PurchaseOrderTable({
                         );
                       })()}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-600">{order.items.length}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-600">
                         {formatCurrency(order.subtotal)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm font-semibold text-gray-900">
                         {formatCurrency(order.total)}
                       </span>
@@ -348,12 +348,12 @@ export function PurchaseOrderTable({
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-500">
                         {formatDateTime(order.createdAt)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewOrder(order)}
@@ -388,7 +388,7 @@ export function PurchaseOrderTable({
         </div>
 
         {/* Paginación */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-100">
           <p className="text-sm text-gray-500">
             Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
             {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredOrders.length)} de{' '}
@@ -432,7 +432,7 @@ export function PurchaseOrderTable({
                 <button
                   key={pageNum}
                   onClick={() => handlePageChange(pageNum)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                  className={`hidden sm:flex w-8 h-8 rounded-lg text-sm font-medium transition-colors items-center justify-center ${
                     currentPage === pageNum
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-50 text-gray-600'

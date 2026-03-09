@@ -191,7 +191,7 @@ export function InventoryTable({
             />
           </div>
           
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex flex-wrap gap-1 bg-gray-100 rounded-lg p-1">
             {categories.slice(0, 6).map((category) => (
               <button
                 key={category}
@@ -221,25 +221,25 @@ export function InventoryTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Producto
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   SKU
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Categoría
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Stock
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Precio
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Estado
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Acciones
                 </th>
               </tr>
@@ -250,7 +250,7 @@ export function InventoryTable({
                 
                 return (
                   <tr key={producto.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                           {producto.imagen ? (
@@ -273,13 +273,13 @@ export function InventoryTable({
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-600 font-mono">{producto.sku}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-900">{producto.categoria}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-900">
                           {producto.stockTotal}
@@ -289,17 +289,17 @@ export function InventoryTable({
                         </Badge>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm font-medium text-gray-900">
                         {formatCurrency(producto.precio)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <Badge variant={producto.activo ? 'success' : 'default'}>
                         {producto.activo ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewProduct(producto)}
@@ -337,7 +337,7 @@ export function InventoryTable({
           </table>
         </div>
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-100">
           <p className="text-sm text-gray-500">
             Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
             {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredProducts.length)} de{' '}
@@ -390,7 +390,7 @@ export function InventoryTable({
                     if (isControlledPage && onPageChange) onPageChange(pageNum);
                     else setInternalPage(pageNum);
                   }}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                  className={`hidden sm:flex w-8 h-8 rounded-lg text-sm font-medium transition-colors items-center justify-center ${
                     currentPage === pageNum
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-50 text-gray-600'

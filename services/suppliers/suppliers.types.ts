@@ -389,6 +389,7 @@ export interface SupplierProductItem {
   product: {
     id: number;
     name: string;
+    imageUrl?: string | null;
     category: { id: number; name: string };
     variants: { id: number; sku: string; variantName: string }[];
   };

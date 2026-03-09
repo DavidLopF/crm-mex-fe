@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useShallow } from 'zustand/react/shallow';
 import { Search, Package, Plus } from 'lucide-react';
 import { getPosProducts, type PosProductDto } from '@/services/pos';
@@ -139,6 +140,23 @@ export function ProductGrid() {
                     -{Math.round((1 - bestPrice / (maxPrice ?? bestPrice)) * 100)}%
                   </span>
                 )}
+
+                {/* Imagen del producto */}
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-gray-100 mb-2 flex-shrink-0">
+                  {product.imageUrl ? (
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.productName}
+                      width={200}
+                      height={200}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-8 h-8 text-gray-300" />
+                    </div>
+                  )}
+                </div>
 
                 {/* Nombre del producto */}
                 <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 mb-1 pr-8">

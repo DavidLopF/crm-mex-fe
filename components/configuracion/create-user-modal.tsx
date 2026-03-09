@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Modal, Button } from '@/components/ui';
+import { ImageUploader } from '@/components/ui/image-uploader';
 import type { CreateUserDto, Role } from '@/services/users';
 import { getAllRoles } from '@/services/users';
 
@@ -18,6 +19,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [roleId, setRoleId] = useState<number | ''>('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [rolesError, setRolesError] = useState('');
@@ -48,6 +50,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
     setPassword('');
     setConfirmPassword('');
     setRoleId('');
+    setAvatarUrl(null);
   };
 
   const handleClose = () => {
@@ -69,7 +72,8 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
       password,
       confirmPassword,
       roleId: roleId as number,
-    });
+      avatarUrl: avatarUrl ?? undefined,
+    } as CreateUserDto);
 
     handleReset();
   };
@@ -77,6 +81,20 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Nuevo Usuario" size="md">
       <div className="space-y-5">
+        {/* Avatar */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Foto de perfil
+          </label>
+          <ImageUploader
+            folder="users"
+            currentUrl={avatarUrl}
+            onUrlChange={setAvatarUrl}
+            hint="JPG, PNG · Máx 5 MB"
+            previewSize="md"
+          />
+        </div>
+
         {/* Nombre */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

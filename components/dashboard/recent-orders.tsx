@@ -38,19 +38,19 @@ export function RecentOrders({ pedidos }: RecentOrdersProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-2 md:px-6 md:py-3">
                   Pedido
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-2 md:px-6 md:py-3">
                   Cliente
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-2 md:px-6 md:py-3">
                   Total
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-2 md:px-6 md:py-3">
                   Estado
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-2 md:px-6 md:py-3">
                   Fecha
                 </th>
               </tr>
@@ -58,23 +58,23 @@ export function RecentOrders({ pedidos }: RecentOrdersProps) {
             <tbody className="divide-y divide-gray-100">
               {pedidos.map((pedido) => (
                 <tr key={pedido.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 md:px-6 md:py-4">
                     <span className="text-sm font-medium text-primary">{pedido.code}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 md:px-6 md:py-4">
                     <span className="text-sm text-gray-900">{pedido.client}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 md:px-6 md:py-4">
                     <span className="text-sm font-medium text-gray-900">
                       {formatCurrency(pedido.total)}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 md:px-6 md:py-4">
                     <Badge variant={estadoVariants[pedido.statusCode] ?? 'default'}>
                       {estadoLabels[pedido.statusCode] ?? pedido.status}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 md:px-6 md:py-4">
                     <span className="text-sm text-gray-500">{formatDateTime(new Date(pedido.createdAt))}</span>
                   </td>
                 </tr>

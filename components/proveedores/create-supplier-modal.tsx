@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Modal, Button } from '@/components/ui';
+import { ImageUploader } from '@/components/ui/image-uploader';
 import { CreateSupplierDto } from '@/services/suppliers';
 
 interface CreateSupplierModalProps {
@@ -24,6 +25,7 @@ export function CreateSupplierModal({ isOpen, onClose, onSave, submitting }: Cre
   const [contactPhone, setContactPhone] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [notes, setNotes] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const handleReset = () => {
     setName('');
@@ -38,6 +40,7 @@ export function CreateSupplierModal({ isOpen, onClose, onSave, submitting }: Cre
     setContactPhone('');
     setContactEmail('');
     setNotes('');
+    setLogoUrl(null);
   };
 
   const handleClose = () => {
@@ -61,7 +64,8 @@ export function CreateSupplierModal({ isOpen, onClose, onSave, submitting }: Cre
       contactPhone: contactPhone.trim() || undefined,
       contactEmail: contactEmail.trim() || undefined,
       notes: notes.trim() || undefined,
-    });
+      logoUrl: logoUrl ?? undefined,
+    } as CreateSupplierDto);
 
     handleReset();
   };
@@ -69,6 +73,18 @@ export function CreateSupplierModal({ isOpen, onClose, onSave, submitting }: Cre
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Nuevo Proveedor" size="xl">
       <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
+        {/* ── Logo ─── */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">Logo</h4>
+          <ImageUploader
+            folder="suppliers"
+            currentUrl={logoUrl}
+            onUrlChange={setLogoUrl}
+            hint="JPG, PNG, SVG · Máx 5 MB"
+            previewSize="md"
+          />
+        </div>
+
         {/* ── Información General ─── */}
         <div>
           <h4 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">

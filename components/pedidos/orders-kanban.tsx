@@ -49,7 +49,7 @@ export function OrdersKanban({ pedidos, onOrderClick, onOrderUpdate, onStatusCha
               const colorClass = colorClasses[columna.color] || colorClasses.blue;
 
               return (
-                <div key={`header-${columna.estado}`} className="w-[280px] flex-shrink-0">
+                <div key={`header-${columna.estado}`} className="w-[220px] sm:w-[260px] md:w-[280px] flex-shrink-0">
                   <div className={`p-4 ${colorClass.bg} border-b-2 ${colorClass.border} rounded-t-lg`}>
                     <div className="flex items-center justify-between mb-2">
                       <h3 className={`font-semibold ${colorClass.text}`}>{columna.titulo}</h3>

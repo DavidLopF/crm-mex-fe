@@ -178,7 +178,7 @@ export function SupplierTable({
             />
           </div>
 
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex flex-wrap gap-1 bg-gray-100 rounded-lg p-1">
             {(['all', 'active', 'inactive'] as const).map((status) => (
               <button
                 key={status}
@@ -215,22 +215,22 @@ export function SupplierTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Proveedor
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   RFC
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Contacto
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Total Compras
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Estado
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-3 md:px-6 md:py-4">
                   Acciones
                 </th>
               </tr>
@@ -247,7 +247,7 @@ export function SupplierTable({
               ) : (
                 currentSuppliers.map((supplier) => (
                   <tr key={supplier.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-bold text-orange-600">
@@ -262,12 +262,12 @@ export function SupplierTable({
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-600 font-mono">
                         {supplier.rfc || '—'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       {supplier.contactName ? (
                         <div>
                           <p className="text-sm text-gray-900">{supplier.contactName}</p>
@@ -279,17 +279,17 @@ export function SupplierTable({
                         <span className="text-sm text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm font-semibold text-gray-900">
                         {formatCurrency(supplier.totalPurchases)}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <Badge variant={supplier.isActive ? 'success' : 'danger'}>
                         {supplier.isActive ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewSupplier(supplier)}
@@ -327,7 +327,7 @@ export function SupplierTable({
         </div>
 
         {/* Paginación */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-100">
           <p className="text-sm text-gray-500">
             Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
             {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredSuppliers.length)} de{' '}
@@ -371,7 +371,7 @@ export function SupplierTable({
                 <button
                   key={pageNum}
                   onClick={() => handlePageChange(pageNum)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                  className={`hidden sm:flex w-8 h-8 rounded-lg text-sm font-medium transition-colors items-center justify-center ${
                     currentPage === pageNum
                       ? 'bg-primary text-white'
                       : 'hover:bg-gray-50 text-gray-600'

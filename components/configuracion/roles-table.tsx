@@ -148,7 +148,7 @@ export function RolesTable({
               ) : (
                 roles.map((role) => (
                   <tr key={role.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                           <Shield className="w-4 h-4 text-purple-600" />
@@ -156,7 +156,7 @@ export function RolesTable({
                         <span className="text-sm font-medium text-gray-900">{role.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <span className="text-sm text-gray-600">
                         {role.description || '—'}
                       </span>
@@ -171,7 +171,7 @@ export function RolesTable({
                         {role.isActive ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-3 md:px-6 md:py-4">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleEditRole(role)}

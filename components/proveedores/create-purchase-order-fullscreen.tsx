@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Card, Button } from '@/components/ui';
 import {
   Search,
@@ -501,10 +502,20 @@ export function CreatePurchaseOrderFullscreen({
                               >
                                 <div className="flex items-start gap-3">
                                   <div
-                                    className="w-10 h-10 flex-shrink-0 rounded flex items-center justify-center"
+                                    className="w-10 h-10 flex-shrink-0 rounded overflow-hidden flex items-center justify-center"
                                     style={{ backgroundColor: primaryBg }}
                                   >
-                                    <Package className="w-5 h-5" style={{ color: primary }} />
+                                    {sp.product.imageUrl ? (
+                                      <Image
+                                        src={sp.product.imageUrl}
+                                        alt={sp.product.name}
+                                        width={40}
+                                        height={40}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <Package className="w-5 h-5" style={{ color: primary }} />
+                                    )}
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-900 truncate">{sp.product.name}</p>

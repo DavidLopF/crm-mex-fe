@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   return (
     <PermissionGuard moduleCode="DASHBOARD">
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -52,7 +52,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Fila 1: métricas principales ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <StatCard
             title="Ventas del Mes"
             value={loading ? '...' : formatCurrency(stats?.salesMonth.value ?? 0)}
@@ -82,7 +82,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Fila 2: métricas secundarias ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <StatCard
             title="Ventas Hoy"
             value={loading ? '...' : formatCurrency(stats?.salesToday ?? 0)}
@@ -110,13 +110,13 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Gráfica + top productos ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <SalesChart data={data?.salesChart ?? []} />
           <TopProducts productos={data?.topProducts ?? []} />
         </div>
 
         {/* ── Pedidos recientes + stock bajo ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <div className="lg:col-span-2">
             <RecentOrders pedidos={data?.recentOrders ?? []} />
           </div>

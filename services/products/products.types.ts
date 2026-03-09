@@ -25,7 +25,7 @@ export interface ApiProduct {
   totalStock: number;
   status: string;
   description?: string;
-  image?: string;
+  imageUrl?: string | null;
 }
 
 export interface ApiPagination {
@@ -62,7 +62,7 @@ export function mapApiProductToProducto(api: ApiProduct): Producto {
     precio: api.defaultPrice,
     costo: 0,
     categoria: api.category,
-    imagen: api.image,
+    imagen: api.imageUrl ?? undefined,
     variaciones: [],
     stockTotal: api.totalStock,
     activo: api.status === 'Activo',
@@ -112,7 +112,7 @@ export interface ApiProductDetail {
   currency: string;
   totalStock: number;
   status: string;
-  image?: string;
+  imageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   variants: ApiVariant[];
@@ -182,7 +182,7 @@ export interface CreateProductDto {
   defaultPrice: number;
   cost?: number;
   currency?: string;
-  image?: string;
+  imageUrl?: string;
   variants: CreateProductVariantDto[];
 }
 
@@ -203,7 +203,7 @@ export interface UpdateProductDto {
   defaultPrice?: number;  // Alias de price
   cost?: number;
   currency?: string;
-  image?: string;
+  imageUrl?: string;
   isActive?: boolean;
   variants?: UpdateProductVariantDto[];
 }
@@ -220,7 +220,7 @@ export interface UpdateProductResponseDto {
   totalStock: number;
   status: string;
   description?: string;
-  image?: string;
+  imageUrl?: string | null;
   updatedAt: string;
   variants: ApiVariant[];
 }

@@ -357,7 +357,7 @@ export default function ProveedoresPage() {
 
   return (
     <PermissionGuard moduleCode="PROVEEDORES">
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
 
         <div className="space-y-6">

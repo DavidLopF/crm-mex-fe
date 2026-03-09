@@ -123,7 +123,7 @@ export function ProductDetailModal({
         description: editedProduct.descripcion,
         categoryId: categoriaEncontrada?.id,
         price: editedProduct.precio,
-        image: editedProduct.imagen,
+        imageUrl: editedProduct.imagen,
         isActive: editedProduct.activo,
         variants: editedProduct.variaciones.map(v => ({
           id: isNaN(Number(v.id)) ? undefined : Number(v.id),
