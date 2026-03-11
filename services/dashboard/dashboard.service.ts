@@ -1,5 +1,5 @@
 import { get } from '../http-client';
-import { DashboardSummary } from './dashboard.types';
+import { DashboardComprasSummary, DashboardSummary } from './dashboard.types';
 
 /**
  * GET /api/dashboard
@@ -7,4 +7,13 @@ import { DashboardSummary } from './dashboard.types';
  */
 export async function getDashboard(): Promise<DashboardSummary> {
   return get<DashboardSummary>('/api/dashboard');
+}
+
+/**
+ * GET /api/dashboard/compras
+ * Datos consolidados para la pestaña Compras & Proveedores:
+ * estadísticas de proveedores + estadísticas de OC + últimas 5 OC.
+ */
+export async function getDashboardCompras(): Promise<DashboardComprasSummary> {
+  return get<DashboardComprasSummary>('/api/dashboard/compras');
 }

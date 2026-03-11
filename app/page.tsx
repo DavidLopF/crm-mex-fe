@@ -1,121 +1,145 @@
 'use client';
 
-
-
-
-
 import { useEffect, useState } from 'react';
-import { Package, ShoppingCart, Users, DollarSign, TrendingUp, AlertTriangle, Calendar } from 'lucide-react';
-import { StatCard, SalesChart, RecentOrders, TopProducts, LowStockAlert } from '@/components/dashboard';
-import { formatCurrency } from '@/lib/utils';
+import { Calendar, Package, ShoppingCart, Building2 } from 'lucide-react';
+import { InventarioTab, PedidosTab, ComprasTab } from '@/components/dashboard';
 import { PermissionGuard } from '@/components/layout';
-import { getDashboard, DashboardSummary } from '@/services/dashboard';
+import { getDashboard, getDashboardCompras, DashboardSummary, DashboardComprasSummary } from '@/services/dashboard';
+import { cn } from '@/lib/utils';
 
 function todayLabel(): string {
   return new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+type TabId = 'inventario' | 'pedidos' | 'compras';
+
+const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
+  { id: 'inventario', label: 'Inventario', icon: Package },
+  { id: 'pedidos', label: 'Pedidos', icon: ShoppingCart },
+  { id: 'compras', label: 'Compras & Proveedores', icon: Building2 },
+];
+
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabId>('inventario');
+
+  const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+
+  const [comprasData, setComprasData] = useState<DashboardComprasSummary | null>(null);
+  const [comprasLoading, setComprasLoading] = useState(false);
+  const [comprasFetched, setComprasFetched] = useState(false);
 
   useEffect(() => {
     getDashboard()
-      .then(setData)
+      .then(setDashboardData)
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => setDashboardLoading(false));
   }, []);
 
-  const stats = data;
+  useEffect(() => {
+    if (activeTab !== 'compras' || comprasFetched) return;
+    setComprasLoading(true);
+    getDashboardCompras()
+      .then((data) => {
+        setComprasData(data);
+        setComprasFetched(true);
+      })
+      .catch(console.error)
+      .finally(() => setComprasLoading(false));
+  }, [activeTab, comprasFetched]);
 
   return (
     <PermissionGuard moduleCode="DASHBOARD">
-    <main className="p-6">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500">Bienvenido al panel de control de CRM</p>
+      <main className="p-6">
+        <div className="space-y-6">
+          {/* ── Header ── */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-500">Panel de control de CRM</p>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Calendar className="w-4 h-4" />
+              <span>{todayLabel()}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <span>{todayLabel()}</span>
+
+          {/* ── Tabs ── */}
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex gap-1">
+              {TABS.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
+                    activeTab === id
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+            </nav>
           </div>
-        </div>
 
-        {/* ── Fila 1: métricas principales ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Ventas del Mes"
-            value={loading ? '...' : formatCurrency(stats?.salesMonth.value ?? 0)}
-            icon={DollarSign}
-            trend={stats?.salesMonth.changePercent != null ? { value: stats.salesMonth.changePercent, isPositive: stats.salesMonth.changePercent >= 0 } : undefined}
-            iconClassName="bg-green-100 text-green-600"
-          />
-          <StatCard
-            title="Pedidos Pendientes"
-            value={loading ? '...' : (stats?.pendingOrders ?? 0)}
-            icon={ShoppingCart}
-            iconClassName="bg-amber-100 text-amber-600"
-          />
-          <StatCard
-            title="Total Productos"
-            value={loading ? '...' : (stats?.totalProducts ?? 0)}
-            icon={Package}
-            iconClassName="bg-blue-100 text-blue-600"
-          />
-          <StatCard
-            title="Total Clientes"
-            value={loading ? '...' : (stats?.totalClients.value ?? 0)}
-            icon={Users}
-            trend={stats?.totalClients.changePercent != null ? { value: stats.totalClients.changePercent, isPositive: stats.totalClients.changePercent >= 0 } : undefined}
-            iconClassName="bg-purple-100 text-purple-600"
-          />
-        </div>
+          {/* ── Tab content ── */}
+          {activeTab === 'inventario' && dashboardData && (
+            <InventarioTab data={dashboardData} loading={dashboardLoading} />
+          )}
+          {activeTab === 'inventario' && dashboardLoading && (
+            <InventarioTab
+              data={{
+                salesMonth: { value: 0, changePercent: null },
+                pendingOrders: 0,
+                totalProducts: 0,
+                totalClients: { value: 0, changePercent: null },
+                salesToday: 0,
+                ordersToday: 0,
+                newClientsMonth: 0,
+                lowStockCount: 0,
+                salesChart: [],
+                topProducts: [],
+                recentOrders: [],
+                lowStock: [],
+              }}
+              loading
+            />
+          )}
 
-        {/* ── Fila 2: métricas secundarias ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Ventas Hoy"
-            value={loading ? '...' : formatCurrency(stats?.salesToday ?? 0)}
-            icon={TrendingUp}
-            iconClassName="bg-emerald-100 text-emerald-600"
-          />
-          <StatCard
-            title="Pedidos Hoy"
-            value={loading ? '...' : (stats?.ordersToday ?? 0)}
-            icon={ShoppingCart}
-            iconClassName="bg-indigo-100 text-indigo-600"
-          />
-          <StatCard
-            title="Clientes Nuevos (Mes)"
-            value={loading ? '...' : (stats?.newClientsMonth ?? 0)}
-            icon={Users}
-            iconClassName="bg-pink-100 text-pink-600"
-          />
-          <StatCard
-            title="Stock Bajo"
-            value={loading ? '...' : (stats?.lowStockCount ?? 0)}
-            icon={AlertTriangle}
-            iconClassName="bg-red-100 text-red-600"
-          />
-        </div>
+          {activeTab === 'pedidos' && dashboardData && (
+            <PedidosTab data={dashboardData} loading={dashboardLoading} />
+          )}
+          {activeTab === 'pedidos' && dashboardLoading && (
+            <PedidosTab
+              data={{
+                salesMonth: { value: 0, changePercent: null },
+                pendingOrders: 0,
+                totalProducts: 0,
+                totalClients: { value: 0, changePercent: null },
+                salesToday: 0,
+                ordersToday: 0,
+                newClientsMonth: 0,
+                lowStockCount: 0,
+                salesChart: [],
+                topProducts: [],
+                recentOrders: [],
+                lowStock: [],
+              }}
+              loading
+            />
+          )}
 
-        {/* ── Gráfica + top productos ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <SalesChart data={data?.salesChart ?? []} />
-          <TopProducts productos={data?.topProducts ?? []} />
+          {activeTab === 'compras' && (
+            <ComprasTab
+              data={comprasData}
+              loading={comprasLoading}
+            />
+          )}
         </div>
-
-        {/* ── Pedidos recientes + stock bajo ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <RecentOrders pedidos={data?.recentOrders ?? []} />
-          </div>
-          <LowStockAlert productos={data?.lowStock ?? []} />
-        </div>
-      </div>
-    </main>
+      </main>
     </PermissionGuard>
   );
 }
