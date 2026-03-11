@@ -87,7 +87,7 @@ export async function getProductById(id: string | number): Promise<{ producto: P
       precio: raw.price,
       costo: raw.cost,
       categoria: raw.category,
-      imagen: raw.image,
+      imageUrl: raw.imageUrl,
       variaciones,
       stockTotal: raw.totalStock,
       activo: raw.status === 'Activo',

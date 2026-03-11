@@ -28,5 +28,5 @@ export function useDebounce<T>(value: T, delay: number = 500): T {
 
 // Re-export useToast
 export { useToast } from './hooks/use-toast';
-export { usePermissions, getModuleForRoute, ROUTE_TO_MODULE } from './hooks/use-permissions';
+export { usePermissions, getModuleForRoute, ROUTE_TO_MODULE, HIDDEN_MODULES } from './hooks/use-permissions';
 export { useCrossTabSync } from './hooks/use-cross-tab-sync';

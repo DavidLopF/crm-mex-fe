@@ -253,9 +253,9 @@ export function InventoryTable({
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                          {producto.imagen ? (
+                          {producto.imageUrl ? (
                             <Image
-                              src={producto.imagen}
+                              src={producto.imageUrl}
                               alt={producto.nombre}
                               width={48}
                               height={48}

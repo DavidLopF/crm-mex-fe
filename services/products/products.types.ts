@@ -19,6 +19,7 @@ export interface ApiProduct {
   name: string;
   sku: string;
   category: string;
+  imageUrl?: string;
   categoryId: number;
   defaultPrice: number;
   currency: string;
@@ -62,7 +63,7 @@ export function mapApiProductToProducto(api: ApiProduct): Producto {
     precio: api.defaultPrice,
     costo: 0,
     categoria: api.category,
-    imagen: api.image,
+    imageUrl: api.imageUrl,
     variaciones: [],
     stockTotal: api.totalStock,
     activo: api.status === 'Activo',
@@ -112,7 +113,7 @@ export interface ApiProductDetail {
   currency: string;
   totalStock: number;
   status: string;
-  image?: string;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
   variants: ApiVariant[];

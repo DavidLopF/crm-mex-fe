@@ -16,6 +16,12 @@ const ROUTE_TO_MODULE: Record<string, string> = {
 };
 
 /**
+ * Módulos del backend que NO están implementados en esta rama del frontend.
+ * Se ocultan en la UI (sidebar, panel de permisos) aunque el backend los devuelva.
+ */
+export const HIDDEN_MODULES = new Set(['POS', 'PRECIOS', 'REPORTES_POS']);
+
+/**
  * Hook que expone helpers de permisos para un módulo dado.
  *
  * @param moduleCode — Código del módulo (ej: "DASHBOARD", "PEDIDOS", etc.)

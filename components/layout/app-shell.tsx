@@ -5,6 +5,16 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { useSocketInit } from '@/lib/hooks/use-socket-init';
+
+/**
+ * Componente invisible que inicializa la conexión SSE.
+ * Se renderiza solo cuando el usuario está autenticado.
+ */
+function SocketInitializer() {
+  useSocketInit();
+  return null;
+}
 
 /**
  * Renders the app shell (sidebar + header) only for authenticated pages.
@@ -37,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Authenticated pages: full layout
   return (
     <div className="min-h-screen bg-gray-50">
+      <SocketInitializer />
       <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
       <div
         className="transition-all duration-300"
