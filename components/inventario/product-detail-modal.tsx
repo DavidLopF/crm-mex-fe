@@ -123,7 +123,7 @@ export function ProductDetailModal({
         description: editedProduct.descripcion,
         categoryId: categoriaEncontrada?.id,
         price: editedProduct.precio,
-        image: editedProduct.imagen,
+        image: editedProduct.imageUrl,
         isActive: editedProduct.activo,
         variants: editedProduct.variaciones.map(v => ({
           id: isNaN(Number(v.id)) ? undefined : Number(v.id),
@@ -199,9 +199,9 @@ export function ProductDetailModal({
           {/* Imagen del producto */}
           <div className="lg:col-span-1">
             <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4">
-              {currentProduct.imagen ? (
+              {currentProduct.imageUrl ? (
                 <Image
-                  src={currentProduct.imagen}
+                  src={currentProduct.imageUrl}
                   alt={currentProduct.nombre}
                   width={400}
                   height={400}

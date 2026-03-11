@@ -39,7 +39,6 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
   const { settings } = useCompany();
   const { logout, can, permissions } = useAuth();
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   // Before hydration completes, show all navigation items to avoid SSR mismatch.

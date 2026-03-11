@@ -145,7 +145,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
         precio,
         costo,
         categoria: categoriaSeleccionada?.name || '',
-        imagen: imagen || undefined,
+        imageUrl: imagen || undefined,
         variaciones,
         stockTotal,
         activo: true,
