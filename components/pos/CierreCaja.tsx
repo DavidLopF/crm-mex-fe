@@ -292,6 +292,7 @@ export function CierreCaja() {
                 type="date"
                 value={to}
                 min={from}
+                max={today}
                 onChange={(e) => { setTo(e.target.value); setSummary(null); }}
                 className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
