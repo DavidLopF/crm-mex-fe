@@ -1,6 +1,6 @@
 'use client';
 
-import { PosDashboardCards, SalesList } from '@/components/pos';
+import { PosDashboardCards, SalesList, CierreCaja } from '@/components/pos';
 import { PermissionGuard } from '@/components/layout';
 
 export default function PosReportesPage() {
@@ -20,6 +20,12 @@ export default function PosReportesPage() {
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">Historial de ventas</h2>
           <SalesList />
+        </div>
+
+        {/* Cierre de caja */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Cierre de caja</h2>
+          <CierreCaja />
         </div>
       </main>
     </PermissionGuard>

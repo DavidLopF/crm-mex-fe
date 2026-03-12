@@ -2,12 +2,18 @@
 
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown, Banknote, CreditCard, ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { usePosStore } from '@/stores';
-import { createSale } from '@/services/pos';
+import { createSale, type PaymentMethod } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
+  { value: 'EFECTIVO',      label: 'Efectivo',      icon: <Banknote className="w-4 h-4" /> },
+  { value: 'TARJETA',       label: 'Tarjeta',        icon: <CreditCard className="w-4 h-4" /> },
+  { value: 'TRANSFERENCIA', label: 'Transferencia',  icon: <ArrowLeftRight className="w-4 h-4" /> },
+];
 
 const IVA_RATE = 0.16;
 
@@ -18,19 +24,21 @@ interface CartProps {
 
 export function Cart({ onClose }: CartProps) {
   const {
-    cart, clientName, clientId, notes,
+    cart, clientName, clientId, notes, paymentMethod,
     updateQty, removeFromCart, clearCart,
-    setClientName, setNotes,
+    setClientName, setNotes, setPaymentMethod,
   } = usePosStore(useShallow((s) => ({
     cart: s.cart,
     clientName: s.clientName,
     clientId: s.clientId,
     notes: s.notes,
+    paymentMethod: s.paymentMethod,
     updateQty: s.updateQty,
     removeFromCart: s.removeFromCart,
     clearCart: s.clearCart,
     setClientName: s.setClientName,
     setNotes: s.setNotes,
+    setPaymentMethod: s.setPaymentMethod,
   })));
 
   const [submitting, setSubmitting] = useState(false);
@@ -60,6 +68,7 @@ export function Cart({ onClose }: CartProps) {
         currency: 'MXN',
         items: cart.map((i) => ({ variantId: i.variantId, qty: i.qty })),
         includesIva,
+        paymentMethod,
       });
       // Invalidar módulos afectados:
       //  - 'inventory'     → stock actualizado en otras vistas
@@ -223,6 +232,30 @@ export function Cart({ onClose }: CartProps) {
 
         {/* ── IVA toggle + Total + Botón ── */}
         <div className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0 space-y-3">
+
+          {/* Medio de pago */}
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1.5">Medio de pago</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {PAYMENT_METHODS.map((pm) => (
+                <button
+                  key={pm.value}
+                  type="button"
+                  onClick={() => setPaymentMethod(pm.value)}
+                  className={`
+                    flex flex-col items-center gap-1 py-2 px-1 rounded-xl border-2 text-xs font-medium transition-all
+                    ${paymentMethod === pm.value
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                    }
+                  `}
+                >
+                  {pm.icon}
+                  <span>{pm.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Toggle IVA */}
           <button

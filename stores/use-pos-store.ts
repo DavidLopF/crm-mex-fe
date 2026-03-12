@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { PriceTierDto, PosProductDto, SaleResponseDto } from '@/services/pos';
+import type { PriceTierDto, PosProductDto, SaleResponseDto, PaymentMethod } from '@/services/pos';
 
 // ══════════════════════════════════════════════════════════════════════
 // ── POS Store (Zustand) ─────────────────────────────────────────────
@@ -27,6 +27,7 @@ interface PosState {
   clientName: string;
   clientId: number | null;
   notes: string;
+  paymentMethod: PaymentMethod;
 
   // ── Última venta (para imprimir remisión) ──
   lastSale: SaleResponseDto | null;
@@ -43,6 +44,7 @@ interface PosState {
   setClientName: (name: string) => void;
   setClientId: (id: number | null) => void;
   setNotes: (notes: string) => void;
+  setPaymentMethod: (method: PaymentMethod) => void;
   setLastSale: (sale: SaleResponseDto | null) => void;
   setLoading: (v: boolean) => void;
 
@@ -75,6 +77,7 @@ export const usePosStore = create<PosState>((set, get) => ({
   clientName: '',
   clientId: null,
   notes: '',
+  paymentMethod: 'EFECTIVO',
   lastSale: null,
   loading: false,
 
@@ -161,13 +164,14 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   clearCart: () => {
-    set({ cart: [], clientName: '', clientId: null, notes: '' });
+    set({ cart: [], clientName: '', clientId: null, notes: '', paymentMethod: 'EFECTIVO' });
   },
 
   setSearchTerm: (s) => set({ searchTerm: s }),
   setClientName: (name) => set({ clientName: name }),
   setClientId: (id) => set({ clientId: id }),
   setNotes: (notes) => set({ notes }),
+  setPaymentMethod: (method) => set({ paymentMethod: method }),
   setLastSale: (sale) => set({ lastSale: sale }),
   setLoading: (v) => set({ loading: v }),
 

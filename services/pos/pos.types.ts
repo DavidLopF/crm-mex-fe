@@ -2,6 +2,8 @@
  * Tipos para el módulo Punto de Venta (POS)
  */
 
+export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+
 export interface PriceTierDto {
   id: number;
   minQty: number;
@@ -37,6 +39,8 @@ export interface CreateSaleDto {
   sellerId?: number;
   /** true → aplica 16% IVA sobre el subtotal */
   includesIva?: boolean;
+  /** Medio de pago (default: EFECTIVO) */
+  paymentMethod?: PaymentMethod;
 }
 
 export interface SaleItemResponseDto {
@@ -61,12 +65,11 @@ export interface SaleResponseDto {
   sellerName: string | null;
   currency: string | null;
   subtotal: number;
-  /** Tasa de IVA aplicada (0 = sin IVA, 0.16 = 16%) */
   taxRate: number;
-  /** Monto de IVA = subtotal × taxRate */
   taxAmount: number;
   total: number;
   notes: string | null;
+  paymentMethod: PaymentMethod;
   items: SaleItemResponseDto[];
   createdAt: string;
 }
@@ -90,6 +93,49 @@ export interface SalesQueryParams {
   statusCode?: string;
   search?: string;
   sellerId?: number;
+  paymentMethod?: PaymentMethod;
   page?: number;
   limit?: number;
+}
+
+// ── Cierre de Caja ──
+
+export interface CashCloseSummaryDto {
+  periodFrom: string;
+  periodTo: string;
+  salesCount: number;
+  totalSales: number;
+  totalEfectivo: number;
+  totalTarjeta: number;
+  totalTransferencia: number;
+  sales: SaleResponseDto[];
+}
+
+export interface CreateCashCloseDto {
+  periodFrom: string;
+  periodTo: string;
+  declaredEfectivo: number;
+  declaredTarjeta: number;
+  declaredTransferencia: number;
+  notes?: string;
+}
+
+export interface CashCloseResponseDto {
+  id: number;
+  closedByName: string;
+  periodFrom: string;
+  periodTo: string;
+  totalEfectivo: number;
+  totalTarjeta: number;
+  totalTransferencia: number;
+  totalSales: number;
+  salesCount: number;
+  declaredEfectivo: number;
+  declaredTarjeta: number;
+  declaredTransferencia: number;
+  diffEfectivo: number;
+  diffTarjeta: number;
+  diffTransferencia: number;
+  notes: string | null;
+  createdAt: string;
 }

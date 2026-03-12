@@ -6,6 +6,9 @@ import type {
   SaleResponseDto,
   SalesQueryParams,
   PosDashboardDto,
+  CashCloseSummaryDto,
+  CreateCashCloseDto,
+  CashCloseResponseDto,
 } from './pos.types';
 
 const BASE = '/api/pos';
@@ -54,4 +57,29 @@ export async function changeSaleStatus(
 
 export async function getPosDashboard(): Promise<PosDashboardDto> {
   return get<PosDashboardDto>(`${BASE}/dashboard`);
+}
+
+// ── Cierre de Caja ──
+
+export async function getCashCloseSummary(
+  from: string,
+  to: string
+): Promise<CashCloseSummaryDto> {
+  return get<CashCloseSummaryDto>(`${BASE}/cash-close/summary`, { from, to });
+}
+
+export async function createCashClose(
+  dto: CreateCashCloseDto
+): Promise<CashCloseResponseDto> {
+  return post<CashCloseResponseDto>(`${BASE}/cash-close`, dto);
+}
+
+export async function getCashCloseHistory(
+  page = 1,
+  limit = 10
+): Promise<{ data: CashCloseResponseDto[]; total: number }> {
+  return get<{ data: CashCloseResponseDto[]; total: number }>(
+    `${BASE}/cash-close`,
+    { page, limit }
+  );
 }
