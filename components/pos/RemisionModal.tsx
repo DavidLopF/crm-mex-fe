@@ -42,9 +42,9 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
     try {
       setProcessing(true);
       await changeSaleStatus(sale.id, 'PAGADA');
-      // El backend descuenta el stock al confirmar pago → notificar a todos
-      // los componentes (misma pestaña y otras) para que recarguen el inventario
-      broadcastInvalidation('inventory');
+      // Inventario → stock se descuenta al pagar
+      // pos-sales / pos-dashboard → historial y KPIs se actualizan en tiempo real
+      broadcastInvalidation(['inventory', 'pos-sales', 'pos-dashboard']);
       toast.success('Pago registrado y stock actualizado', {
         title: '✅ ¡Venta confirmada!',
         code: sale.code,
@@ -64,6 +64,8 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
     try {
       setProcessing(true);
       await changeSaleStatus(sale.id, 'ANULADA');
+      // Reflejar anulación en historial y KPIs en tiempo real
+      broadcastInvalidation(['pos-sales', 'pos-dashboard']);
       toast.warning('La venta fue marcada como anulada', {
         title: 'Venta anulada',
         code: sale.code,

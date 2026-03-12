@@ -6,6 +6,7 @@ import { Card } from '@/components/ui';
 import { getSales, getSaleById, type SaleResponseDto } from '@/services/pos';
 import { get } from '@/services/http-client';
 import { useAuth } from '@/lib/auth-context';
+import { onCrossTabInvalidation } from '@/lib/cross-tab-sync';
 import { RemisionModal } from './RemisionModal';
 
 /** Botón copiar inline para códigos en la tabla */
@@ -85,6 +86,18 @@ export function SalesList() {
   useEffect(() => {
     const timer = setTimeout(loadSales, 300);
     return () => clearTimeout(timer);
+  }, [loadSales]);
+
+  // ── Tiempo real: recargar cuando se cree o cambie una venta ────────
+  // Cubre dos escenarios:
+  //  1. Misma pestaña (POS genera remisión y el reporte está en otra tab)
+  //  2. Otro computador/navegador (vía SSE del backend)
+  useEffect(() => {
+    return onCrossTabInvalidation('pos-sales', () => {
+      // Volvemos a la página 1 para que la nueva venta aparezca arriba
+      setPage(1);
+      loadSales();
+    });
   }, [loadSales]);
 
   const handleViewSale = async (saleId: number) => {

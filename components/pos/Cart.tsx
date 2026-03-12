@@ -61,8 +61,11 @@ export function Cart({ onClose }: CartProps) {
         items: cart.map((i) => ({ variantId: i.variantId, qty: i.qty })),
         includesIva,
       });
-      // Invalidar inventario para que otras vistas reflejen el stock
-      broadcastInvalidation('inventory');
+      // Invalidar módulos afectados:
+      //  - 'inventory'     → stock actualizado en otras vistas
+      //  - 'pos-sales'     → SalesList recarga el historial al instante
+      //  - 'pos-dashboard' → PosDashboardCards recarga contadores
+      broadcastInvalidation(['inventory', 'pos-sales', 'pos-dashboard']);
       toast.success('Pendiente de cobro', {
         title: '🧾 Remisión generada',
         code: sale.code,

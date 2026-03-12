@@ -1,27 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DollarSign, ShoppingBag, TrendingUp, Star } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { getPosDashboard, type PosDashboardDto } from '@/services/pos';
+import { onCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 export function PosDashboardCards() {
   const [data, setData] = useState<PosDashboardDto | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const dashboard = await getPosDashboard();
-        setData(dashboard);
-      } catch (err) {
-        console.error('Error cargando dashboard POS:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+  const load = useCallback(async () => {
+    try {
+      const dashboard = await getPosDashboard();
+      setData(dashboard);
+    } catch (err) {
+      console.error('Error cargando dashboard POS:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Carga inicial
+  useEffect(() => { load(); }, [load]);
+
+  // ── Tiempo real: actualizar contadores cuando cambie una venta ──────
+  // Responde tanto a ventas nuevas (pos-sales) como a cambios de estado
+  // (pos-dashboard), lo que mantiene siempre frescos los KPIs.
+  useEffect(() => {
+    return onCrossTabInvalidation(['pos-sales', 'pos-dashboard'], load);
+  }, [load]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);

@@ -25,7 +25,9 @@ export type InvalidationModule =
   | 'suppliers'
   | 'purchase-orders'
   | 'config-users'
-  | 'config-roles';
+  | 'config-roles'
+  | 'pos-sales'
+  | 'pos-dashboard';
 
 interface InvalidationMessage {
   module: InvalidationModule;
