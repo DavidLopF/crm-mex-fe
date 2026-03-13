@@ -2,17 +2,39 @@
 
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown, Banknote, CreditCard, ArrowLeftRight } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown, Banknote, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { usePosStore } from '@/stores';
 import { createSale, type PaymentMethod } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
+import { ClientSelector } from './ClientSelector';
+
+/** Ícono Nequi — círculo rosa con "N" blanca (colores de marca) */
+function NequiIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <circle cx="10" cy="10" r="10" fill="#DA0081" />
+      <text x="10" y="14.5" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial, sans-serif">N</text>
+    </svg>
+  );
+}
+
+/** Ícono Daviplata — círculo rojo con "D" blanca (colores de marca) */
+function DaviplataIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <circle cx="10" cy="10" r="10" fill="#DA3B24" />
+      <text x="10" y="14.5" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial, sans-serif">D</text>
+    </svg>
+  );
+}
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
-  { value: 'EFECTIVO',      label: 'Efectivo',      icon: <Banknote className="w-4 h-4" /> },
-  { value: 'TARJETA',       label: 'Tarjeta',        icon: <CreditCard className="w-4 h-4" /> },
-  { value: 'TRANSFERENCIA', label: 'Transferencia',  icon: <ArrowLeftRight className="w-4 h-4" /> },
+  { value: 'EFECTIVO',   label: 'Efectivo',   icon: <Banknote className="w-4 h-4" /> },
+  { value: 'TARJETA',    label: 'Tarjeta',    icon: <CreditCard className="w-4 h-4" /> },
+  { value: 'NEQUI',      label: 'Nequi',      icon: <NequiIcon className="w-4 h-4" /> },
+  { value: 'DAVIPLATA',  label: 'Daviplata',  icon: <DaviplataIcon className="w-4 h-4" /> },
 ];
 
 const IVA_RATE = 0.16;
@@ -26,7 +48,7 @@ export function Cart({ onClose }: CartProps) {
   const {
     cart, clientName, clientId, notes, paymentMethod,
     updateQty, removeFromCart, clearCart,
-    setClientName, setNotes, setPaymentMethod,
+    setNotes, setPaymentMethod,
   } = usePosStore(useShallow((s) => ({
     cart: s.cart,
     clientName: s.clientName,
@@ -36,14 +58,20 @@ export function Cart({ onClose }: CartProps) {
     updateQty: s.updateQty,
     removeFromCart: s.removeFromCart,
     clearCart: s.clearCart,
-    setClientName: s.setClientName,
     setNotes: s.setNotes,
     setPaymentMethod: s.setPaymentMethod,
   })));
 
   const [submitting, setSubmitting] = useState(false);
-  const [includesIva, setIncludesIva] = useState(false);
+  const [includesIvaManual, setIncludesIvaManual] = useState(false);
   const toast = useGlobalToast();
+
+  /**
+   * Si hay al menos un producto con requiresIva=true en el carrito,
+   * el IVA se aplica automáticamente y el toggle se bloquea ON.
+   */
+  const hasRequiredIvaItem = cart.some((i) => i.requiresIva);
+  const includesIva = hasRequiredIvaItem || includesIvaManual;
 
   const subtotal = cart.reduce((sum, i) => sum + i.lineTotal, 0);
   const taxAmount = includesIva ? Math.round(subtotal * IVA_RATE * 100) / 100 : 0;
@@ -214,13 +242,8 @@ export function Cart({ onClose }: CartProps) {
 
         {/* ── Cliente y notas ── */}
         <div className="px-5 py-3 border-t border-gray-100 space-y-2.5 flex-shrink-0">
-          <input
-            type="text"
-            placeholder="Nombre del cliente (opcional)"
-            className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-          />
+          {/* Selector de cliente con búsqueda y creación inline */}
+          <ClientSelector />
           <input
             type="text"
             placeholder="Notas (opcional)"
@@ -236,7 +259,7 @@ export function Cart({ onClose }: CartProps) {
           {/* Medio de pago */}
           <div>
             <p className="text-xs font-medium text-gray-500 mb-1.5">Medio de pago</p>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
               {PAYMENT_METHODS.map((pm) => (
                 <button
                   key={pm.value}
@@ -260,18 +283,28 @@ export function Cart({ onClose }: CartProps) {
           {/* Toggle IVA */}
           <button
             type="button"
-            onClick={() => setIncludesIva((v) => !v)}
+            onClick={() => !hasRequiredIvaItem && setIncludesIvaManual((v) => !v)}
+            disabled={hasRequiredIvaItem}
+            title={hasRequiredIvaItem ? 'Uno o más productos requieren IVA obligatorio' : undefined}
             className={`
               w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all
               ${includesIva
                 ? 'border-primary bg-primary/5 text-primary'
                 : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
               }
+              ${hasRequiredIvaItem ? 'cursor-not-allowed opacity-90' : ''}
             `}
           >
-            <span className="text-sm font-medium">Incluye IVA (16%)</span>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-medium">Incluye IVA (16%)</span>
+              {hasRequiredIvaItem && (
+                <span className="text-[11px] text-amber-600 font-normal leading-tight">
+                  Obligatorio — producto(s) con IVA incluido
+                </span>
+              )}
+            </div>
             {/* Switch visual */}
-            <span className={`w-10 h-5 flex items-center rounded-full transition-colors ${includesIva ? 'bg-primary' : 'bg-gray-300'}`}>
+            <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-2 ${includesIva ? 'bg-primary' : 'bg-gray-300'}`}>
               <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${includesIva ? 'translate-x-5' : 'translate-x-0'}`} />
             </span>
           </button>

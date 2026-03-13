@@ -91,6 +91,7 @@ export async function getProductById(id: string | number): Promise<{ producto: P
       variaciones,
       stockTotal: raw.totalStock,
       activo: raw.status === 'Activo',
+      requiresIva: raw.requiresIva ?? false,
       createdAt: new Date(raw.createdAt),
       updatedAt: new Date(raw.updatedAt),
     };

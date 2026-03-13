@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, FileText, User, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Eye, FileText, User, Copy, Check, ChevronLeft, ChevronRight, Pencil, CornerUpLeft } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { getSales, getSaleById, type SaleResponseDto, type PaymentMethod } from '@/services/pos';
 import { get } from '@/services/http-client';
 import { useAuth } from '@/lib/auth-context';
 import { onCrossTabInvalidation } from '@/lib/cross-tab-sync';
 import { RemisionModal } from './RemisionModal';
+import { EditSaleModal } from './EditSaleModal';
+import { ReturnSaleModal } from './ReturnSaleModal';
 
 /** Botón copiar inline para códigos en la tabla */
 function CopyCodeBtn({ code }: { code: string }) {
@@ -32,14 +34,16 @@ function CopyCodeBtn({ code }: { code: string }) {
 /** Badge coloreado del medio de pago */
 function PaymentBadge({ method }: { method: PaymentMethod }) {
   const styles: Record<PaymentMethod, string> = {
-    EFECTIVO:      'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    TARJETA:       'bg-blue-50 text-blue-700 border border-blue-200',
-    TRANSFERENCIA: 'bg-purple-50 text-purple-700 border border-purple-200',
+    EFECTIVO:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    TARJETA:   'bg-blue-50 text-blue-700 border border-blue-200',
+    NEQUI:     'bg-pink-50 text-pink-700 border border-pink-200',
+    DAVIPLATA: 'bg-red-50 text-red-700 border border-red-200',
   };
   const labels: Record<PaymentMethod, string> = {
-    EFECTIVO:      'Efectivo',
-    TARJETA:       'Tarjeta',
-    TRANSFERENCIA: 'Transf.',
+    EFECTIVO:  'Efectivo',
+    TARJETA:   'Tarjeta',
+    NEQUI:     'Nequi',
+    DAVIPLATA: 'Daviplata',
   };
   return (
     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${styles[method] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -68,7 +72,9 @@ export function SalesList() {
   const [filterSellerId, setFilterSellerId] = useState<number | ''>('');
   const [filterPayment, setFilterPayment]   = useState<PaymentMethod | ''>('');
   const [users, setUsers]               = useState<UserItem[]>([]);
-  const [selectedSale, setSelectedSale] = useState<SaleResponseDto | null>(null);
+  const [selectedSale, setSelectedSale]   = useState<SaleResponseDto | null>(null);
+  const [editSale, setEditSale]           = useState<SaleResponseDto | null>(null);
+  const [returnSale, setReturnSale]       = useState<SaleResponseDto | null>(null);
 
   useEffect(() => {
     get<UserItem[]>('/api/users', { limit: 100, active: 'true' })
@@ -184,7 +190,8 @@ export function SalesList() {
             <option value="">Todos los medios</option>
             <option value="EFECTIVO">Efectivo</option>
             <option value="TARJETA">Tarjeta</option>
-            <option value="TRANSFERENCIA">Transferencia</option>
+            <option value="NEQUI">Nequi</option>
+            <option value="DAVIPLATA">Daviplata</option>
           </select>
 
           <div className="relative">
@@ -251,18 +258,53 @@ export function SalesList() {
                         <PaymentBadge method={sale.paymentMethod} />
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(sale.statusCode)}`}>
-                          {sale.status}
-                        </span>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(sale.statusCode)}`}>
+                            {sale.status}
+                          </span>
+                          {/* Badge "Devuelta" — solo si fue devuelta al vendedor */}
+                          {sale.returnedAt && (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
+                              title={sale.returnNotes ? `Motivo: ${sale.returnNotes}` : 'Devuelta al vendedor'}
+                            >
+                              <CornerUpLeft className="w-2.5 h-2.5" />
+                              Devuelta
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        <button
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-primary transition-colors"
-                          onClick={() => handleViewSale(sale.id)}
-                          title="Ver detalle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          {/* Ver detalle */}
+                          <button
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-primary transition-colors"
+                            onClick={() => handleViewSale(sale.id)}
+                            title="Ver detalle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {/* Editar — solo PENDIENTE + canEdit */}
+                          {canEdit && sale.statusCode === 'PENDIENTE' && (
+                            <button
+                              className="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+                              onClick={() => setEditSale(sale)}
+                              title="Editar venta"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          )}
+                          {/* Devolver — solo PENDIENTE + canEdit */}
+                          {canEdit && sale.statusCode === 'PENDIENTE' && (
+                            <button
+                              className="p-1.5 rounded-lg hover:bg-amber-50 text-gray-400 hover:text-amber-600 transition-colors"
+                              onClick={() => setReturnSale(sale)}
+                              title="Devolver al vendedor"
+                            >
+                              <CornerUpLeft className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -341,6 +383,31 @@ export function SalesList() {
           sale={selectedSale}
           onClose={handleModalClose}
           readOnly={!canEdit}
+        />
+      )}
+
+      {/* Modal de edición directa desde la lista */}
+      {editSale && (
+        <EditSaleModal
+          sale={editSale}
+          onClose={() => setEditSale(null)}
+          onSaved={(updated) => {
+            // Actualizar la fila localmente sin recargar todo
+            setSales((prev) => prev.map((s) => s.id === updated.id ? updated : s));
+            setEditSale(null);
+          }}
+        />
+      )}
+
+      {/* Modal de devolución directa desde la lista */}
+      {returnSale && (
+        <ReturnSaleModal
+          sale={returnSale}
+          onClose={() => setReturnSale(null)}
+          onReturned={(updated) => {
+            setSales((prev) => prev.map((s) => s.id === updated.id ? updated : s));
+            setReturnSale(null);
+          }}
         />
       )}
     </>

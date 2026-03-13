@@ -28,6 +28,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
   const [costo, setCosto] = useState<number>(0);
   const [categoriaId, setCategoriaId] = useState<number | ''>('');
   const [imagen, setImagen] = useState('');
+  const [requiresIva, setRequiresIva] = useState(false);
   const [variaciones, setVariaciones] = useState<ProductoVariacion[]>([]);
   const [tipoVariacion, setTipoVariacion] = useState('');
   const [valorVariacion, setValorVariacion] = useState('');
@@ -69,6 +70,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
     setCosto(0);
     setCategoriaId('');
     setImagen('');
+    setRequiresIva(false);
     setVariaciones([]);
     setTipoVariacion('');
     setValorVariacion('');
@@ -125,6 +127,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
         cost: costo || undefined,
         currency: 'MXN',
         image: imagen || undefined,
+        requiresIva,
         variants: variaciones.map(v => ({
           variantName: `${v.nombre}: ${v.valor}`,
           stock: v.stock,
@@ -149,6 +152,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
         variaciones,
         stockTotal,
         activo: true,
+        requiresIva,
       };
 
       onSave(newProduct);
@@ -321,6 +325,31 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                 </CardContent>
               </Card>
             )}
+
+            {/* Toggle IVA obligatorio */}
+            <button
+              type="button"
+              onClick={() => setRequiresIva((v) => !v)}
+              className={`
+                w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all text-left
+                ${requiresIva
+                  ? 'border-amber-400 bg-amber-50 text-amber-800'
+                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                }
+              `}
+            >
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Precio con IVA incluido (16%)</span>
+                <span className="text-xs text-gray-400 leading-tight mt-0.5">
+                  {requiresIva
+                    ? 'El cajero no puede quitar el IVA en POS'
+                    : 'El cajero puede activar o desactivar el IVA en POS'}
+                </span>
+              </div>
+              <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-3 ${requiresIva ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${requiresIva ? 'translate-x-5' : 'translate-x-0'}`} />
+              </span>
+            </button>
           </div>
         </div>
 

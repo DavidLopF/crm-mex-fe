@@ -1,7 +1,10 @@
 export { ProductGrid } from './ProductGrid';
 export { QuantitySelector } from './QuantitySelector';
 export { Cart } from './Cart';
+export { ClientSelector } from './ClientSelector';
 export { RemisionModal } from './RemisionModal';
+export { EditSaleModal } from './EditSaleModal';
+export { ReturnSaleModal } from './ReturnSaleModal';
 export { SalesList } from './SalesList';
 export { PosDashboardCards } from './PosDashboardCards';
 export { CierreCaja } from './CierreCaja';

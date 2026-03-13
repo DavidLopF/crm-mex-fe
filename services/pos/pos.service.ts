@@ -9,6 +9,7 @@ import type {
   CashCloseSummaryDto,
   CreateCashCloseDto,
   CashCloseResponseDto,
+  UpdateSaleDto,
 } from './pos.types';
 
 const BASE = '/api/pos';
@@ -51,6 +52,20 @@ export async function changeSaleStatus(
   newStatusCode: string
 ): Promise<SaleResponseDto> {
   return patch<SaleResponseDto>(`${BASE}/sales/${saleId}/status`, { newStatusCode });
+}
+
+export async function updateSale(
+  saleId: number,
+  dto: UpdateSaleDto
+): Promise<SaleResponseDto> {
+  return put<SaleResponseDto>(`${BASE}/sales/${saleId}`, dto);
+}
+
+export async function returnSaleToSeller(
+  saleId: number,
+  returnNotes?: string
+): Promise<SaleResponseDto> {
+  return patch<SaleResponseDto>(`${BASE}/sales/${saleId}/return`, { returnNotes });
 }
 
 // ── Dashboard POS ──

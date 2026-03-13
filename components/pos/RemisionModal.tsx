@@ -1,11 +1,13 @@
 'use client';
 
-import { Printer, CheckCircle, XCircle, Copy, Check } from 'lucide-react';
+import { Printer, CheckCircle, XCircle, Copy, Check, Pencil, CornerUpLeft } from 'lucide-react';
 import { Button, Modal } from '@/components/ui';
 import { changeSaleStatus, type SaleResponseDto } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import { useState } from 'react';
+import { EditSaleModal } from './EditSaleModal';
+import { ReturnSaleModal } from './ReturnSaleModal';
 
 interface Props {
   sale: SaleResponseDto;
@@ -13,10 +15,13 @@ interface Props {
   readOnly?: boolean;
 }
 
-export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
+export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: Props) {
   const toast = useGlobalToast();
+  const [sale, setSale]           = useState<SaleResponseDto>(initialSale);
   const [processing, setProcessing] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [showEdit, setShowEdit]     = useState(false);
+  const [showReturn, setShowReturn] = useState(false);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(sale.code).then(() => {
@@ -211,6 +216,25 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
                 <CheckCircle className="w-4 h-4" />
                 {processing ? 'Procesando...' : 'Confirmar Pago'}
               </Button>
+
+              <Button
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                onClick={() => setShowEdit(true)}
+                disabled={processing}
+              >
+                <Pencil className="w-4 h-4" />
+                Editar
+              </Button>
+
+              <Button
+                className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600"
+                onClick={() => setShowReturn(true)}
+                disabled={processing}
+              >
+                <CornerUpLeft className="w-4 h-4" />
+                Devolver
+              </Button>
+
               <Button
                 className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
                 onClick={handleCancel}
@@ -230,6 +254,23 @@ export function RemisionModal({ sale, onClose, readOnly = false }: Props) {
           </Button>
         </div>
       </div>
+
+      {/* Sub-modales — montados sobre el RemisionModal */}
+      {showEdit && (
+        <EditSaleModal
+          sale={sale}
+          onClose={() => setShowEdit(false)}
+          onSaved={(updated) => { setSale(updated); setShowEdit(false); }}
+        />
+      )}
+
+      {showReturn && (
+        <ReturnSaleModal
+          sale={sale}
+          onClose={() => setShowReturn(false)}
+          onReturned={(updated) => { setSale(updated); setShowReturn(false); }}
+        />
+      )}
     </Modal>
   );
 }

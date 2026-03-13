@@ -2,9 +2,29 @@
 
 import { useState, useCallback } from 'react';
 import {
-  Banknote, CreditCard, ArrowLeftRight, Calculator,
+  Banknote, CreditCard, Calculator,
   CheckCircle, AlertCircle, ChevronDown, ChevronUp, History, RefreshCw,
 } from 'lucide-react';
+
+/** Ícono Nequi — círculo rosa con "N" blanca (colores de marca) */
+function NequiIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <circle cx="10" cy="10" r="10" fill="#DA0081" />
+      <text x="10" y="14.5" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial, sans-serif">N</text>
+    </svg>
+  );
+}
+
+/** Ícono Daviplata — círculo rojo con "D" blanca (colores de marca) */
+function DaviplataIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <circle cx="10" cy="10" r="10" fill="#DA3B24" />
+      <text x="10" y="14.5" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial, sans-serif">D</text>
+    </svg>
+  );
+}
 import { Card, Button } from '@/components/ui';
 import {
   getCashCloseSummary, createCashClose,
@@ -135,13 +155,14 @@ function HistoryPanel() {
                       <th className="text-right py-2 px-2">Total</th>
                       <th className="text-right py-2 px-2">Efectivo</th>
                       <th className="text-right py-2 px-2">Tarjeta</th>
-                      <th className="text-right py-2 px-2">Transf.</th>
+                      <th className="text-right py-2 px-2">Nequi</th>
+                      <th className="text-right py-2 px-2">Daviplata</th>
                       <th className="text-right py-2 px-2">Diff.</th>
                     </tr>
                   </thead>
                   <tbody>
                     {closes.map((c) => {
-                      const totalDiff = c.diffEfectivo + c.diffTarjeta + c.diffTransferencia;
+                      const totalDiff = c.diffEfectivo + c.diffTarjeta + c.diffNequi + c.diffDaviplata;
                       const hasIssue  = totalDiff < -0.01;
                       return (
                         <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
@@ -152,7 +173,8 @@ function HistoryPanel() {
                           <td className="py-2 px-2 text-right font-semibold">{fmt(c.totalSales)}</td>
                           <td className="py-2 px-2 text-right text-emerald-700">{fmt(c.totalEfectivo)}</td>
                           <td className="py-2 px-2 text-right text-blue-700">{fmt(c.totalTarjeta)}</td>
-                          <td className="py-2 px-2 text-right text-purple-700">{fmt(c.totalTransferencia)}</td>
+                          <td className="py-2 px-2 text-right text-pink-700">{fmt(c.totalNequi)}</td>
+                          <td className="py-2 px-2 text-right text-red-700">{fmt(c.totalDaviplata)}</td>
                           <td className="py-2 px-2 text-right">
                             <span className={`font-semibold ${hasIssue ? 'text-red-600' : 'text-green-600'}`}>
                               {totalDiff === 0 ? '—' : `${totalDiff > 0 ? '+' : ''}${fmt(totalDiff)}`}
@@ -200,15 +222,16 @@ export function CierreCaja() {
   const [summary, setSummary] = useState<CashCloseSummaryDto | null>(null);
   const [loadingSum, setLoadingSum] = useState(false);
 
-  const [declaredEfectivo,      setDeclaredEfectivo]      = useState(0);
-  const [declaredTarjeta,       setDeclaredTarjeta]        = useState(0);
-  const [declaredTransferencia, setDeclaredTransferencia] = useState(0);
-  const [notes, setNotes]     = useState('');
-  const [saving, setSaving]   = useState(false);
+  const [declaredEfectivo,  setDeclaredEfectivo]  = useState(0);
+  const [declaredTarjeta,   setDeclaredTarjeta]   = useState(0);
+  const [declaredNequi,     setDeclaredNequi]     = useState(0);
+  const [declaredDaviplata, setDeclaredDaviplata] = useState(0);
+  const [notes, setNotes]   = useState('');
+  const [saving, setSaving] = useState(false);
 
   // Cálculos derivados
-  const calculated = summary ?? { totalEfectivo: 0, totalTarjeta: 0, totalTransferencia: 0, totalSales: 0, salesCount: 0 };
-  const totalDeclared = declaredEfectivo + declaredTarjeta + declaredTransferencia;
+  const calculated = summary ?? { totalEfectivo: 0, totalTarjeta: 0, totalNequi: 0, totalDaviplata: 0, totalSales: 0, salesCount: 0 };
+  const totalDeclared = declaredEfectivo + declaredTarjeta + declaredNequi + declaredDaviplata;
   const totalDiff     = totalDeclared - calculated.totalSales;
 
   const loadSummary = async () => {
@@ -220,7 +243,8 @@ export function CierreCaja() {
       // Pre-llenar con los montos calculados como punto de partida
       setDeclaredEfectivo(res.totalEfectivo);
       setDeclaredTarjeta(res.totalTarjeta);
-      setDeclaredTransferencia(res.totalTransferencia);
+      setDeclaredNequi(res.totalNequi);
+      setDeclaredDaviplata(res.totalDaviplata);
     } catch (err) {
       toast.error('No se pudo cargar el resumen', { title: 'Error' });
     } finally {
@@ -237,7 +261,8 @@ export function CierreCaja() {
         periodTo:   to,
         declaredEfectivo,
         declaredTarjeta,
-        declaredTransferencia,
+        declaredNequi,
+        declaredDaviplata,
         notes: notes || undefined,
       });
       toast.success('Cierre de caja registrado correctamente', { title: '✅ Caja cerrada' });
@@ -245,7 +270,8 @@ export function CierreCaja() {
       setSummary(null);
       setDeclaredEfectivo(0);
       setDeclaredTarjeta(0);
-      setDeclaredTransferencia(0);
+      setDeclaredNequi(0);
+      setDeclaredDaviplata(0);
       setNotes('');
     } catch (err) {
       toast.error(
@@ -377,11 +403,18 @@ export function CierreCaja() {
               onDeclaredChange={setDeclaredTarjeta}
             />
             <ReconcileRow
-              icon={<ArrowLeftRight className="w-4 h-4 text-purple-600" />}
-              label="Transferencia"
-              calculated={summary.totalTransferencia}
-              declared={declaredTransferencia}
-              onDeclaredChange={setDeclaredTransferencia}
+              icon={<NequiIcon className="w-4 h-4" />}
+              label="Nequi"
+              calculated={summary.totalNequi}
+              declared={declaredNequi}
+              onDeclaredChange={setDeclaredNequi}
+            />
+            <ReconcileRow
+              icon={<DaviplataIcon className="w-4 h-4" />}
+              label="Daviplata"
+              calculated={summary.totalDaviplata}
+              declared={declaredDaviplata}
+              onDeclaredChange={setDeclaredDaviplata}
             />
 
             {/* Totales */}

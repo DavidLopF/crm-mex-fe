@@ -2,7 +2,7 @@
  * Tipos para el módulo Punto de Venta (POS)
  */
 
-export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'NEQUI' | 'DAVIPLATA';
 
 export interface PriceTierDto {
   id: number;
@@ -23,6 +23,8 @@ export interface PosProductDto {
   currency: string | null;
   priceTiers: PriceTierDto[];
   isActive: boolean;
+  /** true = el producto siempre debe venderse con IVA (16%); el toggle en el POS se bloquea ON */
+  requiresIva: boolean;
 }
 
 export interface CreateSaleItemDto {
@@ -39,7 +41,7 @@ export interface CreateSaleDto {
   sellerId?: number;
   /** true → aplica 16% IVA sobre el subtotal */
   includesIva?: boolean;
-  /** Medio de pago (default: EFECTIVO) */
+  /** Medio de pago: EFECTIVO | TARJETA | NEQUI | DAVIPLATA (default: EFECTIVO) */
   paymentMethod?: PaymentMethod;
 }
 
@@ -72,6 +74,34 @@ export interface SaleResponseDto {
   paymentMethod: PaymentMethod;
   items: SaleItemResponseDto[];
   createdAt: string;
+  /** Fecha en que fue devuelta al vendedor (null = no devuelta) */
+  returnedAt: string | null;
+  /** Notas del revisor al devolver */
+  returnNotes: string | null;
+}
+
+// ── Editar venta ──
+
+export interface UpdateSaleItemDto {
+  variantId: number;
+  qty: number;
+  /** Precio manual opcional; si se omite se recalcula con tiers */
+  unitPrice?: number;
+}
+
+export interface UpdateSaleDto {
+  clientId?: number | null;
+  clientName?: string | null;
+  notes?: string | null;
+  paymentMethod?: PaymentMethod;
+  includesIva?: boolean;
+  items: UpdateSaleItemDto[];
+}
+
+// ── Devolver venta al vendedor ──
+
+export interface ReturnSaleDto {
+  returnNotes?: string;
 }
 
 export interface PosDashboardDto {
@@ -107,7 +137,8 @@ export interface CashCloseSummaryDto {
   totalSales: number;
   totalEfectivo: number;
   totalTarjeta: number;
-  totalTransferencia: number;
+  totalNequi: number;
+  totalDaviplata: number;
   sales: SaleResponseDto[];
 }
 
@@ -116,7 +147,8 @@ export interface CreateCashCloseDto {
   periodTo: string;
   declaredEfectivo: number;
   declaredTarjeta: number;
-  declaredTransferencia: number;
+  declaredNequi: number;
+  declaredDaviplata: number;
   notes?: string;
 }
 
@@ -127,15 +159,18 @@ export interface CashCloseResponseDto {
   periodTo: string;
   totalEfectivo: number;
   totalTarjeta: number;
-  totalTransferencia: number;
+  totalNequi: number;
+  totalDaviplata: number;
   totalSales: number;
   salesCount: number;
   declaredEfectivo: number;
   declaredTarjeta: number;
-  declaredTransferencia: number;
+  declaredNequi: number;
+  declaredDaviplata: number;
   diffEfectivo: number;
   diffTarjeta: number;
-  diffTransferencia: number;
+  diffNequi: number;
+  diffDaviplata: number;
   notes: string | null;
   createdAt: string;
 }

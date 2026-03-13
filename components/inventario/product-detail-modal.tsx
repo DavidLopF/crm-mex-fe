@@ -125,6 +125,7 @@ export function ProductDetailModal({
         price: editedProduct.precio,
         image: editedProduct.imagen,
         isActive: editedProduct.activo,
+        requiresIva: editedProduct.requiresIva,
         variants: editedProduct.variaciones.map(v => ({
           id: isNaN(Number(v.id)) ? undefined : Number(v.id),
           variantName: v.nombre ? `${v.nombre}: ${v.valor}` : v.valor,
@@ -244,6 +245,32 @@ export function ProductDetailModal({
                 <Badge variant={currentProduct.activo ? 'success' : 'default'}>
                   {currentProduct.activo ? 'Activo' : 'Inactivo'}
                 </Badge>
+              </div>
+              {/* Toggle IVA obligatorio */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-sm text-gray-500">IVA Obligatorio</span>
+                {isEditing ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditedProduct(prev => prev ? { ...prev, requiresIva: !prev.requiresIva } : null)}
+                    className={`
+                      flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs font-medium transition-all
+                      ${editedProduct?.requiresIva
+                        ? 'border-amber-400 bg-amber-50 text-amber-700'
+                        : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <span className={`w-7 h-4 flex items-center rounded-full transition-colors ${editedProduct?.requiresIva ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                      <span className={`w-3 h-3 bg-white rounded-full shadow transition-transform mx-0.5 ${editedProduct?.requiresIva ? 'translate-x-3' : 'translate-x-0'}`} />
+                    </span>
+                    {editedProduct?.requiresIva ? 'Sí' : 'No'}
+                  </button>
+                ) : (
+                  <Badge variant={currentProduct.requiresIva ? 'warning' : 'default'}>
+                    {currentProduct.requiresIva ? 'Sí (Forzado)' : 'No (Opcional)'}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>

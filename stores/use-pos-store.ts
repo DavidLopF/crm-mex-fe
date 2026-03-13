@@ -18,6 +18,8 @@ export interface CartItem {
   priceTiers: PriceTierDto[];
   defaultPrice: number;
   stockTotal: number;
+  /** true = el producto siempre debe venderse con IVA (16%); el toggle en el POS se bloquea ON */
+  requiresIva: boolean;
 }
 
 interface PosState {
@@ -126,6 +128,7 @@ export const usePosStore = create<PosState>((set, get) => ({
         priceTiers: product.priceTiers,
         defaultPrice: product.defaultPrice,
         stockTotal: product.stockTotal,
+        requiresIva: product.requiresIva ?? false,
       };
 
       return { cart: [...state.cart, newItem] };

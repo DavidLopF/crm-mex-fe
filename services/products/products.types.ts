@@ -26,6 +26,8 @@ export interface ApiProduct {
   status: string;
   description?: string;
   image?: string;
+  /** true = el producto siempre debe venderse con IVA (16%) en POS */
+  requiresIva: boolean;
 }
 
 export interface ApiPagination {
@@ -66,6 +68,7 @@ export function mapApiProductToProducto(api: ApiProduct): Producto {
     variaciones: [],
     stockTotal: api.totalStock,
     activo: api.status === 'Activo',
+    requiresIva: api.requiresIva ?? false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -113,6 +116,8 @@ export interface ApiProductDetail {
   totalStock: number;
   status: string;
   image?: string;
+  /** true = el producto siempre debe venderse con IVA (16%) en POS */
+  requiresIva: boolean;
   createdAt: string;
   updatedAt: string;
   variants: ApiVariant[];
@@ -183,6 +188,8 @@ export interface CreateProductDto {
   cost?: number;
   currency?: string;
   image?: string;
+  /** true = el producto siempre debe venderse con IVA (16%) en POS (default: false) */
+  requiresIva?: boolean;
   variants: CreateProductVariantDto[];
 }
 
@@ -205,6 +212,8 @@ export interface UpdateProductDto {
   currency?: string;
   image?: string;
   isActive?: boolean;
+  /** Actualiza si el producto debe venderse siempre con IVA (16%) en POS */
+  requiresIva?: boolean;
   variants?: UpdateProductVariantDto[];
 }
 
