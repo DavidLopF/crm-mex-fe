@@ -71,7 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [fullName, setFullName] = useState<string | null>(() => loadString(FULLNAME_KEY));
   const [roleName, setRoleName] = useState<string | null>(() => loadString(ROLENAME_KEY));
   const [permissions, setPermissions] = useState<ModulePermission[]>(() => loadPermissions());
-  const [isLoading] = useState(() => typeof window === 'undefined');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // En el cliente, habilita el estado para renderizar (evita spinner infinito en SSR)
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   // ── Listen for http-client events ─────────────────────────────────────────
   useEffect(() => {

@@ -52,6 +52,7 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
     minOrderQty: undefined,
     isPreferred: false,
   });
+  const [supplierCostInput, setSupplierCostInput] = useState('');
   const [addingProduct, setAddingProduct] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
 
@@ -122,13 +123,14 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
     setSelectedProduct(product);
     setAddForm({
       productId: product.productId,
-      supplierCost: 0,
+      supplierCost: undefined,
       supplierSku: '',
       currency: product.currency || 'MXN',
       leadTimeDays: undefined,
       minOrderQty: undefined,
       isPreferred: false,
     });
+    setSupplierCostInput('');
     setSearchQuery('');
     setSearchResults([]);
   };
@@ -137,9 +139,10 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
     if (!supplier || !selectedProduct || !addForm.productId) return;
     setAddingProduct(true);
     try {
+      const supplierCostNumber = parseFloat(supplierCostInput);
       const dto: AddSupplierProductDto = {
         productId: addForm.productId!,
-        supplierCost: addForm.supplierCost || 0,
+        supplierCost: Number.isFinite(supplierCostNumber) ? supplierCostNumber : 0,
         supplierSku: addForm.supplierSku || undefined,
         currency: addForm.currency || 'MXN',
         leadTimeDays: addForm.leadTimeDays || undefined,
@@ -149,6 +152,7 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
       await addSupplierProduct(supplier.id, dto);
       toast.success('Producto agregado al catálogo del proveedor');
       setSelectedProduct(null);
+  setSupplierCostInput('');
       setShowAddProduct(false);
       await loadSupplierProducts();
     } catch {
@@ -451,8 +455,8 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                           <label className="text-xs text-gray-600 mb-1 block">Costo del Proveedor *</label>
                           <input
                             type="number"
-                            value={addForm.supplierCost || ''}
-                            onChange={(e) => setAddForm(f => ({ ...f, supplierCost: parseFloat(e.target.value) || 0 }))}
+                            value={supplierCostInput}
+                            onChange={(e) => setSupplierCostInput(e.target.value)}
                             className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                             placeholder="0.00"
                             step="0.01"

@@ -24,15 +24,15 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [sku, setSku] = useState('');
-  const [precio, setPrecio] = useState<number>(0);
-  const [costo, setCosto] = useState<number>(0);
+  const [precio, setPrecio] = useState<string>('');
+  const [costo, setCosto] = useState<string>('');
   const [categoriaId, setCategoriaId] = useState<number | ''>('');
   const [imagen, setImagen] = useState('');
   const [requiresIva, setRequiresIva] = useState(false);
   const [variaciones, setVariaciones] = useState<ProductoVariacion[]>([]);
   const [tipoVariacion, setTipoVariacion] = useState('');
   const [valorVariacion, setValorVariacion] = useState('');
-  const [stockVariacion, setStockVariacion] = useState<number>(0);
+  const [stockVariacion, setStockVariacion] = useState<string>('');
   
   // Estados para categorías del backend
   const [categorias, setCategorias] = useState<CategoryDto[]>([]);
@@ -66,15 +66,15 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
     setNombre('');
     setDescripcion('');
     setSku('');
-    setPrecio(0);
-    setCosto(0);
+    setPrecio('');
+    setCosto('');
     setCategoriaId('');
     setImagen('');
     setRequiresIva(false);
     setVariaciones([]);
     setTipoVariacion('');
     setValorVariacion('');
-    setStockVariacion(0);
+    setStockVariacion('');
     setSubmitting(false);
   };
 
@@ -86,16 +86,19 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
   const handleAddVariacion = () => {
     if (!tipoVariacion || !valorVariacion) return;
 
+    const parsedStock = parseInt(stockVariacion, 10);
+    const safeStock = Number.isFinite(parsedStock) ? parsedStock : 0;
+
     const newVariacion: ProductoVariacion = {
       id: `var-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       nombre: tipoVariacion,
       valor: valorVariacion,
-      stock: stockVariacion,
+      stock: safeStock,
     };
 
     setVariaciones([...variaciones, newVariacion]);
     setValorVariacion('');
-    setStockVariacion(0);
+    setStockVariacion('');
   };
 
   const handleRemoveVariacion = (id: string) => {
@@ -117,14 +120,17 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
     setSubmitting(true);
 
     try {
+      const precioNumber = Number.isFinite(parseFloat(precio)) ? parseFloat(precio) : 0;
+      const costoNumber = Number.isFinite(parseFloat(costo)) ? parseFloat(costo) : 0;
+
       // Preparar el DTO para el backend
       const createDto: CreateProductDto = {
         name: nombre,
         description: descripcion || undefined,
         sku,
         categoryId: Number(categoriaId),
-        defaultPrice: precio,
-        cost: costo || undefined,
+        defaultPrice: precioNumber,
+        cost: costo ? costoNumber : undefined,
         currency: 'MXN',
         image: imagen || undefined,
         requiresIva,
@@ -145,8 +151,8 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
         nombre,
         descripcion,
         sku,
-        precio,
-        costo,
+        precio: precioNumber,
+        costo: costoNumber,
         categoria: categoriaSeleccionada?.name || '',
         imagen: imagen || undefined,
         variaciones,
@@ -172,6 +178,8 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
   };
 
   const stockTotal = variaciones.reduce((sum, v) => sum + v.stock, 0);
+  const precioNumber = Number.isFinite(parseFloat(precio)) ? parseFloat(precio) : 0;
+  const costoNumber = Number.isFinite(parseFloat(costo)) ? parseFloat(costo) : 0;
   const valoresDisponibles = variacionesTemplate.find(v => v.nombre === tipoVariacion)?.valores || [];
 
   return (
@@ -284,8 +292,8 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
                   <input
                     type="number"
-                    value={precio || ''}
-                    onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
+                    value={precio}
+                    onChange={(e) => setPrecio(e.target.value)}
                     placeholder="0.00"
                     step="0.01"
                     min="0"
@@ -302,8 +310,8 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
                   <input
                     type="number"
-                    value={costo || ''}
-                    onChange={(e) => setCosto(parseFloat(e.target.value) || 0)}
+                    value={costo}
+                    onChange={(e) => setCosto(e.target.value)}
                     placeholder="0.00"
                     step="0.01"
                     min="0"
@@ -313,13 +321,13 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
               </div>
             </div>
 
-            {precio > 0 && costo > 0 && (
+            {precioNumber > 0 && costoNumber > 0 && (
               <Card>
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Margen de Ganancia:</span>
-                    <span className={`font-semibold ${precio > costo ? 'text-green-600' : 'text-red-600'}`}>
-                      {((precio - costo) / precio * 100).toFixed(1)}%
+                    <span className={`font-semibold ${precioNumber > costoNumber ? 'text-green-600' : 'text-red-600'}`}>
+                      {(((precioNumber - costoNumber) / precioNumber) * 100).toFixed(1)}%
                     </span>
                   </div>
                 </CardContent>
@@ -400,8 +408,8 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
 
             <input
               type="number"
-              value={stockVariacion || ''}
-              onChange={(e) => setStockVariacion(parseInt(e.target.value) || 0)}
+              value={stockVariacion}
+              onChange={(e) => setStockVariacion(e.target.value)}
               placeholder="Stock"
               min="0"
               className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

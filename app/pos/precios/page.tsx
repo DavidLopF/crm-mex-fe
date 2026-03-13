@@ -16,8 +16,8 @@ import type { PosProductDto, PriceTierDto } from '@/services/pos';
 interface TierRow {
   /** id del tier existente (undefined si es nuevo) */
   id?: number;
-  minQty: number;
-  price: number;
+  minQty: string;
+  price: string;
   tierLabel: string;
 }
 
@@ -38,7 +38,12 @@ const formatPrice = (price: number) =>
   }).format(price);
 
 function tiersFromDto(tiers: PriceTierDto[]): TierRow[] {
-  return tiers.map((t) => ({ id: t.id, minQty: t.minQty, price: t.price, tierLabel: t.tierLabel }));
+  return tiers.map((t) => ({
+    id: t.id,
+    minQty: t.minQty.toString(),
+    price: t.price.toString(),
+    tierLabel: t.tierLabel,
+  }));
 }
 
 // ── Componente de fila de tier editable ──────────────────────────
@@ -46,7 +51,7 @@ function tiersFromDto(tiers: PriceTierDto[]): TierRow[] {
 interface TierRowEditorProps {
   tier: TierRow;
   index: number;
-  onChange: (idx: number, field: keyof TierRow, value: string | number) => void;
+  onChange: (idx: number, field: keyof TierRow, value: string) => void;
   onRemove: (idx: number) => void;
 }
 
@@ -62,7 +67,7 @@ function TierRowEditor({ tier, index, onChange, onRemove }: TierRowEditorProps) 
           type="number"
           min={1}
           value={tier.minQty}
-          onChange={(e) => onChange(index, 'minQty', parseInt(e.target.value) || 1)}
+          onChange={(e) => onChange(index, 'minQty', e.target.value)}
           className="w-full text-sm font-semibold border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
         />
       </div>
@@ -77,7 +82,7 @@ function TierRowEditor({ tier, index, onChange, onRemove }: TierRowEditorProps) 
           min={0}
           step={0.01}
           value={tier.price}
-          onChange={(e) => onChange(index, 'price', parseFloat(e.target.value) || 0)}
+          onChange={(e) => onChange(index, 'price', e.target.value)}
           className="w-full text-sm font-semibold border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
         />
       </div>
@@ -114,7 +119,7 @@ interface ProductCardProps {
   product: PosProductDto;
   state: ProductState;
   onToggle: (variantId: number) => void;
-  onTierChange: (variantId: number, idx: number, field: keyof TierRow, value: string | number) => void;
+  onTierChange: (variantId: number, idx: number, field: keyof TierRow, value: string) => void;
   onTierRemove: (variantId: number, idx: number) => void;
   onTierAdd: (variantId: number) => void;
   onSave: (variantId: number) => void;
@@ -289,7 +294,7 @@ export default function PreciosPage() {
     variantId: number,
     idx: number,
     field: keyof TierRow,
-    value: string | number,
+    value: string,
   ) => {
     setStates((prev) => {
       const rows = [...prev[variantId].tiers];
@@ -309,10 +314,10 @@ export default function PreciosPage() {
     setStates((prev) => {
       const existing = prev[variantId].tiers;
       // Sugerir minQty siguiente
-      const maxQty = existing.reduce((m, t) => Math.max(m, t.minQty), 0);
+      const maxQty = existing.reduce((m, t) => Math.max(m, parseInt(t.minQty, 10) || 0), 0);
       const newRow: TierRow = {
-        minQty: maxQty > 0 ? maxQty + 6 : 6,
-        price: 0,
+        minQty: maxQty > 0 ? (maxQty + 6).toString() : '',
+        price: '',
         tierLabel: '',
       };
       return {
@@ -334,22 +339,25 @@ export default function PreciosPage() {
 
     // Validar
     for (const t of state.tiers) {
+      const minQtyNumber = parseInt(t.minQty, 10);
+      const priceNumber = parseFloat(t.price);
+
       if (!t.tierLabel.trim()) {
         toast.error('Todos los tiers deben tener una etiqueta', { title: 'Validación' });
         return;
       }
-      if (t.minQty < 1) {
+      if (!Number.isFinite(minQtyNumber) || minQtyNumber < 1) {
         toast.error('La cantidad mínima debe ser al menos 1', { title: 'Validación' });
         return;
       }
-      if (t.price < 0) {
+      if (!Number.isFinite(priceNumber) || priceNumber < 0) {
         toast.error('El precio no puede ser negativo', { title: 'Validación' });
         return;
       }
     }
 
     // Verificar minQty únicos
-    const qtys = state.tiers.map((t) => t.minQty);
+    const qtys = state.tiers.map((t) => parseInt(t.minQty, 10));
     if (new Set(qtys).size !== qtys.length) {
       toast.error('Dos tiers no pueden tener la misma cantidad mínima', { title: 'Validación' });
       return;
@@ -361,17 +369,16 @@ export default function PreciosPage() {
     }));
 
     try {
-      const saved = await upsertVariantTiers(
-        variantId,
-        state.tiers
-          .sort((a, b) => a.minQty - b.minQty)
-          .map((t, i) => ({
-            minQty: t.minQty,
-            price: t.price,
-            tierLabel: t.tierLabel,
-            sortOrder: i,
-          })),
-      );
+      const parsedTiers = state.tiers
+        .map((t) => ({
+          minQty: parseInt(t.minQty, 10),
+          price: parseFloat(t.price),
+          tierLabel: t.tierLabel,
+        }))
+        .sort((a, b) => a.minQty - b.minQty)
+        .map((t, i) => ({ ...t, sortOrder: i }));
+
+      const saved = await upsertVariantTiers(variantId, parsedTiers);
 
       setStates((prev) => ({
         ...prev,

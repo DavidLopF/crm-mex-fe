@@ -31,6 +31,7 @@ export function ProductDetailModal({
 }: ProductDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Producto | null>(null);
+  const [priceInput, setPriceInput] = useState<string>('');
   const [selectedClienteId, setSelectedClienteId] = useState<string>('');
   const [clientes, setClientes] = useState<ClientListItem[]>([]);
   const [historialPrecios, setHistorialPrecios] = useState<PriceHistoryItem[]>([]);
@@ -103,8 +104,10 @@ export function ProductDetailModal({
   const handleEditToggle = () => {
     if (isEditing) {
       setEditedProduct(null);
+      setPriceInput('');
     } else {
       setEditedProduct({ ...producto });
+      setPriceInput(producto.precio != null ? producto.precio.toString() : '');
     }
     setIsEditing(!isEditing);
   };
@@ -117,12 +120,19 @@ export function ProductDetailModal({
       // Buscar categoryId a partir del nombre de la categoría
       const categoriaEncontrada = categorias.find(c => c.name === editedProduct.categoria);
       
+      const priceNumber = parseFloat(priceInput);
+      if (!Number.isFinite(priceNumber) || priceNumber < 0) {
+        if (onError) onError('El precio debe ser un número válido');
+        setSaving(false);
+        return;
+      }
+
       // Preparar el DTO para el backend
       const updateDto: UpdateProductDto = {
         name: editedProduct.nombre,
         description: editedProduct.descripcion,
         categoryId: categoriaEncontrada?.id,
-        price: editedProduct.precio,
+        price: priceNumber,
         image: editedProduct.imagen,
         isActive: editedProduct.activo,
         requiresIva: editedProduct.requiresIva,
@@ -140,6 +150,7 @@ export function ProductDetailModal({
       if (onEdit) {
         onEdit({
           ...editedProduct,
+          precio: priceNumber,
           updatedAt: new Date(),
         });
       }
@@ -151,6 +162,7 @@ export function ProductDetailModal({
       
       setIsEditing(false);
       setEditedProduct(null);
+      setPriceInput('');
     } catch (error) {
       console.error('Error al actualizar producto:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -312,8 +324,8 @@ export function ProductDetailModal({
                   {isEditing ? (
                     <input
                       type="number"
-                      value={editedProduct?.precio || 0}
-                      onChange={(e) => setEditedProduct(prev => prev ? { ...prev, precio: parseFloat(e.target.value) || 0 } : null)}
+                      value={priceInput}
+                      onChange={(e) => setPriceInput(e.target.value)}
                       className="text-2xl font-bold text-green-600 w-full border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       step="0.01"
                     />

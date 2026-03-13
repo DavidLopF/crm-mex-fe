@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Search, Plus, Edit, Eye, Trash2, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Edit, Eye, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
 import { CreateProductModal } from './create-product-modal';
-import { DeleteConfirmModal } from './delete-confirm-modal';
 import { Producto } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { getProductById } from '@/services/products';
@@ -16,7 +15,6 @@ interface InventoryTableProps {
   productos: Producto[];
   onProductUpdate?: (producto: Producto) => void;
   onProductCreate?: (producto: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  onProductDelete?: (productoId: string) => void;
   onError?: (message: string) => void;
   onSuccess?: (message: string) => void;
   // optional controlled props for server-driven mode
@@ -30,14 +28,12 @@ interface InventoryTableProps {
   // Permission flags
   canCreate?: boolean;
   canEdit?: boolean;
-  canDelete?: boolean;
 }
 
 export function InventoryTable({ 
   productos, 
   onProductUpdate,
   onProductCreate,
-  onProductDelete,
   onError,
   onSuccess,
   externalSearch,
@@ -49,7 +45,6 @@ export function InventoryTable({
   totalItems,
   canCreate = true,
   canEdit = true,
-  canDelete = true,
 }: InventoryTableProps) {
   const [internalSearch, setInternalSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -58,8 +53,6 @@ export function InventoryTable({
   const [selectedProductRaw, setSelectedProductRaw] = useState<ApiProductDetail | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<Producto | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const itemsPerPage = 10;
 
@@ -150,24 +143,6 @@ export function InventoryTable({
       onProductCreate(newProduct);
     }
     setIsCreateModalOpen(false);
-  };
-
-  const handleDeleteClick = (producto: Producto) => {
-    setProductToDelete(producto);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (productToDelete && onProductDelete) {
-      onProductDelete(productToDelete.id);
-    }
-    setIsDeleteModalOpen(false);
-    setProductToDelete(null);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setProductToDelete(null);
   };
 
   return (
@@ -319,15 +294,6 @@ export function InventoryTable({
                           <Edit className="w-4 h-4 text-gray-500" />
                         </button>
                         )}
-                        {canDelete && (
-                        <button
-                          onClick={() => handleDeleteClick(producto)}
-                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar producto"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -431,13 +397,6 @@ export function InventoryTable({
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreateProduct}
         onError={onError}
-      />
-
-      <DeleteConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleConfirmDelete}
-        producto={productToDelete}
       />
     </div>
   );

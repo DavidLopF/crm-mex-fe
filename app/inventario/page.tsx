@@ -132,7 +132,6 @@ export default function InventarioPage() {
               productos={products} 
               onProductUpdate={canEdit ? handleProductUpdate : undefined}
               onProductCreate={canCreate ? handleProductCreate : undefined}
-              onProductDelete={canDelete ? handleProductDelete : undefined}
               onError={toast.error}
               onSuccess={toast.success}
               externalSearch={search}
@@ -144,7 +143,6 @@ export default function InventarioPage() {
               totalItems={total}
               canCreate={canCreate}
               canEdit={canEdit}
-              canDelete={canDelete}
             />
           )}
         </div>

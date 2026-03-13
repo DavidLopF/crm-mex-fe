@@ -20,7 +20,7 @@ interface LocalItem {
   key: number;
   variantId: number | '';
   qty: number;
-  unitCost: number;
+  unitCost: string;
 }
 
 export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }: CreatePurchaseOrderModalProps) {
@@ -28,7 +28,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
   const [notes, setNotes] = useState('');
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
   const [items, setItems] = useState<LocalItem[]>([
-    { key: 1, variantId: '', qty: 1, unitCost: 0 },
+    { key: 1, variantId: '', qty: 1, unitCost: '' },
   ]);
   const [suppliers, setSuppliers] = useState<SupplierListItem[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
@@ -62,7 +62,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
     setSupplierId('');
     setNotes('');
     setExpectedDeliveryDate('');
-    setItems([{ key: 1, variantId: '', qty: 1, unitCost: 0 }]);
+    setItems([{ key: 1, variantId: '', qty: 1, unitCost: '' }]);
     setNextKey(2);
   };
 
@@ -72,7 +72,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
   };
 
   const addItem = () => {
-    setItems([...items, { key: nextKey, variantId: '', qty: 1, unitCost: 0 }]);
+    setItems([...items, { key: nextKey, variantId: '', qty: 1, unitCost: '' }]);
     setNextKey(nextKey + 1);
   };
 
@@ -85,9 +85,9 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
     setItems(items.map(i => i.key === key ? { ...i, [field]: value } : i));
   };
 
-  const totalAmount = items.reduce((sum, i) => sum + (i.qty * i.unitCost), 0);
+  const totalAmount = items.reduce((sum, i) => sum + (i.qty * (parseFloat(i.unitCost) || 0)), 0);
 
-  const canSubmit = supplierId !== '' && items.every(i => i.variantId !== '' && i.qty > 0 && i.unitCost > 0);
+  const canSubmit = supplierId !== '' && items.every(i => i.variantId !== '' && i.qty > 0 && (parseFloat(i.unitCost) || 0) > 0);
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -97,7 +97,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
       items: items.map(i => ({
         variantId: Number(i.variantId),
         qty: i.qty,
-        unitCost: i.unitCost,
+        unitCost: parseFloat(i.unitCost) || 0,
       })),
       notes: notes.trim() || undefined,
       expectedDeliveryDate: expectedDeliveryDate || undefined,
@@ -196,14 +196,14 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
                       min={0}
                       step={0.01}
                       value={item.unitCost}
-                      onChange={(e) => updateItem(item.key, 'unitCost', Number(e.target.value))}
+                      onChange={(e) => updateItem(item.key, 'unitCost', e.target.value)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
-                {item.qty > 0 && item.unitCost > 0 && (
+                {item.qty > 0 && (parseFloat(item.unitCost) || 0) > 0 && (
                   <p className="text-xs text-gray-500 mt-2 text-right">
-                    Subtotal: <span className="font-semibold text-gray-700">${(item.qty * item.unitCost).toFixed(2)}</span>
+                    Subtotal: <span className="font-semibold text-gray-700">${(item.qty * (parseFloat(item.unitCost) || 0)).toFixed(2)}</span>
                   </p>
                 )}
               </div>
