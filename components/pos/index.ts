@@ -5,6 +5,7 @@ export { ClientSelector } from './ClientSelector';
 export { RemisionModal } from './RemisionModal';
 export { EditSaleModal } from './EditSaleModal';
 export { ReturnSaleModal } from './ReturnSaleModal';
+export { ReturnedSalesAlert } from './ReturnedSalesAlert';
 export { SalesList } from './SalesList';
 export { PosDashboardCards } from './PosDashboardCards';
 export { CierreCaja } from './CierreCaja';

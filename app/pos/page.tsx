@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { ShoppingCart } from 'lucide-react';
-import { ProductGrid, Cart } from '@/components/pos';
+import { ProductGrid, Cart, ReturnedSalesAlert } from '@/components/pos';
 import { PermissionGuard } from '@/components/layout';
 import { usePosStore } from '@/stores';
 
@@ -46,6 +46,9 @@ export default function PosPage() {
               Selecciona productos para agregar al carrito
             </p>
           </div>
+
+          {/* Banner de ventas devueltas — solo visible si el vendedor tiene ventas para corregir */}
+          <ReturnedSalesAlert />
 
           {/* Grid scrollable */}
           <div className="flex-1 overflow-y-auto px-4 pb-24 md:pb-4">

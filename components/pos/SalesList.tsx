@@ -284,18 +284,22 @@ export function SalesList() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          {/* Editar — solo PENDIENTE + canEdit */}
-                          {canEdit && sale.statusCode === 'PENDIENTE' && (
+                          {/* Editar: supervisor con canEdit, O cualquier vendedor si la venta fue devuelta */}
+                          {sale.statusCode === 'PENDIENTE' && (canEdit || !!sale.returnedAt) && (
                             <button
-                              className="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+                              className={`p-1.5 rounded-lg transition-colors ${
+                                sale.returnedAt
+                                  ? 'text-amber-500 hover:bg-amber-50 hover:text-amber-700'
+                                  : 'text-gray-400 hover:bg-blue-50 hover:text-blue-600'
+                              }`}
                               onClick={() => setEditSale(sale)}
-                              title="Editar venta"
+                              title={sale.returnedAt ? 'Corregir venta devuelta' : 'Editar venta'}
                             >
                               <Pencil className="w-4 h-4" />
                             </button>
                           )}
-                          {/* Devolver — solo PENDIENTE + canEdit */}
-                          {canEdit && sale.statusCode === 'PENDIENTE' && (
+                          {/* Devolver — solo supervisores con canEdit */}
+                          {canEdit && sale.statusCode === 'PENDIENTE' && !sale.returnedAt && (
                             <button
                               className="p-1.5 rounded-lg hover:bg-amber-50 text-gray-400 hover:text-amber-600 transition-colors"
                               onClick={() => setReturnSale(sale)}

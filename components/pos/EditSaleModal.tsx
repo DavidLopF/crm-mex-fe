@@ -469,6 +469,7 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
   const [query, setQuery]         = useState('');
   const [results, setResults]     = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading]     = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [creatingNew, setCreatingNew] = useState(false);
   const [newName, setNewName]     = useState('');
   const [newDoc, setNewDoc]       = useState('');
@@ -476,25 +477,41 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
   const [createError, setCreateError] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const fetchClients = async (q?: string) => {
+    setLoading(true);
+    try {
+      const res = await getClients({ search: q?.trim() || undefined, limit: 20, active: true });
+      setResults((res.items ?? []).map((c) => ({ id: c.id, name: c.name })));
+    } catch {
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const search = (q: string) => {
     setQuery(q);
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (q.trim().length < 1) { setResults([]); return; }
-    timerRef.current = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const res = await getClients({ search: q.trim(), limit: 20, active: true });
-        setResults((res.items ?? []).map((c) => ({ id: c.id, name: c.name })));
-      } catch { setResults([]); }
-      finally { setLoading(false); }
+    timerRef.current = setTimeout(() => {
+      fetchClients(q);
+      setInitialLoaded(true);
     }, 250);
   };
+
+  useEffect(() => {
+    if (!open) return;
+    if (query.trim().length === 0 && !initialLoaded) {
+      fetchClients();
+      setInitialLoaded(true);
+    }
+  }, [open, query, initialLoaded]);
 
   const selectClient = (id: number, name: string) => {
     onChange(id, name);
     setOpen(false);
     setQuery('');
     setResults([]);
+    setInitialLoaded(false);
   };
 
   const handleBlur = () => {
@@ -569,8 +586,8 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
             />
             {loading && <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />}
           </div>
-          {open && (results.length > 0 || query.trim().length >= 1) && (
-            <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+          {open && (
+            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
               {results.map((c) => (
                 <button
                   key={c.id}
@@ -583,6 +600,9 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
                   <span className="text-sm text-gray-700">{c.name}</span>
                 </button>
               ))}
+              {!loading && results.length === 0 && (
+                <div className="px-4 py-2.5 text-sm text-gray-400">Sin clientes para mostrar.</div>
+              )}
               {query.trim().length >= 1 && (
                 <button
                   type="button"

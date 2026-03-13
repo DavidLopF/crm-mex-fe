@@ -3,6 +3,7 @@
 import { Search, User } from 'lucide-react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
+import { NotificationBell } from './NotificationBell';
 
 export function Header() {
   const { settings } = useCompany();
@@ -23,8 +24,11 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+        <div className="flex items-center gap-3">
+          {/* Campana de notificaciones — tiempo real vía SSE */}
+          <NotificationBell />
+
+          <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center"
               style={{ backgroundColor: settings.accentColor }}
@@ -39,5 +43,6 @@ export function Header() {
         </div>
       </div>
     </header>
+
   );
 }

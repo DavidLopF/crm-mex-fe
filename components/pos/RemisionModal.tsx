@@ -206,43 +206,55 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
             Imprimir
           </Button>
 
-          {!readOnly && sale.statusCode === 'PENDIENTE' && (
+          {sale.statusCode === 'PENDIENTE' && (
             <>
-              <Button
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                onClick={handleConfirmPayment}
-                disabled={processing}
-              >
-                <CheckCircle className="w-4 h-4" />
-                {processing ? 'Procesando...' : 'Confirmar Pago'}
-              </Button>
+              {/* Confirmar Pago — supervisores O vendedor en venta devuelta */}
+              {(!readOnly || sale.returnedAt) && (
+                <Button
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                  onClick={handleConfirmPayment}
+                  disabled={processing}
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  {processing ? 'Procesando...' : 'Confirmar Pago'}
+                </Button>
+              )}
 
-              <Button
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-                onClick={() => setShowEdit(true)}
-                disabled={processing}
-              >
-                <Pencil className="w-4 h-4" />
-                Editar
-              </Button>
+              {/* Editar — supervisores con canEdit, O cualquier vendedor si la venta fue devuelta */}
+              {(!readOnly || sale.returnedAt) && (
+                <Button
+                  className={`flex items-center gap-2 ${sale.returnedAt ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'}`}
+                  onClick={() => setShowEdit(true)}
+                  disabled={processing}
+                >
+                  <Pencil className="w-4 h-4" />
+                  {sale.returnedAt ? 'Corregir y reenviar' : 'Editar'}
+                </Button>
+              )}
 
-              <Button
-                className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600"
-                onClick={() => setShowReturn(true)}
-                disabled={processing}
-              >
-                <CornerUpLeft className="w-4 h-4" />
-                Devolver
-              </Button>
+              {/* Devolver — solo supervisores, solo si aún no fue devuelta */}
+              {!readOnly && !sale.returnedAt && (
+                <Button
+                  className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600"
+                  onClick={() => setShowReturn(true)}
+                  disabled={processing}
+                >
+                  <CornerUpLeft className="w-4 h-4" />
+                  Devolver al vendedor
+                </Button>
+              )}
 
-              <Button
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
-                onClick={handleCancel}
-                disabled={processing}
-              >
-                <XCircle className="w-4 h-4" />
-                Anular
-              </Button>
+              {/* Anular — solo supervisores */}
+              {!readOnly && (
+                <Button
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
+                  onClick={handleCancel}
+                  disabled={processing}
+                >
+                  <XCircle className="w-4 h-4" />
+                  Anular
+                </Button>
+              )}
             </>
           )}
 

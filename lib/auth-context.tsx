@@ -18,8 +18,21 @@ const FULLNAME_KEY = 'crm-auth-fullname';
 const ROLENAME_KEY = 'crm-auth-rolename';
 const PERMISSIONS_KEY = 'crm-auth-permissions';
 
+/** Extrae el `sub` (userId) del payload del JWT sin verificar firma. */
+function parseUserIdFromToken(token: string | null): number | null {
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload?.sub ? Number(payload.sub) : null;
+  } catch {
+    return null;
+  }
+}
+
 interface AuthContextValue {
   accessToken: string | null;
+  /** ID numérico del usuario autenticado (extraído del JWT). */
+  userId: number | null;
   fullName: string | null;
   roleName: string | null;
   permissions: ModulePermission[];
@@ -35,6 +48,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue>({
   accessToken: null,
+  userId: null,
   fullName: null,
   roleName: null,
   permissions: [],
@@ -158,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         accessToken,
+        userId: parseUserIdFromToken(accessToken),
         fullName,
         roleName,
         permissions,
