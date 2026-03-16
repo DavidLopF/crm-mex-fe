@@ -73,6 +73,11 @@ function resolveTier(
   return { unitPrice: defaultPrice, tierLabel: null };
 }
 
+function clampQtyToStock(qty: number, stockTotal: number): number {
+  if (stockTotal <= 0) return 0;
+  return Math.min(qty, stockTotal);
+}
+
 export const usePosStore = create<PosState>((set, get) => ({
   cart: [],
   searchTerm: '',
@@ -89,7 +94,10 @@ export const usePosStore = create<PosState>((set, get) => ({
 
       if (existing) {
         // Incrementar qty y recalcular
-        const newQty = existing.qty + qty;
+        const newQty = clampQtyToStock(existing.qty + qty, existing.stockTotal);
+        if (newQty <= 0 || newQty === existing.qty) {
+          return { cart: state.cart };
+        }
         const { unitPrice, tierLabel } = resolveTier(
           newQty,
           existing.priceTiers,
@@ -111,8 +119,12 @@ export const usePosStore = create<PosState>((set, get) => ({
       }
 
       // Nuevo item
+      const clampedQty = clampQtyToStock(qty, product.stockTotal);
+      if (clampedQty <= 0) {
+        return { cart: state.cart };
+      }
       const { unitPrice, tierLabel } = resolveTier(
-        qty,
+        clampedQty,
         product.priceTiers,
         product.defaultPrice
       );
@@ -121,10 +133,10 @@ export const usePosStore = create<PosState>((set, get) => ({
         sku: product.sku,
         productName: product.productName,
         variantName: product.variantName,
-        qty,
+        qty: clampedQty,
         unitPrice,
         appliedTierLabel: tierLabel,
-        lineTotal: unitPrice * qty,
+        lineTotal: unitPrice * clampedQty,
         priceTiers: product.priceTiers,
         defaultPrice: product.defaultPrice,
         stockTotal: product.stockTotal,
@@ -144,17 +156,19 @@ export const usePosStore = create<PosState>((set, get) => ({
     set((state) => ({
       cart: state.cart.map((i) => {
         if (i.variantId !== variantId) return i;
+        const clampedQty = clampQtyToStock(qty, i.stockTotal);
+        if (clampedQty <= 0) return i;
         const { unitPrice, tierLabel } = resolveTier(
-          qty,
+          clampedQty,
           i.priceTiers,
           i.defaultPrice
         );
         return {
           ...i,
-          qty,
+          qty: clampedQty,
           unitPrice,
           appliedTierLabel: tierLabel,
-          lineTotal: unitPrice * qty,
+          lineTotal: unitPrice * clampedQty,
         };
       }),
     }));

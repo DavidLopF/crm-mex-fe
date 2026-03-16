@@ -46,14 +46,25 @@ export function QuantitySelector({ product, onClose }: Props) {
   const activeTier = getActiveTier(qty);
   const currentPrice = activeTier ? activeTier.price : product.defaultPrice;
   const subtotal = currentPrice * qty;
+  const maxQty = product.stockTotal > 0 ? product.stockTotal : 0;
+  const isOutOfStock = product.stockTotal <= 0;
+  const isOverStock = isOutOfStock ? true : qty > maxQty;
+  const canIncrease = !isOutOfStock && qty < maxQty;
 
   const handleAdd = () => {
+    if (isOverStock) return;
     addToCart(product, qty);
     handleClose();
   };
 
   const changeQty = (newQty: number) => {
-    if (newQty >= 1) setQty(newQty);
+    if (isOutOfStock) return;
+    if (newQty < 1) return;
+    if (maxQty > 0) {
+      setQty(Math.min(newQty, maxQty));
+      return;
+    }
+    setQty(newQty);
   };
 
   return (
@@ -111,6 +122,13 @@ export function QuantitySelector({ product, onClose }: Props) {
             </button>
           </div>
 
+          {/* Estado sin stock */}
+          {isOutOfStock && (
+            <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+              Sin stock disponible
+            </div>
+          )}
+
           {/* Tiers como botones tapeables */}
           {product.priceTiers.length > 0 && (
             <div className="mb-5">
@@ -124,6 +142,7 @@ export function QuantitySelector({ product, onClose }: Props) {
                     <button
                       key={tier.id}
                       onClick={() => changeQty(tier.minQty)}
+                      disabled={isOutOfStock}
                       className={`
                         flex items-center justify-between w-full px-4 py-3.5 rounded-xl border-2 text-left
                         transition-all active:scale-[0.98]
@@ -131,6 +150,7 @@ export function QuantitySelector({ product, onClose }: Props) {
                           ? 'border-primary bg-primary/5 shadow-sm'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                         }
+                        ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}
                       `}
                     >
                       <div>
@@ -179,17 +199,20 @@ export function QuantitySelector({ product, onClose }: Props) {
                 type="number"
                 inputMode="numeric"
                 min={1}
+                max={maxQty > 0 ? maxQty : undefined}
                 value={qty}
+                disabled={isOutOfStock}
                 onChange={(e) => {
                   const v = parseInt(e.target.value);
-                  if (!isNaN(v) && v > 0) setQty(v);
+                  if (!isNaN(v) && v > 0) changeQty(v);
                 }}
-                className="w-24 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-primary transition-colors"
+                className="w-24 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               />
 
               <button
-                className="w-14 h-14 flex items-center justify-center rounded-2xl border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary active:scale-95 transition-all"
+                className="w-14 h-14 flex items-center justify-center rounded-2xl border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => changeQty(qty + 1)}
+                disabled={!canIncrease}
                 aria-label="Aumentar cantidad"
               >
                 <Plus className="w-6 h-6" />
@@ -204,11 +227,12 @@ export function QuantitySelector({ product, onClose }: Props) {
                 <button
                   key={n}
                   onClick={() => changeQty(n)}
+                  disabled={isOutOfStock}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     qty === n
                       ? 'bg-primary text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                  } ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {n}
                 </button>
@@ -232,7 +256,7 @@ export function QuantitySelector({ product, onClose }: Props) {
           </div>
 
           {/* Aviso de stock */}
-          {qty > product.stockTotal && (
+          {isOverStock && !isOutOfStock && (
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2.5 rounded-xl mb-4">
               ⚠ La cantidad supera el stock disponible ({product.stockTotal} pzas)
             </p>
@@ -242,6 +266,7 @@ export function QuantitySelector({ product, onClose }: Props) {
           <Button
             className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl"
             onClick={handleAdd}
+            disabled={isOverStock}
           >
             <ShoppingCart className="w-5 h-5" />
             Agregar al carrito

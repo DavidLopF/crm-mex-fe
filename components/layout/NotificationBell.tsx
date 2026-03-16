@@ -164,7 +164,7 @@ export function NotificationBell() {
   if (!isAuthenticated) return null;
 
   return (
-    <div ref={bellRef} className="relative">
+    <div ref={bellRef} className="relative z-50">
       {/* ── Botón campana ── */}
       <button
         onClick={() => setOpen((v) => !v)}
@@ -183,7 +183,7 @@ export function NotificationBell() {
 
       {/* ── Panel desplegable ── */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-200 z-50 overflow-hidden">
+        <div className="absolute top-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 z-[100] overflow-hidden w-[calc(100vw-2rem)] max-w-sm left-1/2 -translate-x-1/2 sm:w-80 sm:max-w-none sm:left-auto sm:right-0 sm:translate-x-0">
 
           {/* Cabecera del panel */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">

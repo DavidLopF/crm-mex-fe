@@ -116,6 +116,7 @@ export function ProductGrid() {
               <button
                 key={product.variantId}
                 onClick={() => setSelectedProduct(product)}
+                disabled={outOfStock}
                 className={`
                   relative flex flex-col text-left rounded-2xl border-2 p-3.5 transition-all
                   active:scale-[0.97] select-none
@@ -123,7 +124,7 @@ export function ProductGrid() {
                     ? 'border-primary bg-primary/5 shadow-sm'
                     : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                   }
-                  ${outOfStock ? 'opacity-50' : ''}
+                  ${outOfStock ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
               >
                 {/* Indicador "en carrito" */}
@@ -134,9 +135,16 @@ export function ProductGrid() {
                 )}
 
                 {/* Badge tiers */}
-                {hasTiers && !inCart && (
+                {hasTiers && !inCart && !outOfStock && (
                   <span className="absolute top-2.5 right-2.5 text-[10px] text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full font-medium">
                     -{Math.round((1 - bestPrice / (maxPrice ?? bestPrice)) * 100)}%
+                  </span>
+                )}
+
+                {/* Badge sin stock */}
+                {outOfStock && (
+                  <span className="absolute top-2.5 right-2.5 text-[10px] text-red-700 bg-red-100 px-1.5 py-0.5 rounded-full font-medium">
+                    Sin stock
                   </span>
                 )}
 

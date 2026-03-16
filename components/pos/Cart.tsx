@@ -65,6 +65,7 @@ export function Cart({ onClose }: CartProps) {
   const [submitting, setSubmitting] = useState(false);
   const [includesIvaManual, setIncludesIvaManual] = useState(false);
   const toast = useGlobalToast();
+  const isIOS = typeof navigator !== 'undefined' && /iP(hone|od|ad)/.test(navigator.userAgent);
 
   /**
    * Si hay al menos un producto con requiresIva=true en el carrito,
@@ -254,7 +255,10 @@ export function Cart({ onClose }: CartProps) {
         </div>
 
         {/* ── IVA toggle + Total + Botón ── */}
-        <div className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0 space-y-3">
+        <div
+          className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0 space-y-3"
+          style={isIOS ? { paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' } : undefined}
+        >
 
           {/* Medio de pago */}
           <div>
