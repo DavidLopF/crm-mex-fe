@@ -65,6 +65,7 @@ export default function PosPage() {
         {cart.length > 0 && (
           <button
             className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3.5 bg-gray-900 text-white rounded-2xl shadow-2xl active:scale-95 transition-transform"
+            style={{ bottom: 'calc(max(env(safe-area-inset-bottom), 0px) + 20px)' }}
             onClick={() => setShowMobileCart(true)}
           >
             <div className="relative">

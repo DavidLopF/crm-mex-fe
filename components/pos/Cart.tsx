@@ -65,7 +65,6 @@ export function Cart({ onClose }: CartProps) {
   const [submitting, setSubmitting] = useState(false);
   const [includesIvaManual, setIncludesIvaManual] = useState(false);
   const toast = useGlobalToast();
-  const isIOS = typeof navigator !== 'undefined' && /iP(hone|od|ad)/.test(navigator.userAgent);
 
   /**
    * Si hay al menos un producto con requiresIva=true en el carrito,
@@ -257,9 +256,11 @@ export function Cart({ onClose }: CartProps) {
         {/* ── IVA toggle + Total + Botón ── */}
         <div
           className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0 space-y-3"
-          style={isIOS
-            ? { paddingBottom: onClose ? 'calc(env(safe-area-inset-bottom) + 36px)' : 'calc(env(safe-area-inset-bottom) + 16px)' }
-            : undefined}
+          style={{
+            paddingBottom: onClose
+              ? 'calc(max(env(safe-area-inset-bottom), 20px) + 96px)'
+              : 'calc(max(env(safe-area-inset-bottom), 0px) + 16px)',
+          }}
         >
 
           {/* Medio de pago */}
@@ -338,15 +339,36 @@ export function Cart({ onClose }: CartProps) {
             </div>
           </div>
 
-          <Button
-            className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-sm"
-            onClick={handleGenerateRemision}
-            disabled={submitting}
-          >
-            <Receipt className="w-5 h-5" />
-            {submitting ? 'Generando...' : 'Generar Remisión'}
-          </Button>
+          {!onClose && (
+            <Button
+              className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-sm"
+              onClick={handleGenerateRemision}
+              disabled={submitting}
+            >
+              <Receipt className="w-5 h-5" />
+              {submitting ? 'Generando...' : 'Generar Remisión'}
+            </Button>
+          )}
         </div>
+
+        {onClose && (
+          <div
+            className="md:hidden fixed left-0 right-0 z-[70] px-4 pt-2"
+            style={{
+              bottom: 'calc(max(env(safe-area-inset-bottom), 0px) + 6px)',
+              background: 'linear-gradient(to top, rgba(255,255,255,1) 72%, rgba(255,255,255,0))',
+            }}
+          >
+            <Button
+              className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-2xl bg-gray-900 text-white hover:bg-gray-800"
+              onClick={handleGenerateRemision}
+              disabled={submitting}
+            >
+              <Receipt className="w-5 h-5" />
+              {submitting ? 'Generando...' : 'Generar Remisión'}
+            </Button>
+          </div>
+        )}
       </div>
 
     </>
