@@ -257,7 +257,9 @@ export function Cart({ onClose }: CartProps) {
         {/* ── IVA toggle + Total + Botón ── */}
         <div
           className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0 space-y-3"
-          style={isIOS ? { paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' } : undefined}
+          style={isIOS
+            ? { paddingBottom: onClose ? 'calc(env(safe-area-inset-bottom) + 36px)' : 'calc(env(safe-area-inset-bottom) + 16px)' }
+            : undefined}
         >
 
           {/* Medio de pago */}

@@ -16,6 +16,7 @@ import {
   Store,
   BarChart3,
   Layers,
+  X,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
@@ -37,9 +38,18 @@ const navigation = [
 interface SidebarProps {
   collapsed: boolean;
   onCollapsedChange: (value: boolean) => void;
+  isMobile?: boolean;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  onCollapsedChange,
+  isMobile = false,
+  mobileOpen = false,
+  onMobileClose,
+}: SidebarProps) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const { settings } = useCompany();
@@ -63,18 +73,30 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
   });
 
   return (
-    <aside
-      className={cn(
-        'fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300',
-        collapsed ? 'w-20' : 'w-64'
+    <>
+      {isMobile && mobileOpen && (
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          onClick={onMobileClose}
+          className="fixed inset-0 z-[70] bg-black/30"
+        />
       )}
-    >
+
+      <aside
+        className={cn(
+          'fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300',
+          isMobile
+            ? cn('z-[80] w-72', mobileOpen ? 'translate-x-0' : '-translate-x-full')
+            : cn('z-40', collapsed ? 'w-20' : 'w-64')
+        )}
+      >
       <div className="flex h-full flex-col">
         <div className={cn(
           'flex items-center h-16 px-4 border-b border-gray-200',
-          collapsed ? 'justify-center' : 'justify-between'
+          isMobile || !collapsed ? 'justify-between' : 'justify-center'
         )}>
-          {!collapsed && (
+          {(isMobile || !collapsed) && (
             <Link href="/" className="flex items-center gap-2">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -85,7 +107,7 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
               <span className="text-xl font-bold text-gray-900">{settings.companyName} </span>
             </Link>
           )}
-          {collapsed && (
+          {!isMobile && collapsed && (
             <Link href="/" className="flex items-center justify-center">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -96,10 +118,19 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
             </Link>
           )}
           <button
-            onClick={() => onCollapsedChange(!collapsed)}
+            onClick={() => {
+              if (isMobile) {
+                onMobileClose?.();
+                return;
+              }
+              onCollapsedChange(!collapsed);
+            }}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label={isMobile ? 'Cerrar menú' : 'Colapsar menú'}
           >
-            {collapsed ? (
+            {isMobile ? (
+              <X className="w-5 h-5 text-gray-600" />
+            ) : collapsed ? (
               <Menu className="w-5 h-5 text-gray-600" />
             ) : (
               <ChevronLeft className="w-5 h-5 text-gray-600" />
@@ -114,12 +145,15 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => {
+                  if (isMobile) onMobileClose?.();
+                }}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                   isActive
                     ? 'text-white'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-                  collapsed && 'justify-center'
+                  !isMobile && collapsed && 'justify-center'
                 )}
                 style={isActive ? { backgroundColor: settings.primaryColor + '15', color: settings.primaryColor } : undefined}
               >
@@ -127,7 +161,7 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
                   className="w-5 h-5 flex-shrink-0"
                   style={isActive ? { color: settings.primaryColor } : undefined}
                 />
-                {!collapsed && (
+                {(isMobile || !collapsed) && (
                   <span className="font-medium">{item.name}</span>
                 )}
               </Link>
@@ -137,17 +171,21 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
 
         <div className="p-3 border-t border-gray-200">
           <button
-            onClick={logout}
+            onClick={() => {
+              if (isMobile) onMobileClose?.();
+              logout();
+            }}
             className={cn(
               'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors',
-              collapsed && 'justify-center'
+              !isMobile && collapsed && 'justify-center'
             )}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium">Cerrar sesión</span>}
+            {(isMobile || !collapsed) && <span className="font-medium">Cerrar sesión</span>}
           </button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

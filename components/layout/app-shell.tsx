@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Sidebar } from '@/components/layout/sidebar';
@@ -24,8 +24,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const isPublicPage = ['/login', '/forgot-password', '/reset-password'].includes(pathname);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const update = () => {
+      const nextIsMobile = media.matches;
+      setIsMobile(nextIsMobile);
+      if (!nextIsMobile) setMobileSidebarOpen(false);
+    };
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   // While loading auth state, show a minimal spinner to avoid layout flash
   if (isLoading) {
@@ -48,12 +62,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <SocketInitializer />
-      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
+      <Sidebar
+        collapsed={collapsed}
+        onCollapsedChange={setCollapsed}
+        isMobile={isMobile}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
+      />
       <div
         className="transition-all duration-300"
-        style={{ marginLeft: collapsed ? '5rem' : '16rem' }}
+        style={{ marginLeft: isMobile ? 0 : (collapsed ? '5rem' : '16rem') }}
       >
-        <Header />
+        <Header
+          showMobileMenu={isMobile}
+          onMobileMenuClick={() => setMobileSidebarOpen((v) => !v)}
+        />
         {children}
       </div>
     </div>

@@ -1,18 +1,33 @@
 'use client';
 
-import { Search, User } from 'lucide-react';
+import { Menu, Search, User } from 'lucide-react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 import { NotificationBell } from './NotificationBell';
 
-export function Header() {
+interface HeaderProps {
+  showMobileMenu?: boolean;
+  onMobileMenuClick?: () => void;
+}
+
+export function Header({ showMobileMenu = false, onMobileMenuClick }: HeaderProps) {
   const { settings } = useCompany();
   const { fullName, roleName } = useAuth();
 
   return (
     <header className="sticky top-0 z-[60] bg-white border-b border-gray-200">
-      <div className="flex items-center justify-between h-16 px-6">
+      <div className="flex items-center justify-between h-16 px-4 sm:px-6">
         <div className="flex items-center flex-1 gap-4">
+          {showMobileMenu && (
+            <button
+              type="button"
+              onClick={onMobileMenuClick}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+              aria-label="Abrir menú"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input

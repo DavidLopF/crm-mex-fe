@@ -98,12 +98,11 @@ export function ProductGrid() {
       ) : (
         /*
          * Grid adaptativo:
-         *  - Móvil:   2 columnas (tarjetas compactas pero tocables)
-         *  - sm 640+: 2 columnas más amplias
-         *  - md 768+: dentro del split → 2 cols
-         *  - lg 1024+: 3 cols en el panel izquierdo
+         *  - Móvil y paneles angostos: 1 columna para que el texto se lea completo
+         *  - md 768+: 2 columnas
+         *  - xl 1280+: 3 columnas
          */
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {products.map((product) => {
             const cartQty = getCartQty(product.variantId);
             const inCart = cartQty > 0;
@@ -149,11 +148,11 @@ export function ProductGrid() {
                 )}
 
                 {/* Nombre del producto */}
-                <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 mb-1 pr-8">
+                <p className="text-sm font-semibold text-gray-900 leading-snug mb-1 pr-8 break-words">
                   {product.productName}
                 </p>
                 {product.variantName && (
-                  <p className="text-xs text-gray-400 truncate mb-2">{product.variantName}</p>
+                  <p className="text-xs text-gray-400 mb-2 break-words">{product.variantName}</p>
                 )}
 
                 {/* Categoría */}
