@@ -1,6 +1,6 @@
 'use client';
 
-import { Printer, CheckCircle, XCircle, Copy, Check, Pencil, CornerUpLeft } from 'lucide-react';
+import { Printer, CheckCircle, XCircle, Copy, Check, Pencil, CornerUpLeft, Receipt } from 'lucide-react';
 import { Button, Modal } from '@/components/ui';
 import { changeSaleStatus, type SaleResponseDto } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
@@ -8,6 +8,7 @@ import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import { useState } from 'react';
 import { EditSaleModal } from './EditSaleModal';
 import { ReturnSaleModal } from './ReturnSaleModal';
+import { FacturacionElectronicaModal } from './FacturacionElectronicaModal';
 
 interface Props {
   sale: SaleResponseDto;
@@ -22,6 +23,7 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
   const [codeCopied, setCodeCopied] = useState(false);
   const [showEdit, setShowEdit]     = useState(false);
   const [showReturn, setShowReturn] = useState(false);
+  const [showFE, setShowFE]         = useState(false);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(sale.code).then(() => {
@@ -194,6 +196,26 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
               {sale.status}
             </span>
           </div>
+
+          {/* Facturación Electrónica DIAN — sección visible cuando la FE ya fue emitida */}
+          {sale.feInvoiceId && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Receipt className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-semibold text-green-800">
+                  Factura Electrónica DIAN · Doc #{sale.feInvoiceId}
+                </span>
+              </div>
+              {sale.feCufe && (
+                <div>
+                  <p className="text-xs text-green-700 mb-0.5">CUFE</p>
+                  <p className="font-mono text-xs text-green-900 break-all bg-green-100 px-2 py-1.5 rounded">
+                    {sale.feCufe}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Acciones (no se imprimen) */}
@@ -205,6 +227,24 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
             <Printer className="w-4 h-4" />
             Imprimir
           </Button>
+
+          {/* Facturación Electrónica — solo ventas PAGADAS */}
+          {sale.statusCode === 'PAGADA' && (
+            sale.feInvoiceId ? (
+              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-green-100 text-green-800 text-sm font-medium cursor-default">
+                <Receipt className="w-4 h-4" />
+                Facturada Electrónicamente · Doc #{sale.feInvoiceId}
+              </span>
+            ) : (
+              <Button
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"
+                onClick={() => setShowFE(true)}
+              >
+                <Receipt className="w-4 h-4" />
+                Generar Factura Electrónica
+              </Button>
+            )
+          )}
 
           {sale.statusCode === 'PENDIENTE' && (
             <>
@@ -281,6 +321,22 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
           sale={sale}
           onClose={() => setShowReturn(false)}
           onReturned={(updated) => { setSale(updated); setShowReturn(false); }}
+        />
+      )}
+
+      {showFE && (
+        <FacturacionElectronicaModal
+          sale={sale}
+          onClose={() => setShowFE(false)}
+          onSuccess={(result) => {
+            // Actualiza el sale local → el badge cambia inmediatamente
+            setSale((prev) => ({
+              ...prev,
+              feInvoiceId: result.documentId,
+              feCufe: result.cufe,
+            }));
+            setShowFE(false);
+          }}
         />
       )}
     </Modal>

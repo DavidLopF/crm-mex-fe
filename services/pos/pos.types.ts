@@ -78,6 +78,10 @@ export interface SaleResponseDto {
   returnedAt: string | null;
   /** Notas del revisor al devolver */
   returnNotes: string | null;
+  /** ID del documento FE en core-fe (null = no facturada electrónicamente) */
+  feInvoiceId: number | null;
+  /** CUFE SHA-384 del documento FE */
+  feCufe: string | null;
 }
 
 // ── Editar venta ──

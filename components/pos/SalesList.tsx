@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, FileText, User, Copy, Check, ChevronLeft, ChevronRight, Pencil, CornerUpLeft } from 'lucide-react';
+import { Search, Eye, FileText, User, Copy, Check, ChevronLeft, ChevronRight, Pencil, CornerUpLeft, Receipt } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { getSales, getSaleById, type SaleResponseDto, type PaymentMethod } from '@/services/pos';
 import { get } from '@/services/http-client';
@@ -10,6 +10,7 @@ import { onCrossTabInvalidation } from '@/lib/cross-tab-sync';
 import { RemisionModal } from './RemisionModal';
 import { EditSaleModal } from './EditSaleModal';
 import { ReturnSaleModal } from './ReturnSaleModal';
+import { FacturacionElectronicaModal } from './FacturacionElectronicaModal';
 
 /** Botón copiar inline para códigos en la tabla */
 function CopyCodeBtn({ code }: { code: string }) {
@@ -75,6 +76,7 @@ export function SalesList() {
   const [selectedSale, setSelectedSale]   = useState<SaleResponseDto | null>(null);
   const [editSale, setEditSale]           = useState<SaleResponseDto | null>(null);
   const [returnSale, setReturnSale]       = useState<SaleResponseDto | null>(null);
+  const [feSale, setFeSale]               = useState<SaleResponseDto | null>(null);
 
   useEffect(() => {
     get<UserItem[]>('/api/users', { limit: 100, active: 'true' })
@@ -308,6 +310,27 @@ export function SalesList() {
                               <CornerUpLeft className="w-4 h-4" />
                             </button>
                           )}
+
+                          {/* Facturación Electrónica — ventas PAGADAS */}
+                          {sale.statusCode === 'PAGADA' && (
+                            sale.feInvoiceId ? (
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 cursor-default"
+                                title={`Facturada electrónicamente · Doc #${sale.feInvoiceId}`}
+                              >
+                                <Receipt className="w-3 h-3" />
+                                FE #{sale.feInvoiceId}
+                              </span>
+                            ) : (
+                              <button
+                                className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-700 transition-colors"
+                                onClick={() => setFeSale(sale)}
+                                title="Generar Factura Electrónica DIAN"
+                              >
+                                <Receipt className="w-4 h-4" />
+                              </button>
+                            )
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -411,6 +434,24 @@ export function SalesList() {
           onReturned={(updated) => {
             setSales((prev) => prev.map((s) => s.id === updated.id ? updated : s));
             setReturnSale(null);
+          }}
+        />
+      )}
+
+      {/* Modal de Facturación Electrónica DIAN */}
+      {feSale && (
+        <FacturacionElectronicaModal
+          sale={feSale}
+          onClose={() => setFeSale(null)}
+          onSuccess={(result) => {
+            // Actualiza la fila localmente: cambia el botón a badge "FE #N"
+            setSales((prev) =>
+              prev.map((s) =>
+                s.id === feSale.id
+                  ? { ...s, feInvoiceId: result.documentId, feCufe: result.cufe }
+                  : s,
+              ),
+            );
           }}
         />
       )}
