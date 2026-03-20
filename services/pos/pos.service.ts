@@ -14,6 +14,18 @@ import type {
 
 const BASE = '/api/pos';
 
+function toDateOnly(value: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // ── Productos POS ──
 
 export async function getPosProducts(search?: string): Promise<PosProductDto[]> {
@@ -80,7 +92,10 @@ export async function getCashCloseSummary(
   from: string,
   to: string
 ): Promise<CashCloseSummaryDto> {
-  return get<CashCloseSummaryDto>(`${BASE}/cash-close/summary`, { from, to });
+  return get<CashCloseSummaryDto>(`${BASE}/cash-close/summary`, {
+    from: toDateOnly(from),
+    to: toDateOnly(to),
+  });
 }
 
 export async function createCashClose(

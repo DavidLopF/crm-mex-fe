@@ -15,6 +15,9 @@ const ROUTE_TO_MODULE: Record<string, string> = {
   '/pos': 'POS',
   '/pos/precios': 'PRECIOS',
   '/pos/reportes': 'REPORTES_POS',
+  '/reportes': 'REPORTES',
+  '/reportes/ventas-producto': 'REPORTES',
+  '/reportes/kardex': 'REPORTES',
   '/configuracion': 'CONFIG',
 };
 
