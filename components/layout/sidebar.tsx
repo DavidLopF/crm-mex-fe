@@ -21,6 +21,7 @@ import {
   FileBarChart2,
   BarChart2,
   ClipboardList,
+  Warehouse,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
@@ -46,7 +47,15 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Inventario', href: '/inventario', icon: Package },
+  {
+    name: 'Inventario',
+    href: '/inventario',
+    icon: Package,
+    children: [
+      { name: 'Productos', href: '/inventario', icon: Package },
+      { name: 'Almacenes', href: '/inventario/almacenes', icon: Warehouse },
+    ],
+  },
   { name: 'Pedidos', href: '/pedidos', icon: ShoppingCart },
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Proveedores', href: '/proveedores', icon: Truck },

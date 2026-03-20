@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Search, Plus, Edit, Eye, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Edit, Eye, Package, ChevronLeft, ChevronRight, FileSpreadsheet, DollarSign, Layers } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
 import { CreateProductModal } from './create-product-modal';
+import { BulkPriceUpdateModal } from './bulk-price-update-modal';
+import { BulkImportModal } from './bulk-import-modal';
+import { BulkPriceTiersModal } from './bulk-price-tiers-modal';
 import { Producto } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { getProductById } from '@/services/products';
-import type { ApiProductDetail } from '@/services/products';
+import { getProductById, bulkPriceUpdate, bulkImportProducts, bulkPriceTiers } from '@/services/products';
+import type { ApiProductDetail, BulkPriceUpdateRow, BulkImportRow, BulkPriceTierRow } from '@/services/products';
 
 interface InventoryTableProps {
   productos: Producto[];
@@ -53,6 +56,9 @@ export function InventoryTable({
   const [selectedProductRaw, setSelectedProductRaw] = useState<ApiProductDetail | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isBulkPriceModalOpen, setIsBulkPriceModalOpen] = useState(false);
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
+  const [isBulkPriceTiersModalOpen, setIsBulkPriceTiersModalOpen] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const itemsPerPage = 10;
 
@@ -183,12 +189,43 @@ export function InventoryTable({
           </div>
         </div>
 
-        {canCreate && (
-        <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="w-4 h-4" />
-          Nuevo Producto
-        </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canCreate && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1.5 whitespace-nowrap"
+                onClick={() => setIsBulkPriceModalOpen(true)}
+              >
+                <DollarSign className="w-4 h-4" />
+                Cambio de Precios
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1.5 whitespace-nowrap"
+                onClick={() => setIsBulkPriceTiersModalOpen(true)}
+              >
+                <Layers className="w-4 h-4" />
+                Precios Mayoreo
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1.5 whitespace-nowrap"
+                onClick={() => setIsBulkImportModalOpen(true)}
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Importar Excel
+              </Button>
+              <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="w-4 h-4" />
+                Nuevo Producto
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -397,6 +434,44 @@ export function InventoryTable({
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreateProduct}
         onError={onError}
+      />
+
+      <BulkPriceUpdateModal
+        isOpen={isBulkPriceModalOpen}
+        onClose={() => setIsBulkPriceModalOpen(false)}
+        onConfirm={async (rows: BulkPriceUpdateRow[]) => {
+          const result = await bulkPriceUpdate(rows);
+          if (result.updated > 0) {
+            onSuccess?.(`${result.updated} precio(s) actualizados correctamente`);
+          }
+          return result;
+        }}
+      />
+
+      <BulkImportModal
+        isOpen={isBulkImportModalOpen}
+        onClose={() => setIsBulkImportModalOpen(false)}
+        onConfirm={async (rows: BulkImportRow[]) => {
+          const result = await bulkImportProducts(rows);
+          if (result.created > 0) {
+            onSuccess?.(`${result.created} producto(s) importados. Recarga la página para verlos.`);
+          }
+          return result;
+        }}
+      />
+
+      <BulkPriceTiersModal
+        isOpen={isBulkPriceTiersModalOpen}
+        onClose={() => setIsBulkPriceTiersModalOpen(false)}
+        onConfirm={async (rows: BulkPriceTierRow[]) => {
+          const result = await bulkPriceTiers(rows);
+          if (result.updatedSkus > 0) {
+            onSuccess?.(
+              `${result.updatedSkus} SKU(s) actualizados con ${result.tiersCreated} tier(s) de mayoreo.`,
+            );
+          }
+          return result;
+        }}
       />
     </div>
   );

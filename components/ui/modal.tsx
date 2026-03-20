@@ -47,10 +47,10 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-black/20 animate-fadeIn"
+        className="fixed inset-0 z-[90] bg-black/20 animate-fadeIn"
         onClick={onClose}
       />
-      <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
+      <div className="fixed inset-0 z-[100] overflow-y-auto pointer-events-none">
         <div className="flex min-h-screen items-center justify-center p-4">
           <div
             className={cn(

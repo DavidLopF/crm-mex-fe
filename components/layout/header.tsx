@@ -15,7 +15,7 @@ export function Header({ showMobileMenu = false, onMobileMenuClick }: HeaderProp
   const { fullName, roleName } = useAuth();
 
   return (
-    <header className="sticky top-0 z-[60] bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6">
         <div className="flex items-center flex-1 gap-4">
           {showMobileMenu && (

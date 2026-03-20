@@ -174,7 +174,7 @@ export async function createProduct(productData: CreateProductDto): Promise<ApiP
  * Responde: { success, data: UpdateProductResponseDto }
  */
 export async function updateProduct(
-  id: string | number, 
+  id: string | number,
   productData: UpdateProductDto
 ): Promise<UpdateProductResponseDto> {
   try {
@@ -184,5 +184,77 @@ export async function updateProduct(
     console.error('Error al actualizar producto:', err);
     throw err;
   }
+}
+
+// ── OPERACIONES MASIVAS POR EXCEL ─────────────────────────────────────────────
+
+export interface BulkPriceUpdateRow {
+  sku: string;
+  defaultPrice: number;
+  cost?: number;
+}
+
+export interface BulkPriceUpdateResult {
+  updated: number;
+  errors: { sku: string; reason: string }[];
+}
+
+export interface BulkImportRow {
+  name: string;
+  sku: string;
+  defaultPrice: number;
+  cost?: number;
+  categoryName: string;
+  description?: string;
+  variantName?: string;
+  barcode?: string;
+  stock?: number;
+  currency?: string;
+  requiresIva?: boolean;
+}
+
+export interface BulkImportResult {
+  created: number;
+  errors: { sku: string; reason: string }[];
+}
+
+/**
+ * Actualización masiva de precios.
+ * POST /api/products/bulk-price-update
+ */
+export async function bulkPriceUpdate(rows: BulkPriceUpdateRow[]): Promise<BulkPriceUpdateResult> {
+  return post<BulkPriceUpdateResult>(`${BASE_PATH}/bulk-price-update`, { rows });
+}
+
+/**
+ * Importación masiva de productos.
+ * POST /api/products/bulk-import
+ */
+export async function bulkImportProducts(rows: BulkImportRow[]): Promise<BulkImportResult> {
+  return post<BulkImportResult>(`${BASE_PATH}/bulk-import`, { rows });
+}
+
+// ── PRECIOS POR VOLUMEN / MAYOREO ─────────────────────────────────────────────
+
+export interface BulkPriceTierRow {
+  sku: string;
+  minQty: number;
+  price: number;
+  tierLabel?: string;
+}
+
+export interface BulkPriceTiersResult {
+  updatedSkus: number;
+  tiersCreated: number;
+  errors: { sku: string; reason: string }[];
+}
+
+/**
+ * Actualización masiva de precios por volumen/mayoreo.
+ * Un SKU puede tener N filas (tiers). Reemplaza todos los tiers del SKU.
+ * POST /api/products/bulk-price-tiers
+ */
+export async function bulkPriceTiers(rows: BulkPriceTierRow[]): Promise<BulkPriceTiersResult> {
+  return post<BulkPriceTiersResult>(`${BASE_PATH}/bulk-price-tiers`, { rows });
 }
 
