@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Building2, Palette, Eye, RotateCcw } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Building2, Palette, Eye, RotateCcw, ImageIcon, Upload, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { DEFAULT_COMPANY_SETTINGS } from '@/services/company';
 import type { CompanySettings, UpdateCompanySettingsDto } from '@/services/company';
+import { post } from '@/services/http-client';
 
 interface CompanySettingsFormProps {
   settings: CompanySettings;
@@ -28,23 +29,112 @@ const COLOR_PRESETS = [
   { name: 'Negro',    primary: '#1f2937', accent: '#374151' },
 ];
 
+const MAX_FILE_SIZE_MB = 2;
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target!.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export function CompanySettingsForm({ settings, onSave, submitting }: CompanySettingsFormProps) {
   const [companyName, setCompanyName] = useState(settings.companyName);
   const [primaryColor, setPrimaryColor] = useState(settings.primaryColor);
   const [accentColor, setAccentColor] = useState(settings.accentColor);
 
+  // ── Logo state ────────────────────────────────────────────────────────────
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);   // data URL del archivo seleccionado
+  const [logoFile, setLogoFile] = useState<File | null>(null);            // archivo pendiente de subir
+  const [removeLogo, setRemoveLogo] = useState(false);                    // usuario quiere quitar el logo
+  const [logoError, setLogoError] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Logo actual: si hay preview local la muestra, si no usa la guardada
+  const currentLogoUrl = removeLogo ? null : (logoPreview ?? settings.logoUrl ?? null);
+
   const hasChanges =
     companyName !== settings.companyName ||
     primaryColor !== settings.primaryColor ||
-    accentColor !== settings.accentColor;
+    accentColor !== settings.accentColor ||
+    !!logoFile ||
+    removeLogo;
 
-  const handleSubmit = () => {
+  // ── Handlers de logo ─────────────────────────────────────────────────────
+
+  const handleFileSelect = useCallback(async (file: File) => {
+    setLogoError('');
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setLogoError('Formato no soportado. Usa JPG, PNG, WebP o SVG.');
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      setLogoError(`El archivo supera el límite de ${MAX_FILE_SIZE_MB} MB.`);
+      return;
+    }
+
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setLogoPreview(dataUrl);
+      setLogoFile(file);
+      setRemoveLogo(false);
+    } catch {
+      setLogoError('No se pudo leer el archivo.');
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileSelect(file);
+    },
+    [handleFileSelect],
+  );
+
+  const handleRemoveLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setRemoveLogo(true);
+    setLogoError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+
+  const handleSubmit = async () => {
     if (!companyName.trim()) return;
 
     const updates: UpdateCompanySettingsDto = {};
+
     if (companyName.trim() !== settings.companyName) updates.companyName = companyName.trim();
     if (primaryColor !== settings.primaryColor) updates.primaryColor = primaryColor;
     if (accentColor !== settings.accentColor) updates.accentColor = accentColor;
+
+    // Logo: subir si hay archivo pendiente
+    if (logoFile && logoPreview) {
+      setUploadingLogo(true);
+      try {
+        const result = await post<{ url: string }>('/api/upload', {
+          imageData: logoPreview,
+          folder: 'company',
+        });
+        updates.logoUrl = result.url;
+      } catch {
+        setLogoError('Error al subir el logo. Intenta de nuevo.');
+        setUploadingLogo(false);
+        return;
+      } finally {
+        setUploadingLogo(false);
+      }
+    } else if (removeLogo) {
+      updates.logoUrl = null;
+    }
 
     if (Object.keys(updates).length === 0) return;
     onSave(updates);
@@ -61,8 +151,103 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
     setAccentColor(preset.accent);
   };
 
+  const isSaving = submitting || uploadingLogo;
+
   return (
     <div className="max-w-3xl space-y-8">
+
+      {/* ─── Logo de la empresa ─────────────────────────────────── */}
+      <section className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+            <ImageIcon className="w-5 h-5 text-gray-600" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Logo de la empresa</h3>
+            <p className="text-sm text-gray-500">Aparecerá en la barra lateral en lugar del ícono por defecto</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-6">
+          {/* Preview actual */}
+          <div className="flex-shrink-0">
+            <div className="w-24 h-24 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden">
+              {currentLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={currentLogoUrl}
+                  alt="Logo empresa"
+                  className="w-full h-full object-contain p-1"
+                />
+              ) : (
+                <div
+                  className="w-14 h-14 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <span className="text-white text-2xl font-bold">
+                    {companyName.charAt(0).toUpperCase() || 'C'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 text-center mt-1.5">Vista previa</p>
+          </div>
+
+          {/* Zona de upload */}
+          <div className="flex-1 space-y-3">
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-200 rounded-lg p-5 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-colors"
+            >
+              <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 font-medium">
+                Arrastra tu logo aquí o haz clic para seleccionar
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                JPG, PNG, WebP, SVG · máx. {MAX_FILE_SIZE_MB} MB
+              </p>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_TYPES.join(',')}
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+            />
+
+            {/* Botón quitar logo */}
+            {currentLogoUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveLogo}
+                className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-700 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Quitar logo actual
+              </button>
+            )}
+
+            {/* Error de logo */}
+            {logoError && (
+              <p className="text-xs text-red-600 flex items-center gap-1">
+                <X className="w-3.5 h-3.5" />
+                {logoError}
+              </p>
+            )}
+
+            {/* Nombre del archivo seleccionado */}
+            {logoFile && !logoError && (
+              <p className="text-xs text-green-600">
+                ✓ {logoFile.name} ({(logoFile.size / 1024).toFixed(0)} KB) — se subirá al guardar
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* ─── Nombre de la empresa ───────────────────────────────── */}
       <section className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -177,14 +362,24 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
             {/* Mini sidebar preview */}
             <div className="w-48 bg-white border border-gray-200 rounded-lg overflow-hidden">
               <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
-                <div
-                  className="w-6 h-6 rounded flex items-center justify-center"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <span className="text-white text-[10px] font-bold">
-                    {companyName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                {/* Logo o inicial */}
+                {currentLogoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={currentLogoUrl}
+                    alt="Logo"
+                    className="w-6 h-6 rounded object-contain"
+                  />
+                ) : (
+                  <div
+                    className="w-6 h-6 rounded flex items-center justify-center"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    <span className="text-white text-[10px] font-bold">
+                      {companyName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
                 <span className="text-sm font-bold text-gray-900 truncate">
                   {companyName || 'CRM'}
                 </span>
@@ -251,13 +446,20 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
 
       {/* ─── Acciones ───────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={handleReset} size="sm" disabled={submitting}>
+        <Button variant="ghost" onClick={handleReset} size="sm" disabled={isSaving}>
           <RotateCcw className="w-4 h-4 mr-2" />
           Restaurar valores por defecto
         </Button>
 
-        <Button onClick={handleSubmit} disabled={!hasChanges || !companyName.trim() || submitting}>
-          {submitting ? 'Guardando...' : 'Guardar cambios'}
+        <Button onClick={handleSubmit} disabled={!hasChanges || !companyName.trim() || isSaving}>
+          {isSaving ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {uploadingLogo ? 'Subiendo logo...' : 'Guardando...'}
+            </span>
+          ) : (
+            'Guardar cambios'
+          )}
         </Button>
       </div>
     </div>

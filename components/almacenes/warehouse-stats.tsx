@@ -62,7 +62,7 @@ export function WarehouseStatsBar({ stats, loading }: WarehouseStatsBarProps) {
         title="SKUs Almacenados"
         value={stats.totalSkus}
         icon={Package}
-        colorClass="bg-blue-100 text-blue-600"
+        colorClass="bg-primary/10 text-primary"
       />
       <StatCard
         title="Unidades Disponibles"

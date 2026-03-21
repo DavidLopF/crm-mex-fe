@@ -177,10 +177,18 @@ export function Sidebar({
             {(isMobile || !collapsed) && (
               <Link href="/" className="flex items-center gap-2">
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: primaryColor }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
+                  style={settings.logoUrl ? undefined : { backgroundColor: primaryColor }}
                 >
-                  <Package className="w-5 h-5 text-white" />
+                  {settings.logoUrl ? (
+                    <img
+                      src={settings.logoUrl}
+                      alt={settings.companyName}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <Package className="w-5 h-5 text-white" />
+                  )}
                 </div>
                 <span className="text-xl font-bold text-gray-900">
                   {settings.companyName}
@@ -190,10 +198,18 @@ export function Sidebar({
             {!isMobile && collapsed && (
               <Link href="/" className="flex items-center justify-center">
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: primaryColor }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
+                  style={settings.logoUrl ? undefined : { backgroundColor: primaryColor }}
                 >
-                  <Package className="w-5 h-5 text-white" />
+                  {settings.logoUrl ? (
+                    <img
+                      src={settings.logoUrl}
+                      alt={settings.companyName}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <Package className="w-5 h-5 text-white" />
+                  )}
                 </div>
               </Link>
             )}

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, TrendingUp, Package, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, TrendingUp, Package, DollarSign, ChevronLeft, ChevronRight, Download, Loader2 } from 'lucide-react';
 import { getVentasPorProducto } from '@/services/reports';
 import type { VentaProductoRow, VentasProductoSummary } from '@/services/reports';
+import { exportVentasProductoToExcel } from '@/lib/export-excel';
 import { useCompany } from '@/lib/company-context';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -68,6 +69,7 @@ export function VentasProductoReport() {
   const [totalPages, setTotalPages] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrev, setHasPrev] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const LIMIT = 20;
 
@@ -112,6 +114,35 @@ export function VentasProductoReport() {
   function handleToChange(e: React.ChangeEvent<HTMLInputElement>) {
     setTo(e.target.value);
     setPage(1);
+  }
+
+  // ── Exportar a Excel (trae TODOS los productos con los filtros activos) ──────
+  async function handleExport() {
+    setIsExporting(true);
+    try {
+      const result = await getVentasPorProducto({
+        search: search || undefined,
+        from:   from   || undefined,
+        to:     to     || undefined,
+        page:   1,
+        limit:  10000, // traer todo
+      });
+
+      const dateTag = from
+        ? `_${from.replace(/-/g, '')}${to ? '_' + to.replace(/-/g, '') : ''}`
+        : '';
+
+      exportVentasProductoToExcel(
+        result.rows,
+        result.summary,
+        { from: from || undefined, to: to || undefined, search: search || undefined },
+        `reporte_ventas_producto${dateTag}`,
+      );
+    } catch (err) {
+      console.error('Error al exportar reporte de ventas por producto:', err);
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   return (
@@ -176,6 +207,19 @@ export function VentasProductoReport() {
             className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none"
             title="Fecha hasta"
           />
+
+          {/* Exportar */}
+          <button
+            onClick={handleExport}
+            disabled={isExporting || loading}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap ml-auto"
+            title="Exportar todos los resultados a Excel"
+          >
+            {isExporting
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Download className="w-4 h-4" />}
+            {isExporting ? 'Exportando...' : 'Exportar Excel'}
+          </button>
         </div>
       </div>
 

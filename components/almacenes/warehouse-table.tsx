@@ -129,7 +129,7 @@ export function WarehouseTable({
                 placeholder="Buscar almacén..."
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
               />
             </div>
 
@@ -142,7 +142,7 @@ export function WarehouseTable({
                     onClick={() => handleStatusChange(f)}
                     className={`px-3 py-1.5 font-medium transition-colors ${
                       statusFilter === f
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-white text-gray-600 hover:bg-gray-50'
                     }`}
                   >
@@ -202,8 +202,8 @@ export function WarehouseTable({
                   <tr key={w.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Warehouse className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Warehouse className="w-4 h-4 text-primary" />
                         </div>
                         <span className="font-medium text-gray-900">{w.name}</span>
                       </div>
@@ -220,7 +220,7 @@ export function WarehouseTable({
                           {canEdit && (
                             <button
                               onClick={() => handleEdit(w)}
-                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                               title="Editar"
                             >
                               <Edit className="w-4 h-4" />

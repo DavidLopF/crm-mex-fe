@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, FileText, User, Copy, Check, ChevronLeft, ChevronRight, Pencil, CornerUpLeft, Receipt } from 'lucide-react';
+import { Search, Eye, FileText, User, Copy, Check, ChevronLeft, ChevronRight, Pencil, CornerUpLeft, Receipt, Download, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { getSales, getSaleById, type SaleResponseDto, type PaymentMethod } from '@/services/pos';
 import { get } from '@/services/http-client';
@@ -11,6 +11,7 @@ import { RemisionModal } from './RemisionModal';
 import { EditSaleModal } from './EditSaleModal';
 import { ReturnSaleModal } from './ReturnSaleModal';
 import { FacturacionElectronicaModal } from './FacturacionElectronicaModal';
+import { exportSalesToExcel } from '@/lib/export-excel';
 
 /** Botón copiar inline para códigos en la tabla */
 function CopyCodeBtn({ code }: { code: string }) {
@@ -77,6 +78,7 @@ export function SalesList() {
   const [editSale, setEditSale]           = useState<SaleResponseDto | null>(null);
   const [returnSale, setReturnSale]       = useState<SaleResponseDto | null>(null);
   const [feSale, setFeSale]               = useState<SaleResponseDto | null>(null);
+  const [isExporting, setIsExporting]     = useState(false);
 
   useEffect(() => {
     get<UserItem[]>('/api/users', { limit: 100, active: 'true' })
@@ -140,6 +142,47 @@ export function SalesList() {
     if (code === 'PAGADA')  return 'bg-green-100 text-green-800';
     if (code === 'ANULADA') return 'bg-red-100 text-red-800';
     return 'bg-yellow-100 text-yellow-800';
+  };
+
+  // ── Exportar a Excel (trae TODOS los registros con los filtros activos) ──────
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const result = await getSales({
+        search:        search        || undefined,
+        statusCode:    filterStatus  || undefined,
+        from:          filterFrom    || undefined,
+        to:            filterTo      || undefined,
+        sellerId:      filterSellerId !== '' ? Number(filterSellerId) : undefined,
+        paymentMethod: filterPayment || undefined,
+        page:  1,
+        limit: 5000, // traer todo
+      });
+
+      const sellerLabel = filterSellerId !== ''
+        ? (users.find((u) => u.id === Number(filterSellerId))?.fullName ?? String(filterSellerId))
+        : undefined;
+
+      const dateTag = filterFrom
+        ? `_${filterFrom.replace(/-/g, '')}${filterTo ? '_' + filterTo.replace(/-/g, '') : ''}`
+        : '';
+
+      exportSalesToExcel(
+        result.data,
+        {
+          from:    filterFrom    || undefined,
+          to:      filterTo      || undefined,
+          status:  filterStatus  || undefined,
+          payment: filterPayment || undefined,
+          seller:  sellerLabel,
+        },
+        `reporte_ventas${dateTag}`,
+      );
+    } catch (err) {
+      console.error('Error al exportar ventas:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -213,6 +256,19 @@ export function SalesList() {
           <span className="text-gray-400 text-sm">a</span>
           <input type="date" className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
             value={filterTo} onChange={(e) => { setFilterTo(e.target.value); resetPage(); }} />
+
+          {/* Botón exportar */}
+          <button
+            onClick={handleExport}
+            disabled={isExporting || loading}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            title="Exportar todos los resultados a Excel"
+          >
+            {isExporting
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Download className="w-4 h-4" />}
+            {isExporting ? 'Exportando...' : 'Exportar Excel'}
+          </button>
         </div>
 
         {/* ── Tabla ── */}
