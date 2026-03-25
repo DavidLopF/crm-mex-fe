@@ -197,6 +197,38 @@ export function get<T>(path: string, params?: Record<string, unknown>): Promise<
   return request<T>(path, { method: 'GET' }, params);
 }
 
+/** GET request that returns the full raw JSON (excluding success check) instead of just data */
+export async function getRaw<T>(path: string, params?: Record<string, unknown>): Promise<T> {
+  const url = buildUrl(path, params);
+  const headers = buildHeaders();
+  let res = await fetch(url, { method: 'GET', headers });
+
+  if (res.status === 401) {
+    const refreshed = await refreshOnce();
+    if (refreshed) {
+      const retryHeaders = buildHeaders();
+      res = await fetch(url, { method: 'GET', headers: retryHeaders });
+    } else {
+      clearTokens();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-session-expired'));
+      }
+      throw new Error('Sesión expirada. Inicia sesión nuevamente.');
+    }
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`HTTP ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.message || 'Error desconocido');
+  }
+  return json as unknown as T;
+}
+
 /** POST request */
 export function post<T>(path: string, body?: unknown, params?: Record<string, unknown>): Promise<T> {
   return request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }, params);

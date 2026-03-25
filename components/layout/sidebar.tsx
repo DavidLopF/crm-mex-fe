@@ -22,6 +22,8 @@ import {
   BarChart2,
   ClipboardList,
   Warehouse,
+  ShieldCheck,
+  Building2,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
@@ -43,7 +45,13 @@ interface NavItem {
   children?: NavChild[];
 }
 
-// ─── Árbol de navegación ──────────────────────────────────────────────────────
+// ─── Árbol de navegación Super Admin ─────────────────────────────────────────
+
+const superAdminNavigation: NavItem[] = [
+  { name: 'Empresas', href: '/super-admin', icon: Building2 },
+];
+
+// ─── Árbol de navegación empresa ─────────────────────────────────────────────
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -96,12 +104,15 @@ export function Sidebar({
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const { settings } = useCompany();
-  const { logout, can, permissions } = useAuth();
+  const { logout, can, permissions, isSuperAdmin } = useAuth();
+
+  // Árbol activo según el tipo de usuario
+  const activeNav = isSuperAdmin ? superAdminNavigation : navigation;
 
   // Determinar qué grupos están abiertos; auto-abrir si la ruta actual coincide
   const getInitialOpen = () => {
     const set = new Set<string>();
-    for (const item of navigation) {
+    for (const item of activeNav) {
       if (item.children?.some((c) => pathname.startsWith(c.href))) {
         set.add(item.href);
       }
@@ -116,7 +127,7 @@ export function Sidebar({
 
   // Auto-abrir grupo si la ruta cambia y coincide con algún hijo
   useEffect(() => {
-    for (const item of navigation) {
+    for (const item of activeNav) {
       if (item.children?.some((c) => pathname.startsWith(c.href))) {
         setOpenGroups((prev) => {
           if (prev.has(item.href)) return prev;
@@ -124,6 +135,7 @@ export function Sidebar({
         });
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   function toggleGroup(href: string) {
@@ -135,17 +147,19 @@ export function Sidebar({
     });
   }
 
-  // Filtrado por permisos (igual que antes)
-  const visibleNavigation = navigation.filter((item) => {
-    if (!mounted) return true;
-    const moduleCode = ROUTE_TO_MODULE[item.href];
-    if (!moduleCode) return true;
-    const modulePermission = permissions.find((p) => p.moduleCode === moduleCode);
-    if (!modulePermission) return true;
-    return can(moduleCode, 'canView');
-  });
+  // Filtrado por permisos (solo aplica a usuarios de empresa, no Super Admin)
+  const visibleNavigation = isSuperAdmin
+    ? superAdminNavigation
+    : activeNav.filter((item) => {
+        if (!mounted) return true;
+        const moduleCode = ROUTE_TO_MODULE[item.href];
+        if (!moduleCode) return true;
+        const modulePermission = permissions.find((p) => p.moduleCode === moduleCode);
+        if (!modulePermission) return true;
+        return can(moduleCode, 'canView');
+      });
 
-  const primaryColor = settings.primaryColor;
+  const primaryColor = isSuperAdmin ? '#2563EB' : settings.primaryColor;
 
   return (
     <>
@@ -175,12 +189,20 @@ export function Sidebar({
             )}
           >
             {(isMobile || !collapsed) && (
-              <Link href="/" className="flex items-center gap-2">
+              <Link href={isSuperAdmin ? '/super-admin' : '/'} className="flex items-center gap-2">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
-                  style={settings.logoUrl ? undefined : { backgroundColor: primaryColor }}
+                  style={
+                    isSuperAdmin
+                      ? { backgroundColor: '#2563EB' }
+                      : settings.logoUrl
+                      ? undefined
+                      : { backgroundColor: primaryColor }
+                  }
                 >
-                  {settings.logoUrl ? (
+                  {isSuperAdmin ? (
+                    <ShieldCheck className="w-5 h-5 text-white" />
+                  ) : settings.logoUrl ? (
                     <img
                       src={settings.logoUrl}
                       alt={settings.companyName}
@@ -191,17 +213,25 @@ export function Sidebar({
                   )}
                 </div>
                 <span className="text-xl font-bold text-gray-900">
-                  {settings.companyName}
+                  {isSuperAdmin ? 'Super Admin' : settings.companyName}
                 </span>
               </Link>
             )}
             {!isMobile && collapsed && (
-              <Link href="/" className="flex items-center justify-center">
+              <Link href={isSuperAdmin ? '/super-admin' : '/'} className="flex items-center justify-center">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
-                  style={settings.logoUrl ? undefined : { backgroundColor: primaryColor }}
+                  style={
+                    isSuperAdmin
+                      ? { backgroundColor: '#2563EB' }
+                      : settings.logoUrl
+                      ? undefined
+                      : { backgroundColor: primaryColor }
+                  }
                 >
-                  {settings.logoUrl ? (
+                  {isSuperAdmin ? (
+                    <ShieldCheck className="w-5 h-5 text-white" />
+                  ) : settings.logoUrl ? (
                     <img
                       src={settings.logoUrl}
                       alt={settings.companyName}
