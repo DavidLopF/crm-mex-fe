@@ -5,3 +5,5 @@ export { Modal } from './modal';
 export { Select } from './select';
 export { Toast, ToastContainer } from './toast';
 export type { ToastType } from './toast';
+export { ConnectivityBanner } from './connectivity-banner';
+export { OfflineBanner } from './offline-banner';

@@ -200,7 +200,7 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
               <input
                 ref={inputRef}
                 type="file"
-                accept=".xlsx,.xls"
+                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls"
                 className="hidden"
                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
               />

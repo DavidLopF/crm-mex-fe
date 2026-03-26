@@ -144,11 +144,11 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
 
   // Recargar productos cuando cambia la búsqueda (debounced)
   useEffect(() => {
-    if (isOpen && clienteId) {
+    if (isOpen) {
       setCurrentPage(1);
       loadProductos(1, debouncedSearch);
     }
-  }, [debouncedSearch, isOpen, clienteId, loadProductos]);
+  }, [debouncedSearch, isOpen, loadProductos]);
 
   // ── Cargar historial de precios para un producto ──────────────────
   const toggleHistorial = async (variantId: number) => {
@@ -369,7 +369,6 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                   onChange={(e) => {
                     const val = e.target.value;
                     setClienteId(val ? Number(val) : '');
-                    setCarrito([]);
                     setExpandedHistorial(null);
                     setHistorialPrecios([]);
                   }}
@@ -400,19 +399,13 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                   style={{ '--tw-ring-color': primary } as React.CSSProperties}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={!clienteId}
                 />
               </div>
             </div>
 
             {/* Lista de Productos */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {!clienteId ? (
-                <div className="text-center py-12 text-gray-400 text-sm">
-                  <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-                  Selecciona un cliente
-                </div>
-              ) : loadingProductos ? (
+              {loadingProductos ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primary }} />
                   <p className="text-xs text-gray-500 mt-2">Cargando...</p>
@@ -517,7 +510,7 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
             </div>
 
             {/* Paginación */}
-            {clienteId && totalProducts > 0 && (
+            {totalProducts > 0 && (
               <div className="px-4 py-2 border-t border-gray-200 flex items-center justify-between flex-shrink-0 bg-white">
                 <span className="text-xs text-gray-500">
                   {totalProducts} resultado{totalProducts !== 1 ? 's' : ''}

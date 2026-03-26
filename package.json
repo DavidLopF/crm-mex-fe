@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "dexie": "^4.3.0",
     "jspdf": "^4.2.0",
     "lucide-react": "^0.562.0",
     "next": "15.2.8",
