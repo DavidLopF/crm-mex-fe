@@ -1,4 +1,4 @@
-import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle } from 'lucide-react';
+import { Package, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 import { StatCard } from '@/components/dashboard';
 import { Producto } from '@/types';
 import { ProductStatistics } from '@/services/products';

@@ -20,6 +20,7 @@ import {
 import { Modal, Button } from "@/components/ui";
 import type { UserDetail, Role, CreateRoleDto } from "@/services/users";
 import { getAllRoles, createRole, getRolePermissions, updateRolePermissions } from "@/services/users";
+import { HIDDEN_MODULES } from "@/lib/hooks";
 
 // ── Metadatos visuales por moduleCode del backend ───────────────────────────
 type IconComponent = React.ComponentType<{ className?: string }>;
@@ -149,10 +150,12 @@ export function ChangeRoleModal({
     setSelectedPerms(new Set());
     try {
       const data = await getRolePermissions(roleId);
-      setBackendModules(data);
+      // Filtrar módulos que no están implementados en esta rama del frontend
+      const filteredData = data.filter((mod) => !HIDDEN_MODULES.has(mod.moduleCode));
+      setBackendModules(filteredData);
       // Construir set de permisos activos usando "MODULEKEY.canAction"
       const active: string[] = [];
-      for (const mod of data) {
+      for (const mod of filteredData) {
         if (mod.canView)   active.push(`${mod.moduleCode}.canView`);
         if (mod.canCreate) active.push(`${mod.moduleCode}.canCreate`);
         if (mod.canEdit)   active.push(`${mod.moduleCode}.canEdit`);

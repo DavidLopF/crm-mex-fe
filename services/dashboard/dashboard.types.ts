@@ -35,6 +35,43 @@ export interface DashboardLowStockProduct {
   stockTotal: number;
 }
 
+// ── Tipos para GET /api/dashboard/compras ────────────────────────────
+
+export interface DashboardSupplierStats {
+  totalSuppliers: number;
+  activeSuppliers: number;
+  inactiveSuppliers: number;
+  newSuppliersLastMonth: number;
+  totalPurchases: number;
+}
+
+export interface DashboardPoStats {
+  totalOrders: number;
+  draftOrders: number;
+  sentOrders: number;
+  confirmedOrders: number;
+  receivedOrders: number;
+  cancelledOrders: number;
+  totalSpent: number;
+}
+
+export interface DashboardRecentPurchaseOrder {
+  id: number;
+  code: string;
+  supplierName: string;
+  /** Código de estado en minúsculas: 'draft' | 'sent' | 'confirmed' | 'partial' | 'received' | 'cancelled' */
+  status: string;
+  total: number;
+  currency: string;
+  createdAt: string;
+}
+
+export interface DashboardComprasSummary {
+  supplierStats: DashboardSupplierStats;
+  poStats: DashboardPoStats;
+  recentOrders: DashboardRecentPurchaseOrder[];
+}
+
 /** Shape exacta de data en GET /api/dashboard */
 export interface DashboardSummary {
   salesMonth: DashboardMetricWithChange;

@@ -48,7 +48,7 @@ export const productosStockBajo: Producto[] = [
     precio: 299.99,
     costo: 150,
     categoria: 'Ropa',
-    imagen: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v1', nombre: 'Talla', valor: 'M', stock: 3 },
       { id: 'v2', nombre: 'Talla', valor: 'L', stock: 2 },
@@ -67,7 +67,7 @@ export const productosStockBajo: Producto[] = [
     precio: 699.99,
     costo: 350,
     categoria: 'Ropa',
-    imagen: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v3', nombre: 'Talla', valor: '32', stock: 2 },
     ],
@@ -85,7 +85,7 @@ export const productosStockBajo: Producto[] = [
     precio: 1199.99,
     costo: 600,
     categoria: 'Calzado',
-    imagen: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v4', nombre: 'Talla', valor: '27', stock: 1 },
       { id: 'v5', nombre: 'Talla', valor: '28', stock: 3 },
@@ -107,7 +107,7 @@ export const productosInventario: Producto[] = [
     precio: 299.99,
     costo: 150,
     categoria: 'Ropa',
-    imagen: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v1', nombre: 'Talla', valor: 'S', stock: 15 },
       { id: 'v2', nombre: 'Talla', valor: 'M', stock: 25 },
@@ -128,7 +128,7 @@ export const productosInventario: Producto[] = [
     precio: 699.99,
     costo: 350,
     categoria: 'Ropa',
-    imagen: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v5', nombre: 'Talla', valor: '30', stock: 8 },
       { id: 'v6', nombre: 'Talla', valor: '32', stock: 12 },
@@ -149,7 +149,7 @@ export const productosInventario: Producto[] = [
     precio: 599.99,
     costo: 280,
     categoria: 'Ropa',
-    imagen: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v9', nombre: 'Talla', valor: 'S', stock: 20 },
       { id: 'v10', nombre: 'Talla', valor: 'M', stock: 30 },
@@ -169,7 +169,7 @@ export const productosInventario: Producto[] = [
     precio: 1199.99,
     costo: 600,
     categoria: 'Calzado',
-    imagen: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v12', nombre: 'Talla', valor: '25', stock: 5 },
       { id: 'v13', nombre: 'Talla', valor: '26', stock: 8 },
@@ -191,7 +191,7 @@ export const productosInventario: Producto[] = [
     precio: 1399.99,
     costo: 700,
     categoria: 'Ropa',
-    imagen: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v17', nombre: 'Talla', valor: 'M', stock: 15 },
       { id: 'v18', nombre: 'Talla', valor: 'L', stock: 20 },
@@ -211,7 +211,7 @@ export const productosInventario: Producto[] = [
     precio: 199.99,
     costo: 80,
     categoria: 'Accesorios',
-    imagen: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v20', nombre: 'Color', valor: 'Negro', stock: 25 },
       { id: 'v21', nombre: 'Color', valor: 'Azul', stock: 18 },
@@ -231,7 +231,7 @@ export const productosInventario: Producto[] = [
     precio: 899.99,
     costo: 450,
     categoria: 'Accesorios',
-    imagen: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v23', nombre: 'Color', valor: 'Negro', stock: 20 },
       { id: 'v24', nombre: 'Color', valor: 'Gris', stock: 15 },
@@ -250,7 +250,7 @@ export const productosInventario: Producto[] = [
     precio: 799.99,
     costo: 400,
     categoria: 'Accesorios',
-    imagen: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop',
     variaciones: [
       { id: 'v25', nombre: 'Color', valor: 'Negro', stock: 8 },
       { id: 'v26', nombre: 'Color', valor: 'Plata', stock: 5 },
