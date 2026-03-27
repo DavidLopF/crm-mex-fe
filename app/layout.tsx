@@ -19,6 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "CRM  - Sistema de Gestión",
   description: "Sistema de gestión de inventarios, ventas y clientes",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export const viewport: Viewport = {
