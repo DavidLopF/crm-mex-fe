@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp, Truck, Star, ClipboardList, ArrowUpDown } from 'lucide-react';
+import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp, Truck, Star, ClipboardList, ArrowUpDown, Upload } from 'lucide-react';
 import { Modal, Button, Badge, Card, CardContent, Select } from '@/components/ui';
 import { Producto } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
@@ -29,6 +29,7 @@ export function ProductDetailModal({
   onError,
   onSuccess,
 }: ProductDetailModalProps) {
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Producto | null>(null);
   const [priceInput, setPriceInput] = useState<string>('');
@@ -190,6 +191,40 @@ export function ProductDetailModal({
     });
   };
 
+  const handleOpenImageChooser = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      if (onError) onError('Selecciona un archivo de imagen válido.');
+      e.target.value = '';
+      return;
+    }
+
+    const maxSizeMb = 5;
+    if (file.size > maxSizeMb * 1024 * 1024) {
+      if (onError) onError(`La imagen no debe superar ${maxSizeMb}MB.`);
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      setEditedProduct((prev) => (prev ? { ...prev, imageUrl: result } : prev));
+    };
+    reader.onerror = () => {
+      if (onError) onError('No se pudo leer la imagen seleccionada.');
+    };
+
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
   // Filtrar historial de precios - ya viene filtrado del backend por cliente y producto
   const historialFiltrado = historialPrecios.sort(
     (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
@@ -211,6 +246,13 @@ export function ProductDetailModal({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Imagen del producto */}
           <div className="lg:col-span-1">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageFileChange}
+            />
             <div className="aspect-square rounded-lg overflow-hidden bg-zinc-100 mb-4">
               {currentProduct.imageUrl ? (
                 <Image
@@ -226,19 +268,51 @@ export function ProductDetailModal({
                 </div>
               )}
             </div>
+
+            {isEditing && (
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleOpenImageChooser}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Subir imagen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditedProduct((prev) => (prev ? { ...prev, imageUrl: undefined } : prev))}
+                    className="px-3 py-2 text-sm border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
+                  >
+                    Limpiar
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={editedProduct?.imageUrl || ''}
+                  onChange={(e) => setEditedProduct((prev) => (prev ? { ...prev, imageUrl: e.target.value } : prev))}
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
+                />
+                <p className="text-xs text-zinc-500">
+                  Puedes subir una imagen desde tu equipo o pegar una URL.
+                </p>
+              </div>
+            )}
             
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-zinc-500">SKU</span>
                 <span className="text-sm font-mono text-zinc-900">{currentProduct.sku}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-zinc-500">Categoría</span>
                 {isEditing ? (
                   <Select
                     value={editedProduct?.categoria || ''}
                     onChange={(e) => setEditedProduct(editedProduct ? { ...editedProduct, categoria: e.target.value } : null)}
-                    className="w-32 text-sm"
+                    className="w-full sm:w-56 sm:max-w-[65%] text-sm"
                     disabled={loadingCategorias}
                   >
                     <option value="">{loadingCategorias ? 'Cargando...' : 'Seleccione'}</option>

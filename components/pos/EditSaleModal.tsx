@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import {
-  Minus, Plus, Trash2, X, Search, Banknote, CreditCard, Save, Loader2,
+  Minus, Plus, Trash2, Search, Banknote, CreditCard, Save, Loader2,
 } from 'lucide-react';
 import { Button, Modal } from '@/components/ui';
 import { updateSale, getPosProducts, type SaleResponseDto, type PaymentMethod } from '@/services/pos';
@@ -208,9 +208,6 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
             <h2 className="text-lg font-bold text-zinc-900">Editar Venta</h2>
             <p className="text-sm text-zinc-500 font-mono">{sale.code}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-zinc-100 text-zinc-400">
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* ── Body ── */}

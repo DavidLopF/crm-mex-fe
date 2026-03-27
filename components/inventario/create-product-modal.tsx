@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Plus, Minus, X, Upload } from 'lucide-react';
 import { Modal, Button, Card, CardContent, Select } from '@/components/ui';
@@ -21,6 +21,7 @@ const variacionesTemplate = [
 ];
 
 export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateProductModalProps) {
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [sku, setSku] = useState('');
@@ -182,6 +183,32 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
   const costoNumber = Number.isFinite(parseFloat(costo)) ? parseFloat(costo) : 0;
   const valoresDisponibles = variacionesTemplate.find(v => v.nombre === tipoVariacion)?.valores || [];
 
+  const handleOpenImageChooser = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      if (onError) onError('Selecciona un archivo de imagen válido.');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      setImagen(result);
+    };
+    reader.onerror = () => {
+      if (onError) onError('No se pudo leer la imagen seleccionada.');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -258,6 +285,13 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
               <label className="block text-sm font-medium text-zinc-700 mb-1">
                 URL de Imagen
               </label>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageFileChange}
+              />
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -266,7 +300,11 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                   placeholder="https://ejemplo.com/imagen.jpg"
                   className="flex-1 px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <button className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors">
+                <button
+                  type="button"
+                  onClick={handleOpenImageChooser}
+                  className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors"
+                >
                   <Upload className="w-5 h-5 text-zinc-600" />
                 </button>
               </div>

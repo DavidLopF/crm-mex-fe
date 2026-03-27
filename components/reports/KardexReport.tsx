@@ -452,7 +452,7 @@ export function KardexReport() {
           </div>
 
           {/* Gráfico de evolución del stock */}
-          {kardex.movimientos.length > 1 && (
+          {kardex.movimientos.length > 0 && (
             <KardexMovimientosChart
               movimientos={kardex.movimientos}
               primaryColor={primaryColor}

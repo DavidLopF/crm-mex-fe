@@ -25,7 +25,10 @@ export interface ApiProduct {
   totalStock: number;
   status: string;
   description?: string;
-  image?: string;
+  /** Campo legacy */
+  image?: string | null;
+  /** Campo actual del backend */
+  imageUrl?: string | null;
   /** true = el producto siempre debe venderse con IVA (16%) en POS */
   requiresIva: boolean;
 }
@@ -64,7 +67,7 @@ export function mapApiProductToProducto(api: ApiProduct): Producto {
     precio: api.defaultPrice,
     costo: 0,
     categoria: api.category,
-    imageUrl: api.image,
+    imageUrl: api.imageUrl ?? api.image ?? undefined,
     variaciones: [],
     stockTotal: api.totalStock,
     activo: api.status === 'Activo',
@@ -115,7 +118,10 @@ export interface ApiProductDetail {
   currency: string;
   totalStock: number;
   status: string;
-  image?: string;
+  /** Campo legacy */
+  image?: string | null;
+  /** Campo actual del backend */
+  imageUrl?: string | null;
   /** true = el producto siempre debe venderse con IVA (16%) en POS */
   requiresIva: boolean;
   createdAt: string;
@@ -229,7 +235,8 @@ export interface UpdateProductResponseDto {
   totalStock: number;
   status: string;
   description?: string;
-  image?: string;
+  image?: string | null;
+  imageUrl?: string | null;
   updatedAt: string;
   variants: ApiVariant[];
 }
