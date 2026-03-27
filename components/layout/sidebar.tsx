@@ -57,7 +57,6 @@ const navigation: NavItem[] = [
   { name: 'Pedidos',             href: '/pedidos',            icon: ShoppingCart },
   { name: 'Clientes',            href: '/clientes',           icon: Users },
   { name: 'Proveedores',         href: '/proveedores',        icon: Truck },
-  { name: 'Facturación',         href: '/facturacion',        icon: FileBarChart2 },
   { name: 'Punto de Venta',      href: '/pos',                icon: Store,        dividerBefore: true },
   { name: 'Precios por Volumen', href: '/pos/precios',        icon: Layers },
   { name: 'Reportes POS',        href: '/pos/reportes',       icon: BarChart3 },
@@ -322,8 +321,7 @@ export function Sidebar({
                   style={isActive ? activeStyle : undefined}
                 >
                   <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
-                  {isExpanded && <span className="flex-1">{item.name}</span>}
-                  {isExpanded && isActive && <TonalDot />}
+                  {isExpanded && <span>{item.name}</span>}
                 </Link>
               </div>
             );
