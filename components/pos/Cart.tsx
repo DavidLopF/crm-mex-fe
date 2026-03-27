@@ -123,14 +123,14 @@ export function Cart({ onClose }: CartProps) {
       <div className="flex flex-col h-full">
         {/* Header con botón cerrar en móvil */}
         {onClose && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900">Carrito</h3>
-            <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100">
-              <ChevronDown className="w-5 h-5 text-gray-500" />
+          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+            <h3 className="font-semibold text-zinc-900">Carrito</h3>
+            <button onClick={onClose} className="p-2 rounded-xl hover:bg-zinc-100">
+              <ChevronDown className="w-5 h-5 text-zinc-500" />
             </button>
           </div>
         )}
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-400 p-6">
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-zinc-400 p-6">
           <ShoppingBag className="w-16 h-16 opacity-25" />
           <p className="text-base font-medium">Carrito vacío</p>
           <p className="text-sm text-center">Toca un producto para agregarlo</p>
@@ -152,14 +152,14 @@ export function Cart({ onClose }: CartProps) {
       <div className="flex flex-col h-full bg-white">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 flex-shrink-0">
           <div className="flex items-center gap-2">
             {onClose && (
-              <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-gray-100 mr-1">
-                <ChevronDown className="w-5 h-5 text-gray-500" />
+              <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-zinc-100 mr-1">
+                <ChevronDown className="w-5 h-5 text-zinc-500" />
               </button>
             )}
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-zinc-900">
               Carrito
             </h3>
             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
@@ -180,22 +180,22 @@ export function Cart({ onClose }: CartProps) {
           {cart.map((item) => (
             <div
               key={item.variantId}
-              className="flex items-start gap-3 px-5 py-3.5 border-b border-gray-50 last:border-0"
+              className="flex items-start gap-3 px-5 py-3.5 border-b border-zinc-50 last:border-0"
             >
               {/* Info del producto */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 leading-snug">
+                <p className="text-sm font-medium text-zinc-900 leading-snug">
                   {item.productName}
                 </p>
                 {item.variantName && (
-                  <p className="text-xs text-gray-400 mt-0.5">{item.variantName}</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">{item.variantName}</p>
                 )}
                 {item.appliedTierLabel && (
                   <span className="inline-block mt-1 text-[11px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
                     {item.appliedTierLabel}
                   </span>
                 )}
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-zinc-400 mt-1">
                   {formatPrice(item.unitPrice)} c/u
                 </p>
               </div>
@@ -204,17 +204,17 @@ export function Cart({ onClose }: CartProps) {
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-0.5">
                   <button
-                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-l-xl border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-l-xl border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 active:bg-zinc-200 transition-colors"
                     onClick={() => updateQty(item.variantId, item.qty - 1)}
                     aria-label="Reducir cantidad"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="w-10 h-8 sm:h-9 text-center text-sm font-bold border-y border-gray-200 flex items-center justify-center bg-white">
+                  <span className="w-10 h-8 sm:h-9 text-center text-sm font-bold border-y border-zinc-200 flex items-center justify-center bg-white">
                     {item.qty}
                   </span>
                   <button
-                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-r-xl border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-r-xl border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 active:bg-zinc-200 transition-colors"
                     onClick={() => updateQty(item.variantId, item.qty + 1)}
                     aria-label="Aumentar cantidad"
                   >
@@ -224,11 +224,11 @@ export function Cart({ onClose }: CartProps) {
 
                 {/* Subtotal + eliminar */}
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-semibold text-zinc-900">
                     {formatPrice(item.lineTotal)}
                   </span>
                   <button
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors"
                     onClick={() => removeFromCart(item.variantId)}
                     aria-label="Eliminar producto"
                   >
@@ -241,13 +241,13 @@ export function Cart({ onClose }: CartProps) {
         </div>
 
         {/* ── Cliente y notas ── */}
-        <div className="px-5 py-3 border-t border-gray-100 space-y-2.5 flex-shrink-0">
+        <div className="px-5 py-3 border-t border-zinc-100 space-y-2.5 flex-shrink-0">
           {/* Selector de cliente con búsqueda y creación inline */}
           <ClientSelector />
           <input
             type="text"
             placeholder="Notas (opcional)"
-            className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+            className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -255,7 +255,7 @@ export function Cart({ onClose }: CartProps) {
 
         {/* ── IVA toggle + Total + Botón ── */}
         <div
-          className="px-5 py-4 border-t-2 border-gray-100 bg-gray-50/80 flex-shrink-0 space-y-3"
+          className="px-5 py-4 border-t-2 border-zinc-100 bg-zinc-50/80 flex-shrink-0 space-y-3"
           style={{
             paddingBottom: onClose
               ? 'calc(max(env(safe-area-inset-bottom), 20px) + 96px)'
@@ -265,7 +265,7 @@ export function Cart({ onClose }: CartProps) {
 
           {/* Medio de pago */}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-1.5">Medio de pago</p>
+            <p className="text-xs font-medium text-zinc-500 mb-1.5">Medio de pago</p>
             <div className="grid grid-cols-2 gap-1.5">
               {PAYMENT_METHODS.map((pm) => (
                 <button
@@ -276,7 +276,7 @@ export function Cart({ onClose }: CartProps) {
                     flex flex-col items-center gap-1 py-2 px-1 rounded-xl border-2 text-xs font-medium transition-all
                     ${paymentMethod === pm.value
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                      : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'
                     }
                   `}
                 >
@@ -297,7 +297,7 @@ export function Cart({ onClose }: CartProps) {
               w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all
               ${includesIva
                 ? 'border-primary bg-primary/5 text-primary'
-                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'
               }
               ${hasRequiredIvaItem ? 'cursor-not-allowed opacity-90' : ''}
             `}
@@ -311,7 +311,7 @@ export function Cart({ onClose }: CartProps) {
               )}
             </div>
             {/* Switch visual */}
-            <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-2 ${includesIva ? 'bg-primary' : 'bg-gray-300'}`}>
+            <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-2 ${includesIva ? 'bg-primary' : 'bg-zinc-300'}`}>
               <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${includesIva ? 'translate-x-5' : 'translate-x-0'}`} />
             </span>
           </button>
@@ -320,7 +320,7 @@ export function Cart({ onClose }: CartProps) {
           <div className="space-y-1">
             {includesIva && (
               <>
-                <div className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center justify-between text-sm text-zinc-500">
                   <span>Subtotal</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
@@ -328,12 +328,12 @@ export function Cart({ onClose }: CartProps) {
                   <span>IVA 16%</span>
                   <span>+ {formatPrice(taxAmount)}</span>
                 </div>
-                <div className="border-t border-gray-200 pt-1" />
+                <div className="border-t border-zinc-200 pt-1" />
               </>
             )}
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-gray-500">Total a cobrar</span>
-              <span className="text-3xl font-bold text-gray-900 tracking-tight">
+              <span className="text-sm text-zinc-500">Total a cobrar</span>
+              <span className="text-3xl font-bold text-zinc-900 tracking-tight">
                 {formatPrice(total)}
               </span>
             </div>
@@ -360,7 +360,7 @@ export function Cart({ onClose }: CartProps) {
             }}
           >
             <Button
-              className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-2xl bg-gray-900 text-white hover:bg-gray-800"
+              className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-2xl bg-zinc-900 text-white hover:bg-zinc-800"
               onClick={handleGenerateRemision}
               disabled={submitting}
             >

@@ -35,7 +35,7 @@ function SummaryCard({
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+    <div className="bg-white rounded-xl border border-zinc-200 p-4 flex items-center gap-4">
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
         style={{ backgroundColor: color + '15' }}
@@ -43,8 +43,8 @@ function SummaryCard({
         <Icon className="w-5 h-5" style={{ color }} />
       </div>
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-lg font-semibold text-gray-900">{value}</p>
+        <p className="text-xs text-zinc-500">{label}</p>
+        <p className="text-base font-semibold text-zinc-900">{value}</p>
       </div>
     </div>
   );
@@ -172,29 +172,29 @@ export function VentasProductoReport() {
       )}
 
       {/* Filtros */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="bg-white rounded-xl border border-zinc-200 p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Buscador */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
               placeholder="Buscar producto..."
               value={search}
               onChange={handleSearchChange}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0"
               style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
             />
           </div>
 
           {/* Fecha desde */}
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <Filter className="w-4 h-4 text-zinc-400 flex-shrink-0" />
             <input
               type="date"
               value={from}
               onChange={handleFromChange}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none"
+              className="text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none"
               title="Fecha desde"
             />
           </div>
@@ -204,7 +204,7 @@ export function VentasProductoReport() {
             type="date"
             value={to}
             onChange={handleToChange}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none"
+            className="text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none"
             title="Fecha hasta"
           />
 
@@ -212,7 +212,7 @@ export function VentasProductoReport() {
           <button
             onClick={handleExport}
             disabled={isExporting || loading}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap ml-auto"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-zinc-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap ml-auto"
             title="Exportar todos los resultados a Excel"
           >
             {isExporting
@@ -224,9 +224,9 @@ export function VentasProductoReport() {
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
         {loading && (
-          <div className="flex items-center justify-center py-16 text-gray-400 text-sm">
+          <div className="flex items-center justify-center py-16 text-zinc-400 text-sm">
             Cargando reporte...
           </div>
         )}
@@ -238,7 +238,7 @@ export function VentasProductoReport() {
         )}
 
         {!loading && !error && rows.length === 0 && (
-          <div className="flex items-center justify-center py-16 text-gray-400 text-sm">
+          <div className="flex items-center justify-center py-16 text-zinc-400 text-sm">
             No hay datos para los filtros seleccionados.
           </div>
         )}
@@ -247,58 +247,58 @@ export function VentasProductoReport() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <tr className="border-b border-zinc-100 bg-zinc-50">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Producto
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Categoría
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Uds. POS
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Revenue POS
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Uds. Pedidos
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Revenue Pedidos
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Total Uds.
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide">
                     Revenue Total
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-zinc-50">
                 {rows.map((row) => (
                   <tr
                     key={row.productId}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-zinc-50 transition-colors"
                   >
-                    <td className="px-4 py-3 font-medium text-gray-900">
+                    <td className="px-4 py-3 font-medium text-zinc-900">
                       {row.productName}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-zinc-500">
                       {row.categoryName ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
+                    <td className="px-4 py-3 text-right text-zinc-700">
                       {formatNumber(row.qtySoldPos)}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
+                    <td className="px-4 py-3 text-right text-zinc-700">
                       {formatCurrency(row.revenuePos)}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
+                    <td className="px-4 py-3 text-right text-zinc-700">
                       {formatNumber(row.qtySoldOrders)}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
+                    <td className="px-4 py-3 text-right text-zinc-700">
                       {formatCurrency(row.revenueOrders)}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                    <td className="px-4 py-3 text-right font-semibold text-zinc-900">
                       {formatNumber(row.qtyTotal)}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold" style={{ color: primaryColor }}>
@@ -313,24 +313,24 @@ export function VentasProductoReport() {
 
         {/* Paginación */}
         {!loading && rows.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <span className="text-xs text-gray-500">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-100">
+            <span className="text-xs text-zinc-500">
               Página {page} de {totalPages}
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage((p) => p - 1)}
                 disabled={!hasPrev}
-                className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                className="p-1.5 rounded-lg border border-zinc-200 disabled:opacity-40 hover:bg-zinc-50 transition-colors"
               >
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
+                <ChevronLeft className="w-4 h-4 text-zinc-600" />
               </button>
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={!hasNext}
-                className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                className="p-1.5 rounded-lg border border-zinc-200 disabled:opacity-40 hover:bg-zinc-50 transition-colors"
               >
-                <ChevronRight className="w-4 h-4 text-gray-600" />
+                <ChevronRight className="w-4 h-4 text-zinc-600" />
               </button>
             </div>
           </div>

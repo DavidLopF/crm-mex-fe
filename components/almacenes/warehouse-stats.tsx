@@ -27,8 +27,8 @@ function StatCard({
           <Icon className="w-5 h-5" />
         </div>
         <div>
-          <p className="text-xs text-gray-500 font-medium">{title}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs text-zinc-500 font-medium">{title}</p>
+          <p className="text-xl font-semibold text-zinc-900 tracking-tight">{value}</p>
         </div>
       </div>
     </Card>
@@ -42,10 +42,10 @@ export function WarehouseStatsBar({ stats, loading }: WarehouseStatsBarProps) {
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse" />
+              <div className="w-10 h-10 bg-zinc-200 rounded-lg animate-pulse" />
               <div className="space-y-1.5">
-                <div className="h-3 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-6 w-12 bg-gray-200 rounded animate-pulse" />
+                <div className="h-3 w-20 bg-zinc-200 rounded animate-pulse" />
+                <div className="h-6 w-12 bg-zinc-200 rounded animate-pulse" />
               </div>
             </div>
           </Card>

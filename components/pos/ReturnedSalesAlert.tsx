@@ -116,14 +116,14 @@ export function ReturnedSalesAlert() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-sm font-semibold text-amber-900">{sale.code}</span>
                     <span className="text-xs text-amber-700">{formatPrice(sale.total)}</span>
-                    <span className="text-xs text-gray-400">{formatDate(sale.createdAt)}</span>
+                    <span className="text-xs text-zinc-400">{formatDate(sale.createdAt)}</span>
                   </div>
                   {sale.returnNotes && (
                     <p className="text-xs text-amber-800 mt-0.5 italic line-clamp-2">
                       Motivo: {sale.returnNotes}
                     </p>
                   )}
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-zinc-400 mt-0.5">
                     {sale.items.length} producto{sale.items.length !== 1 ? 's' : ''}
                     {sale.clientName ? ` · ${sale.clientName}` : ''}
                   </p>

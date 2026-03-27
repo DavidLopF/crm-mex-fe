@@ -191,11 +191,11 @@ export function PurchaseOrderTable({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
               placeholder="Buscar por código o proveedor..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => {
                 if (isControlledSearch && onSearchChange) {
@@ -217,7 +217,7 @@ export function PurchaseOrderTable({
       </div>
 
       {/* Filtros de estado */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-wrap">
+      <div className="flex gap-1 bg-zinc-100 rounded-lg p-1 flex-wrap">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -230,8 +230,8 @@ export function PurchaseOrderTable({
             }}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
               statusFilter === tab.value
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white text-zinc-900 shadow-sm'
+                : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
             {tab.label}
@@ -244,55 +244,55 @@ export function PurchaseOrderTable({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+              <tr className="border-b border-zinc-100">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Código
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Proveedor
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Estado
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Recepción
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Artículos
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Subtotal
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Total
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Fecha
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-zinc-100">
               {currentOrders.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center">
-                    <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 font-medium">No se encontraron órdenes de compra</p>
-                    <p className="text-gray-400 text-sm mt-1">Intenta cambiar los filtros de búsqueda</p>
+                    <ClipboardList className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
+                    <p className="text-zinc-500 font-medium">No se encontraron órdenes de compra</p>
+                    <p className="text-zinc-400 text-sm mt-1">Intenta cambiar los filtros de búsqueda</p>
                   </td>
                 </tr>
               ) : (
                 currentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={order.id} className="hover:bg-zinc-50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-sm font-mono font-semibold text-primary">
                         {order.code}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-zinc-900">
                         {order.supplierName}
                       </span>
                     </td>
@@ -308,7 +308,7 @@ export function PurchaseOrderTable({
                         const pct = totalQty > 0 ? Math.round((totalRec / totalQty) * 100) : 0;
                         const barColor =
                           pct === 0
-                            ? 'bg-gray-300'
+                            ? 'bg-zinc-300'
                             : pct >= 100
                               ? 'bg-green-500'
                               : pct >= 50
@@ -317,10 +317,10 @@ export function PurchaseOrderTable({
                         return (
                           <div className="min-w-[80px]">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] text-gray-500">{totalRec}/{totalQty}</span>
-                              <span className="text-[10px] font-medium text-gray-600">{pct}%</span>
+                              <span className="text-[10px] text-zinc-500">{totalRec}/{totalQty}</span>
+                              <span className="text-[10px] font-medium text-zinc-600">{pct}%</span>
                             </div>
-                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${barColor}`}
                                 style={{ width: `${Math.min(pct, 100)}%` }}
@@ -331,15 +331,15 @@ export function PurchaseOrderTable({
                       })()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">{order.items.length}</span>
+                      <span className="text-sm text-zinc-600">{order.items.length}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-zinc-600">
                         {formatCurrency(order.subtotal)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-zinc-900">
                         {formatCurrency(order.total)}
                       </span>
                       {(order.freightPct + order.customsPct + order.taxPct + order.handlingPct + order.otherPct) > 0 && (
@@ -349,7 +349,7 @@ export function PurchaseOrderTable({
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-zinc-500">
                         {formatDateTime(order.createdAt)}
                       </span>
                     </td>
@@ -357,7 +357,7 @@ export function PurchaseOrderTable({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewOrder(order)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Ver detalle"
                           disabled={loadingDetail}
                         >
@@ -372,7 +372,7 @@ export function PurchaseOrderTable({
                         {canDelete && order.status !== 'received' && order.status !== 'cancelled' && (
                           <button
                             onClick={() => handleDeleteClick(order)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Cancelar orden"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -388,8 +388,8 @@ export function PurchaseOrderTable({
         </div>
 
         {/* Paginación */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-          <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100">
+          <p className="text-sm text-zinc-500">
             Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
             {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredOrders.length)} de{' '}
             {totalItems ?? filteredOrders.length} órdenes
@@ -397,7 +397,7 @@ export function PurchaseOrderTable({
           <div className="flex items-center gap-2">
             {/* Items por página */}
             <select
-              className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-sm border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={effectiveItemsPerPage}
               onChange={(e) => {
                 const newLimit = Number(e.target.value);
@@ -412,7 +412,7 @@ export function PurchaseOrderTable({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -435,7 +435,7 @@ export function PurchaseOrderTable({
                   className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === pageNum
                       ? 'bg-primary text-white'
-                      : 'hover:bg-gray-50 text-gray-600'
+                      : 'hover:bg-zinc-50 text-zinc-600'
                   }`}
                 >
                   {pageNum}
@@ -446,7 +446,7 @@ export function PurchaseOrderTable({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

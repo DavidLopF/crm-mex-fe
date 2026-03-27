@@ -119,23 +119,23 @@ export function WarehouseTable({
     <>
       <Card className="overflow-hidden">
         {/* ── Toolbar ─────────────────────────────────────────────── */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-zinc-200">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             {/* Búsqueda */}
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="text"
                 placeholder="Buscar almacén..."
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
               />
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               {/* Filtro estado */}
-              <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+              <div className="flex rounded-lg border border-zinc-200 overflow-hidden text-sm">
                 {(['all', 'active', 'inactive'] as const).map((f) => (
                   <button
                     key={f}
@@ -143,7 +143,7 @@ export function WarehouseTable({
                     className={`px-3 py-1.5 font-medium transition-colors ${
                       statusFilter === f
                         ? 'bg-primary text-white'
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                        : 'bg-white text-zinc-600 hover:bg-zinc-50'
                     }`}
                   >
                     {f === 'all' ? 'Todos' : f === 'active' ? 'Activos' : 'Inactivos'}
@@ -170,7 +170,7 @@ export function WarehouseTable({
         {/* ── Tabla ───────────────────────────────────────────────── */}
         <div className="overflow-x-auto">
           {safeWarehouses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
               <Warehouse className="w-12 h-12 mb-3 opacity-40" />
               <p className="text-sm font-medium">No se encontraron almacenes</p>
               {searchTerm && (
@@ -179,33 +179,33 @@ export function WarehouseTable({
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-zinc-50 border-b border-zinc-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Nombre
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Creado
                   </th>
                   {(canEdit || canDelete) && (
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                       Acciones
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody className="divide-y divide-zinc-100 bg-white">
                 {safeWarehouses.map((w) => (
-                  <tr key={w.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={w.id} className="hover:bg-zinc-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                           <Warehouse className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="font-medium text-gray-900">{w.name}</span>
+                        <span className="font-medium text-zinc-900">{w.name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -213,14 +213,14 @@ export function WarehouseTable({
                         {w.isActive ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(w.createdAt)}</td>
+                    <td className="px-4 py-3 text-zinc-500">{formatDate(w.createdAt)}</td>
                     {(canEdit || canDelete) && (
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           {canEdit && (
                             <button
                               onClick={() => handleEdit(w)}
-                              className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                              className="p-1.5 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                               title="Editar"
                             >
                               <Edit className="w-4 h-4" />
@@ -229,7 +229,7 @@ export function WarehouseTable({
                           {canDelete && w.isActive && (
                             <button
                               onClick={() => handleDelete(w)}
-                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Desactivar"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -247,7 +247,7 @@ export function WarehouseTable({
 
         {/* ── Paginación ───────────────────────────────────────────── */}
         {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-600">
+          <div className="px-4 py-3 border-t border-zinc-200 flex items-center justify-between text-sm text-zinc-600">
             <span>
               {totalCount} almacén{totalCount !== 1 ? 'es' : ''} en total
             </span>
@@ -255,7 +255,7 @@ export function WarehouseTable({
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -265,7 +265,7 @@ export function WarehouseTable({
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

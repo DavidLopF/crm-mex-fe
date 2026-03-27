@@ -64,7 +64,7 @@ export function mapApiProductToProducto(api: ApiProduct): Producto {
     precio: api.defaultPrice,
     costo: 0,
     categoria: api.category,
-    imagen: api.image,
+    imageUrl: api.image,
     variaciones: [],
     stockTotal: api.totalStock,
     activo: api.status === 'Activo',

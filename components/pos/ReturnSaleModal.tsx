@@ -48,19 +48,19 @@ export function ReturnSaleModal({ sale, onClose, onReturned }: Props) {
       <div className="w-full">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
               <CornerUpLeft className="w-4 h-4 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-900">Devolver al Vendedor</h2>
-              <p className="text-xs text-gray-500 font-mono">{sale.code}</p>
+              <h2 className="text-base font-bold text-zinc-900">Devolver al Vendedor</h2>
+              <p className="text-xs text-zinc-500 font-mono">{sale.code}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100 text-gray-400"
+            className="p-2 rounded-xl hover:bg-zinc-100 text-zinc-400"
           >
             <X className="w-4 h-4" />
           </button>
@@ -68,7 +68,7 @@ export function ReturnSaleModal({ sale, onClose, onReturned }: Props) {
 
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <p className="text-sm text-zinc-600 leading-relaxed">
             Esta venta regresará al vendedor para que corrija los productos.
             Permanecerá en estado <span className="font-semibold text-yellow-700">Pendiente</span> y
             quedará marcada como devuelta hasta que el vendedor la edite.
@@ -86,20 +86,20 @@ export function ReturnSaleModal({ sale, onClose, onReturned }: Props) {
 
           {/* Notas del revisor */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-500 mb-1.5">
               Motivo / notas para el vendedor{' '}
-              <span className="font-normal text-gray-400">(opcional)</span>
+              <span className="font-normal text-zinc-400">(opcional)</span>
             </label>
             <textarea
               rows={3}
               placeholder="Ej: El producto X fue ingresado con precio incorrecto..."
-              className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-colors"
+              className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-colors"
               value={returnNotes}
               onChange={(e) => setReturnNotes(e.target.value)}
               maxLength={500}
             />
             {returnNotes.length > 0 && (
-              <p className="text-xs text-gray-400 text-right mt-0.5">{returnNotes.length}/500</p>
+              <p className="text-xs text-zinc-400 text-right mt-0.5">{returnNotes.length}/500</p>
             )}
           </div>
         </div>
@@ -118,7 +118,7 @@ export function ReturnSaleModal({ sale, onClose, onReturned }: Props) {
             )}
           </Button>
           <Button
-            className="px-5 h-11 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300"
+            className="px-5 h-11 rounded-xl bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
             onClick={onClose}
             disabled={submitting}
           >

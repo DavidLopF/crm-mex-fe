@@ -141,11 +141,11 @@ export function UsersTable({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
               placeholder="Buscar usuarios por nombre o email..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => {
                 if (isControlledSearch && onSearchChange) {
@@ -157,7 +157,7 @@ export function UsersTable({
             />
           </div>
 
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <div className="flex gap-1 bg-zinc-100 rounded-lg p-1">
             {(['all', 'active', 'inactive'] as const).map((status) => (
               <button
                 key={status}
@@ -170,8 +170,8 @@ export function UsersTable({
                 }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   statusFilter === status
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-white text-zinc-900 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700'
                 }`}
               >
                 {status === 'all' ? 'Todos' : status === 'active' ? 'Activos' : 'Inactivos'}
@@ -187,42 +187,42 @@ export function UsersTable({
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-zinc-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <tr className="bg-zinc-50 border-b border-zinc-200">
+                <th className="text-left px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Usuario
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Email
                 </th>
-                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-center px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Rol
                 </th>
-                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-center px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-center px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Creado
                 </th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="text-right px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-zinc-200">
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <UserCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">No se encontraron usuarios</p>
+                    <UserCircle className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
+                    <p className="text-zinc-500 text-sm">No se encontraron usuarios</p>
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={user.id} className="hover:bg-zinc-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-accent/20 rounded-full flex items-center justify-center">
@@ -230,11 +230,11 @@ export function UsersTable({
                             {getInitials(user.fullName)}
                           </span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{user.fullName}</span>
+                        <span className="text-sm font-medium text-zinc-900">{user.fullName}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">{user.email}</span>
+                      <span className="text-sm text-zinc-600">{user.email}</span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
@@ -252,7 +252,7 @@ export function UsersTable({
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-zinc-500">
                         {formatDateTime(user.createdAt)}
                       </span>
                     </td>
@@ -260,21 +260,21 @@ export function UsersTable({
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleChangeRoleClick(user)}
-                          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          className="p-2 text-zinc-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                           title="Cambiar rol"
                         >
                           <Shield className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleEditUser(user)}
-                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                          className="p-2 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                           title="Editar"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(user)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -290,8 +290,8 @@ export function UsersTable({
 
         {/* Paginación */}
         {(totalItems ?? filteredUsers.length) > 0 && (
-          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
-            <p className="text-sm text-gray-500">
+          <div className="flex items-center justify-between px-6 py-3 border-t border-zinc-200 bg-zinc-50">
+            <p className="text-sm text-zinc-500">
               {(() => {
                 const total = totalItems ?? filteredUsers.length;
                 const from = total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
@@ -303,14 +303,14 @@ export function UsersTable({
               <button
                 onClick={() => handlePageChange(1)}
                 disabled={currentPage <= 1}
-                className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-2.5 py-1.5 text-xs rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 «
               </button>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -325,7 +325,7 @@ export function UsersTable({
                 }, [])
                 .map((p, i) =>
                   p === '...' ? (
-                    <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-gray-400">…</span>
+                    <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-zinc-400">…</span>
                   ) : (
                     <button
                       key={p}
@@ -333,7 +333,7 @@ export function UsersTable({
                       className={`min-w-[32px] px-2.5 py-1.5 text-xs rounded-lg border transition-colors ${
                         p === currentPage
                           ? 'border-primary bg-primary text-white font-semibold'
-                          : 'border-gray-200 hover:bg-white text-gray-600'
+                          : 'border-zinc-200 hover:bg-white text-zinc-600'
                       }`}
                     >
                       {p}
@@ -344,14 +344,14 @@ export function UsersTable({
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage >= totalPages}
-                className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-2.5 py-1.5 text-xs rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 »
               </button>

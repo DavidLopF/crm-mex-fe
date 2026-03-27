@@ -195,12 +195,12 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* ═══ Panel Derecho – Formulario ═══ */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-zinc-50">
         <div className="w-full max-w-md animate-slideUp">
           {/* Back link */}
           <Link
             href="/forgot-password"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-8"
+            className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
             Cambiar correo electrónico
@@ -212,10 +212,10 @@ export default function ResetPasswordPage() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-zinc-900 tracking-tight mb-2">
                 ¡Contraseña restablecida!
               </h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-zinc-500 mb-4">
                 Tu contraseña se ha cambiado exitosamente. Redirigiendo al inicio de sesión...
               </p>
               <div className="w-8 h-1 bg-green-500 rounded-full mx-auto animate-pulse" />
@@ -224,12 +224,12 @@ export default function ResetPasswordPage() {
             <>
               {/* Header */}
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-zinc-900 tracking-tight mb-2">
                   Restablecer contraseña
                 </h2>
-                <p className="text-gray-500 text-sm">
+                <p className="text-zinc-500 text-sm">
                   Enviamos un código de verificación a{' '}
-                  <span className="font-medium text-gray-700">{email}</span>
+                  <span className="font-medium text-zinc-700">{email}</span>
                 </p>
               </div>
 
@@ -244,7 +244,7 @@ export default function ResetPasswordPage() {
 
                 {/* Code Input */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700 block">
+                  <label className="text-sm font-medium text-zinc-700 block">
                     Código de verificación
                   </label>
                   <div className="flex gap-2 justify-between">
@@ -259,7 +259,7 @@ export default function ResetPasswordPage() {
                         onChange={(e) => handleCodeChange(i, e.target.value)}
                         onKeyDown={(e) => handleCodeKeyDown(i, e)}
                         onFocus={(e) => e.target.select()}
-                        className="w-12 h-14 text-center text-xl font-bold bg-white border border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                        className="w-12 h-14 text-center text-xl font-bold bg-white border border-zinc-200 rounded-xl text-zinc-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-zinc-300"
                       />
                     ))}
                   </div>
@@ -267,24 +267,24 @@ export default function ResetPasswordPage() {
 
                 {/* New Password */}
                 <div className="space-y-1.5">
-                  <label htmlFor="newPassword" className="text-sm font-medium text-gray-700 block">
+                  <label htmlFor="newPassword" className="text-sm font-medium text-zinc-700 block">
                     Nueva contraseña
                   </label>
                   <div className="relative group">
-                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400 transition-colors group-focus-within:text-blue-600" />
+                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-400 transition-colors group-focus-within:text-blue-600" />
                     <input
                       id="newPassword"
                       type={showPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Tu nueva contraseña"
-                      className="w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                      className="w-full pl-11 pr-11 py-3 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-zinc-300"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                     </button>
@@ -293,24 +293,24 @@ export default function ResetPasswordPage() {
 
                 {/* Confirm Password */}
                 <div className="space-y-1.5">
-                  <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 block">
+                  <label htmlFor="confirmPassword" className="text-sm font-medium text-zinc-700 block">
                     Confirmar contraseña
                   </label>
                   <div className="relative group">
-                    <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400 transition-colors group-focus-within:text-blue-600" />
+                    <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-400 transition-colors group-focus-within:text-blue-600" />
                     <input
                       id="confirmPassword"
                       type={showConfirm ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Repite tu nueva contraseña"
-                      className="w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
+                      className="w-full pl-11 pr-11 py-3 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-zinc-300"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
                       tabIndex={-1}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
                     >
                       {showConfirm ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                     </button>
@@ -324,12 +324,12 @@ export default function ResetPasswordPage() {
                       <div
                         key={check.label}
                         className={`flex items-center gap-2 text-xs transition-colors ${
-                          check.ok ? 'text-green-600' : 'text-gray-400'
+                          check.ok ? 'text-green-600' : 'text-zinc-400'
                         }`}
                       >
                         <CheckCircle2
                           className={`w-3.5 h-3.5 transition-all ${
-                            check.ok ? 'text-green-500 scale-100' : 'text-gray-300 scale-90'
+                            check.ok ? 'text-green-500 scale-100' : 'text-zinc-300 scale-90'
                           }`}
                         />
                         {check.label}
@@ -366,7 +366,7 @@ export default function ResetPasswordPage() {
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-zinc-400">
               © {new Date().getFullYear()} {settings.companyName}. Todos los derechos reservados.
             </p>
           </div>

@@ -94,13 +94,13 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
         <div id="remision-print" className="p-6">
           {/* Header de remisión */}
           <div className="text-center border-b pb-4 mb-4">
-            <h2 className="text-xl font-bold text-gray-900">NOTA DE VENTA</h2>
+            <h2 className="text-xl font-semibold text-zinc-900 tracking-tight">NOTA DE VENTA</h2>
             {/* Código con botón copiar */}
             <div className="flex items-center justify-center gap-2 mt-1">
               <p className="text-lg font-mono text-primary">{sale.code}</p>
               <button
                 onClick={handleCopyCode}
-                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary transition-colors print:hidden"
+                className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-primary transition-colors print:hidden"
                 title="Copiar código"
                 type="button"
               >
@@ -110,17 +110,17 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
                 }
               </button>
             </div>
-            <p className="text-sm text-gray-500 mt-1">{formatDate(sale.createdAt)}</p>
+            <p className="text-sm text-zinc-500">{formatDate(sale.createdAt)}</p>
           </div>
 
           {/* Info cliente / vendedor */}
           <div className="grid grid-cols-2 gap-4 text-sm mb-4">
             <div>
-              <p className="text-gray-500">Cliente</p>
+              <p className="text-zinc-500">Cliente</p>
               <p className="font-medium">{sale.clientName || 'Público general'}</p>
             </div>
             <div>
-              <p className="text-gray-500">Vendedor</p>
+              <p className="text-zinc-500">Vendedor</p>
               <p className="font-medium">{sale.sellerName || '—'}</p>
             </div>
           </div>
@@ -128,20 +128,20 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
           {/* Tabla de items */}
           <table className="w-full text-sm mb-4">
             <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="text-left py-2 text-gray-500">Producto</th>
-                <th className="text-center py-2 text-gray-500 w-16">Cant.</th>
-                <th className="text-right py-2 text-gray-500 w-24">P. Unit.</th>
-                <th className="text-right py-2 text-gray-500 w-28">Subtotal</th>
+              <tr className="border-b-2 border-zinc-200">
+                <th className="text-left py-2 text-zinc-500">Producto</th>
+                <th className="text-center py-2 text-zinc-500 w-16">Cant.</th>
+                <th className="text-right py-2 text-zinc-500 w-24">P. Unit.</th>
+                <th className="text-right py-2 text-zinc-500 w-28">Subtotal</th>
               </tr>
             </thead>
             <tbody>
               {sale.items.map((item) => (
-                <tr key={item.id} className="border-b border-gray-100">
+                <tr key={item.id} className="border-b border-zinc-100">
                   <td className="py-2">
-                    <p className="font-medium text-gray-900">{item.productName}</p>
+                    <p className="font-medium text-zinc-900">{item.productName}</p>
                     {item.variantName && (
-                      <p className="text-xs text-gray-400">{item.variantName}</p>
+                      <p className="text-xs text-zinc-400">{item.variantName}</p>
                     )}
                     {item.appliedTierLabel && (
                       <p className="text-[10px] text-green-600">{item.appliedTierLabel}</p>
@@ -156,28 +156,28 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
           </table>
 
           {/* Total (con desglose IVA si aplica) */}
-          <div className="border-t-2 border-gray-900 pt-3 space-y-1">
+          <div className="border-t-2 border-zinc-900 pt-3 space-y-1">
             {sale.taxAmount > 0 && (
               <>
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center justify-between text-sm text-zinc-600">
                   <span>Subtotal</span>
                   <span>{formatPrice(sale.subtotal)}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center justify-between text-sm text-zinc-600">
                   <span>IVA ({Math.round(sale.taxRate * 100)}%)</span>
                   <span>{formatPrice(sale.taxAmount)}</span>
                 </div>
               </>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-gray-900">TOTAL</span>
-              <span className="text-2xl font-bold text-gray-900">{formatPrice(sale.total)}</span>
+              <span className="text-lg font-bold text-zinc-900">TOTAL</span>
+              <span className="text-2xl font-bold text-zinc-900 tracking-tight">{formatPrice(sale.total)}</span>
             </div>
           </div>
 
           {/* Notas */}
           {sale.notes && (
-            <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-500">
+            <div className="mt-3 p-2 bg-zinc-50 rounded text-xs text-zinc-500">
               Notas: {sale.notes}
             </div>
           )}
@@ -219,7 +219,7 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
         </div>
 
         {/* Acciones (no se imprimen) */}
-        <div className="px-6 py-4 border-t border-gray-200 flex flex-wrap gap-2 print:hidden">
+        <div className="px-6 py-4 border-t border-zinc-200 flex flex-wrap gap-2 print:hidden">
           <Button
             className="flex items-center gap-2"
             onClick={handlePrint}
@@ -299,7 +299,7 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
           )}
 
           <Button
-            className="ml-auto bg-gray-200 text-gray-700 hover:bg-gray-300"
+            className="ml-auto bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
             onClick={() => onClose(sale.statusCode !== 'PENDIENTE')}
           >
             Cerrar

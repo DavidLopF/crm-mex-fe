@@ -38,8 +38,8 @@ export default function ReportesPage() {
             <Package className="w-5 h-5" style={{ color: primaryColor }} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reportes</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Reportes</h1>
+            <p className="text-sm text-zinc-500">
               Análisis de ventas e inventario
             </p>
           </div>
@@ -55,7 +55,7 @@ export default function ReportesPage() {
                 key={mod.href}
                 href={mod.href}
                 className={`group bg-white rounded-2xl border p-6 flex gap-4 items-start hover:shadow-md transition-all ${
-                  isActive ? 'border-2' : 'border-gray-200 hover:border-gray-300'
+                  isActive ? 'border-2' : 'border-zinc-200 hover:border-zinc-300'
                 }`}
                 style={isActive ? { borderColor: primaryColor } : {}}
               >
@@ -66,10 +66,10 @@ export default function ReportesPage() {
                   <Icon className="w-6 h-6" style={{ color: primaryColor }} />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
+                  <h2 className="text-base font-semibold text-zinc-900 group-hover:text-zinc-700 transition-colors">
                     {mod.label}
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                  <p className="text-sm text-zinc-500 leading-relaxed">
                     {mod.description}
                   </p>
                 </div>

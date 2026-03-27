@@ -28,7 +28,7 @@ import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 import { ROUTE_TO_MODULE } from '@/lib/hooks';
 
-// ─── Tipos de navegación ──────────────────────────────────────────────────────
+/* ─── Nav types ─── */
 
 interface NavChild {
   name: string;
@@ -41,50 +41,46 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   children?: NavChild[];
+  dividerBefore?: boolean;
 }
 
-// ─── Árbol de navegación ──────────────────────────────────────────────────────
+/* ─── Navigation tree ─── */
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  {
-    name: 'Inventario',
-    href: '/inventario',
-    icon: Package,
+  { name: 'Dashboard',           href: '/',                   icon: LayoutDashboard },
+  { name: 'Inventario',          href: '/inventario',         icon: Package,
     children: [
-      { name: 'Productos', href: '/inventario', icon: Package },
-      { name: 'Almacenes', href: '/inventario/almacenes', icon: Warehouse },
+      { name: 'Productos',        href: '/inventario',         icon: Package },
+      { name: 'Almacenes',        href: '/inventario/almacenes', icon: Warehouse },
     ],
   },
-  { name: 'Pedidos', href: '/pedidos', icon: ShoppingCart },
-  { name: 'Clientes', href: '/clientes', icon: Users },
-  { name: 'Proveedores', href: '/proveedores', icon: Truck },
-  { name: 'Punto de Venta', href: '/pos', icon: Store },
-  { name: 'Precios por Volumen', href: '/pos/precios', icon: Layers },
-  { name: 'Reportes POS', href: '/pos/reportes', icon: BarChart3 },
-  {
-    name: 'Reportes',
-    href: '/reportes',
-    icon: FileBarChart2,
+  { name: 'Pedidos',             href: '/pedidos',            icon: ShoppingCart },
+  { name: 'Clientes',            href: '/clientes',           icon: Users },
+  { name: 'Proveedores',         href: '/proveedores',        icon: Truck },
+  { name: 'Facturación',         href: '/facturacion',        icon: FileBarChart2 },
+  { name: 'Punto de Venta',      href: '/pos',                icon: Store,        dividerBefore: true },
+  { name: 'Precios por Volumen', href: '/pos/precios',        icon: Layers },
+  { name: 'Reportes POS',        href: '/pos/reportes',       icon: BarChart3 },
+  { name: 'Reportes',            href: '/reportes',           icon: FileBarChart2, dividerBefore: true,
     children: [
       { name: 'Ventas por Producto', href: '/reportes/ventas-producto', icon: BarChart2 },
-      { name: 'Kárdex', href: '/reportes/kardex', icon: ClipboardList },
+      { name: 'Kárdex',              href: '/reportes/kardex',           icon: ClipboardList },
     ],
   },
-  { name: 'Configuración', href: '/configuracion', icon: Settings },
+  { name: 'Configuración',       href: '/configuracion',      icon: Settings },
 ];
 
-// ─── Props del sidebar ────────────────────────────────────────────────────────
+/* ─── Props ─── */
 
 interface SidebarProps {
   collapsed: boolean;
-  onCollapsedChange: (value: boolean) => void;
+  onCollapsedChange: (v: boolean) => void;
   isMobile?: boolean;
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
 
-// ─── Componente ───────────────────────────────────────────────────────────────
+/* ─── Component ─── */
 
 export function Sidebar({
   collapsed,
@@ -98,15 +94,12 @@ export function Sidebar({
   const { settings } = useCompany();
   const { logout, can, permissions } = useAuth();
 
-  // Determinar qué grupos están abiertos; auto-abrir si la ruta actual coincide
   const getInitialOpen = () => {
-    const set = new Set<string>();
+    const s = new Set<string>();
     for (const item of navigation) {
-      if (item.children?.some((c) => pathname.startsWith(c.href))) {
-        set.add(item.href);
-      }
+      if (item.children?.some((c) => pathname.startsWith(c.href))) s.add(item.href);
     }
-    return set;
+    return s;
   };
 
   const [openGroups, setOpenGroups] = useState<Set<string>>(getInitialOpen);
@@ -114,7 +107,6 @@ export function Sidebar({
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
-  // Auto-abrir grupo si la ruta cambia y coincide con algún hijo
   useEffect(() => {
     for (const item of navigation) {
       if (item.children?.some((c) => pathname.startsWith(c.href))) {
@@ -126,263 +118,230 @@ export function Sidebar({
     }
   }, [pathname]);
 
-  function toggleGroup(href: string) {
+  const toggleGroup = (href: string) => {
     setOpenGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(href)) next.delete(href);
-      else next.add(href);
+      next.has(href) ? next.delete(href) : next.add(href);
       return next;
     });
-  }
+  };
 
-  // Filtrado por permisos (igual que antes)
-  const visibleNavigation = navigation.filter((item) => {
+  const visibleNav = navigation.filter((item) => {
     if (!mounted) return true;
-    const moduleCode = ROUTE_TO_MODULE[item.href];
-    if (!moduleCode) return true;
-    const modulePermission = permissions.find((p) => p.moduleCode === moduleCode);
-    if (!modulePermission) return true;
-    return can(moduleCode, 'canView');
+    const code = ROUTE_TO_MODULE[item.href];
+    if (!code) return true;
+    const p = permissions.find((p) => p.moduleCode === code);
+    if (!p) return true;
+    return can(code, 'canView');
   });
 
-  const primaryColor = settings.primaryColor;
+  const primary = settings.primaryColor ?? '#2563eb';
+  const isExpanded = isMobile || !collapsed;
+
+  /* ── Helper: nav link styles ── */
+  const linkBase = 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150';
+
+  /** Tonal active treatment: semi-transparent background + left accent border */
+  const activeStyle = {
+    backgroundColor: `${primary}18`,
+    color: primary,
+    boxShadow: `inset 3px 0 0 0 ${primary}`,
+  };
+
+  const inactiveClass = 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900';
+
+  /** Small tonal dot shown next to the active module name */
+  const TonalDot = () => (
+    <span
+      className="ml-auto flex-shrink-0 w-1.5 h-1.5 rounded-full opacity-80"
+      style={{ backgroundColor: primary }}
+    />
+  );
 
   return (
     <>
+      {/* Mobile overlay */}
       {isMobile && mobileOpen && (
-        <button
-          type="button"
-          aria-label="Cerrar menú"
+        <div
+          className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm"
           onClick={onMobileClose}
-          className="fixed inset-0 z-[70] bg-black/30"
         />
       )}
 
       <aside
         className={cn(
-          'fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300',
+          'fixed left-0 top-0 h-screen bg-white border-r border-zinc-200/80 flex flex-col transition-all duration-300 ease-in-out',
           isMobile
-            ? cn('z-[80] w-72', mobileOpen ? 'translate-x-0' : '-translate-x-full')
-            : cn('z-40', collapsed ? 'w-20' : 'w-64')
+            ? cn('z-[80] w-72 shadow-2xl', mobileOpen ? 'translate-x-0' : '-translate-x-full')
+            : cn('z-40', collapsed ? 'w-[72px]' : 'w-64')
         )}
       >
-        <div className="flex h-full flex-col">
-          {/* Header */}
-          <div
+
+        {/* ── Logo / Header ── */}
+        <div className={cn(
+          'flex items-center h-16 border-b border-zinc-100 flex-shrink-0 px-3',
+          isExpanded ? 'justify-between gap-2' : 'justify-center'
+        )}>
+          {isExpanded ? (
+            <Link href="/" className="flex items-center gap-2.5 min-w-0">
+              {/* Brand icon — square with rounded corners using primary color */}
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
+                style={{ backgroundColor: primary }}
+              >
+                {settings.logoUrl ? (
+                  <img src={settings.logoUrl} alt={settings.companyName} className="w-full h-full object-contain rounded-lg" />
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="1" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.9"/>
+                    <rect x="9.5" y="1" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.9"/>
+                    <rect x="1" y="9.5" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.9"/>
+                    <rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.6"/>
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-bold text-zinc-900 tracking-tight truncate">
+                {settings.companyName || 'CRM'}
+              </span>
+            </Link>
+          ) : (
+            <Link href="/" className="flex items-center justify-center">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm"
+                style={{ backgroundColor: primary }}
+              >
+                {settings.logoUrl ? (
+                  <img src={settings.logoUrl} alt={settings.companyName} className="w-full h-full object-contain rounded-lg" />
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="1" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.9"/>
+                    <rect x="9.5" y="1" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.9"/>
+                    <rect x="1" y="9.5" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.9"/>
+                    <rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1.25" fill="white" fillOpacity="0.6"/>
+                  </svg>
+                )}
+              </div>
+            </Link>
+          )}
+
+          {/* Collapse toggle */}
+          <button
+            onClick={() => isMobile ? onMobileClose?.() : onCollapsedChange(!collapsed)}
+            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+            aria-label={isMobile ? 'Cerrar menú' : collapsed ? 'Expandir menú' : 'Colapsar menú'}
+          >
+            {isMobile ? <X className="w-4 h-4" /> : collapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {/* ── Navigation ── */}
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+          {visibleNav.map((item) => {
+            const hasChildren = !!item.children?.length;
+            const isGroupOpen = openGroups.has(item.href);
+            const isGroupActive = pathname === item.href || item.children?.some((c) => pathname.startsWith(c.href));
+
+            /* Divider */
+            const divider = item.dividerBefore && isExpanded ? (
+              <div key={`div-${item.href}`} className="my-2 mx-3 border-t border-zinc-100" />
+            ) : null;
+
+            /* Group (with children) */
+            if (hasChildren) {
+              return (
+                <div key={item.href}>
+                  {divider}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isMobile && collapsed) {
+                        onCollapsedChange(false);
+                        setOpenGroups((p) => new Set([...p, item.href]));
+                        return;
+                      }
+                      toggleGroup(item.href);
+                    }}
+                    className={cn(
+                      linkBase, 'w-full',
+                      !isExpanded && 'justify-center px-0 py-2',
+                      isGroupActive ? '' : inactiveClass
+                    )}
+                    style={isGroupActive ? activeStyle : undefined}
+                  >
+                    <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                    {isExpanded && (
+                      <>
+                        <span className="flex-1 text-left">{item.name}</span>
+                        {isGroupActive && <TonalDot />}
+                        <ChevronRight
+                          className={cn('w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200', isGroupOpen && 'rotate-90')}
+                          style={{ opacity: 0.6 }}
+                        />
+                      </>
+                    )}
+                  </button>
+
+                  {/* Children */}
+                  {isExpanded && isGroupOpen && (
+                    <div className="mt-0.5 ml-3 pl-3 border-l border-zinc-200 space-y-0.5">
+                      {item.children!.map((child) => {
+                        const isActive = pathname === child.href;
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => isMobile && onMobileClose?.()}
+                            className={cn('flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-all duration-150', isActive ? '' : inactiveClass)}
+                            style={isActive ? activeStyle : undefined}
+                          >
+                            <child.icon className="w-4 h-4 flex-shrink-0" />
+                            <span className="flex-1">{child.name}</span>
+                            {isActive && <TonalDot />}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            /* Leaf item */
+            const isActive = pathname === item.href;
+            return (
+              <div key={item.href}>
+                {divider}
+                <Link
+                  href={item.href}
+                  onClick={() => isMobile && onMobileClose?.()}
+                  className={cn(
+                    linkBase,
+                    !isExpanded && 'justify-center px-0 py-2',
+                    isActive ? '' : inactiveClass
+                  )}
+                  style={isActive ? activeStyle : undefined}
+                >
+                  <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                  {isExpanded && <span className="flex-1">{item.name}</span>}
+                  {isExpanded && isActive && <TonalDot />}
+                </Link>
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* ── Logout ── */}
+        <div className="flex-shrink-0 p-2 border-t border-zinc-100">
+          <button
+            onClick={() => { if (isMobile) onMobileClose?.(); logout(); }}
             className={cn(
-              'flex items-center h-16 px-4 border-b border-gray-200',
-              isMobile || !collapsed ? 'justify-between' : 'justify-center'
+              linkBase, 'w-full text-zinc-500 hover:bg-red-50 hover:text-red-600',
+              !isExpanded && 'justify-center px-0 py-2'
             )}
           >
-            {(isMobile || !collapsed) && (
-              <Link href="/" className="flex items-center gap-2">
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
-                  style={settings.logoUrl ? undefined : { backgroundColor: primaryColor }}
-                >
-                  {settings.logoUrl ? (
-                    <img
-                      src={settings.logoUrl}
-                      alt={settings.companyName}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <Package className="w-5 h-5 text-white" />
-                  )}
-                </div>
-                <span className="text-xl font-bold text-gray-900">
-                  {settings.companyName}
-                </span>
-              </Link>
-            )}
-            {!isMobile && collapsed && (
-              <Link href="/" className="flex items-center justify-center">
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
-                  style={settings.logoUrl ? undefined : { backgroundColor: primaryColor }}
-                >
-                  {settings.logoUrl ? (
-                    <img
-                      src={settings.logoUrl}
-                      alt={settings.companyName}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <Package className="w-5 h-5 text-white" />
-                  )}
-                </div>
-              </Link>
-            )}
-            <button
-              onClick={() => {
-                if (isMobile) {
-                  onMobileClose?.();
-                  return;
-                }
-                onCollapsedChange(!collapsed);
-              }}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label={isMobile ? 'Cerrar menú' : 'Colapsar menú'}
-            >
-              {isMobile ? (
-                <X className="w-5 h-5 text-gray-600" />
-              ) : collapsed ? (
-                <Menu className="w-5 h-5 text-gray-600" />
-              ) : (
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-          </div>
-
-          {/* Navegación */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            {visibleNavigation.map((item) => {
-              const hasChildren = item.children && item.children.length > 0;
-              const isGroupOpen = openGroups.has(item.href);
-
-              // ── Ítem padre con hijos ─────────────────────────────────────
-              if (hasChildren) {
-                const isGroupActive =
-                  pathname === item.href ||
-                  item.children!.some((c) => pathname.startsWith(c.href));
-
-                return (
-                  <div key={item.href}>
-                    {/* Botón del grupo */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Si el sidebar está colapsado, expandirlo primero
-                        if (!isMobile && collapsed) {
-                          onCollapsedChange(false);
-                          setOpenGroups((prev) => new Set([...prev, item.href]));
-                          return;
-                        }
-                        toggleGroup(item.href);
-                      }}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                        isGroupActive
-                          ? 'font-semibold'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-                        !isMobile && collapsed && 'justify-center'
-                      )}
-                      style={
-                        isGroupActive
-                          ? { backgroundColor: primaryColor + '12', color: primaryColor }
-                          : undefined
-                      }
-                    >
-                      <item.icon
-                        className="w-5 h-5 flex-shrink-0"
-                        style={isGroupActive ? { color: primaryColor } : undefined}
-                      />
-                      {(isMobile || !collapsed) && (
-                        <>
-                          <span className="flex-1 text-left font-medium">
-                            {item.name}
-                          </span>
-                          <ChevronRight
-                            className={cn(
-                              'w-4 h-4 transition-transform duration-200',
-                              isGroupOpen && 'rotate-90'
-                            )}
-                            style={isGroupActive ? { color: primaryColor } : { color: '#9CA3AF' }}
-                          />
-                        </>
-                      )}
-                    </button>
-
-                    {/* Sub-ítems */}
-                    {(isMobile || !collapsed) && isGroupOpen && (
-                      <div className="mt-1 ml-3 pl-3 border-l-2 border-gray-100 space-y-0.5">
-                        {item.children!.map((child) => {
-                          const isChildActive = pathname === child.href;
-                          return (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              onClick={() => {
-                                if (isMobile) onMobileClose?.();
-                              }}
-                              className={cn(
-                                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
-                                isChildActive
-                                  ? 'font-semibold'
-                                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
-                              )}
-                              style={
-                                isChildActive
-                                  ? { backgroundColor: primaryColor + '12', color: primaryColor }
-                                  : undefined
-                              }
-                            >
-                              <child.icon
-                                className="w-4 h-4 flex-shrink-0"
-                                style={isChildActive ? { color: primaryColor } : undefined}
-                              />
-                              <span>{child.name}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              // ── Ítem normal (sin hijos) ──────────────────────────────────
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => {
-                    if (isMobile) onMobileClose?.();
-                  }}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                    isActive
-                      ? 'font-semibold'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-                    !isMobile && collapsed && 'justify-center'
-                  )}
-                  style={
-                    isActive
-                      ? { backgroundColor: primaryColor + '15', color: primaryColor }
-                      : undefined
-                  }
-                >
-                  <item.icon
-                    className="w-5 h-5 flex-shrink-0"
-                    style={isActive ? { color: primaryColor } : undefined}
-                  />
-                  {(isMobile || !collapsed) && (
-                    <span className="font-medium">{item.name}</span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Footer: cerrar sesión */}
-          <div className="p-3 border-t border-gray-200">
-            <button
-              onClick={() => {
-                if (isMobile) onMobileClose?.();
-                logout();
-              }}
-              className={cn(
-                'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors',
-                !isMobile && collapsed && 'justify-center'
-              )}
-            >
-              <LogOut className="w-5 h-5 flex-shrink-0" />
-              {(isMobile || !collapsed) && (
-                <span className="font-medium">Cerrar sesión</span>
-              )}
-            </button>
-          </div>
+            <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+            {isExpanded && <span>Cerrar sesión</span>}
+          </button>
         </div>
       </aside>
     </>

@@ -157,21 +157,21 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
     <div className="max-w-3xl space-y-8">
 
       {/* ─── Logo de la empresa ─────────────────────────────────── */}
-      <section className="bg-white rounded-lg border border-gray-200 p-6">
+      <section className="bg-white rounded-lg border border-zinc-200 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <ImageIcon className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-zinc-100 rounded-lg flex items-center justify-center">
+            <ImageIcon className="w-5 h-5 text-zinc-600" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Logo de la empresa</h3>
-            <p className="text-sm text-gray-500">Aparecerá en la barra lateral en lugar del ícono por defecto</p>
+            <h3 className="text-base font-semibold text-zinc-900">Logo de la empresa</h3>
+            <p className="text-sm text-zinc-500">Aparecerá en la barra lateral en lugar del ícono por defecto</p>
           </div>
         </div>
 
         <div className="flex items-start gap-6">
           {/* Preview actual */}
           <div className="flex-shrink-0">
-            <div className="w-24 h-24 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden">
+            <div className="w-24 h-24 rounded-xl border-2 border-dashed border-zinc-200 flex items-center justify-center bg-zinc-50 overflow-hidden">
               {currentLogoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -190,7 +190,7 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-400 text-center mt-1.5">Vista previa</p>
+            <p className="text-xs text-zinc-400 text-center mt-1.5">Vista previa</p>
           </div>
 
           {/* Zona de upload */}
@@ -199,13 +199,13 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-200 rounded-lg p-5 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-colors"
+              className="border-2 border-dashed border-zinc-200 rounded-lg p-5 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-colors"
             >
-              <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 font-medium">
+              <Upload className="w-6 h-6 text-zinc-400 mx-auto mb-2" />
+              <p className="text-sm text-zinc-600 font-medium">
                 Arrastra tu logo aquí o haz clic para seleccionar
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-zinc-400 mt-1">
                 JPG, PNG, WebP, SVG · máx. {MAX_FILE_SIZE_MB} MB
               </p>
             </div>
@@ -249,14 +249,14 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
       </section>
 
       {/* ─── Nombre de la empresa ───────────────────────────────── */}
-      <section className="bg-white rounded-lg border border-gray-200 p-6">
+      <section className="bg-white rounded-lg border border-zinc-200 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-zinc-100 rounded-lg flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-zinc-600" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Nombre de la empresa</h3>
-            <p className="text-sm text-gray-500">Este nombre aparecerá en la barra lateral de navegación</p>
+            <h3 className="text-base font-semibold text-zinc-900">Nombre de la empresa</h3>
+            <p className="text-sm text-zinc-500">Este nombre aparecerá en la barra lateral de navegación</p>
           </div>
         </div>
 
@@ -265,80 +265,80 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
           placeholder="Nombre de tu empresa"
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium"
+          className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium"
           maxLength={30}
         />
-        <p className="mt-1.5 text-xs text-gray-400">{companyName.length}/30 caracteres</p>
+        <p className="mt-1.5 text-xs text-zinc-400">{companyName.length}/30 caracteres</p>
       </section>
 
       {/* ─── Colores del tema ───────────────────────────────────── */}
-      <section className="bg-white rounded-lg border border-gray-200 p-6">
+      <section className="bg-white rounded-lg border border-zinc-200 p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <Palette className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-zinc-100 rounded-lg flex items-center justify-center">
+            <Palette className="w-5 h-5 text-zinc-600" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">Colores del tema</h3>
-            <p className="text-sm text-gray-500">Personaliza los colores principales del CRM</p>
+            <h3 className="text-base font-semibold text-zinc-900">Colores del tema</h3>
+            <p className="text-sm text-zinc-500">Personaliza los colores principales del CRM</p>
           </div>
         </div>
 
         {/* Color pickers */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Color principal</label>
+            <label className="block text-sm font-medium text-zinc-700 mb-2">Color principal</label>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <input
                   type="color"
                   value={primaryColor}
                   onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="w-12 h-12 rounded-lg border border-gray-200 cursor-pointer p-1"
+                  className="w-12 h-12 rounded-lg border border-zinc-200 cursor-pointer p-1"
                 />
               </div>
               <input
                 type="text"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm uppercase"
+                className="flex-1 px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm uppercase"
                 maxLength={7}
               />
             </div>
-            <p className="mt-1 text-xs text-gray-400">Botones, enlaces activos, iconos principales</p>
+            <p className="mt-1 text-xs text-zinc-400">Botones, enlaces activos, iconos principales</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Color de acento</label>
+            <label className="block text-sm font-medium text-zinc-700 mb-2">Color de acento</label>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <input
                   type="color"
                   value={accentColor}
                   onChange={(e) => setAccentColor(e.target.value)}
-                  className="w-12 h-12 rounded-lg border border-gray-200 cursor-pointer p-1"
+                  className="w-12 h-12 rounded-lg border border-zinc-200 cursor-pointer p-1"
                 />
               </div>
               <input
                 type="text"
                 value={accentColor}
                 onChange={(e) => setAccentColor(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm uppercase"
+                className="flex-1 px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm uppercase"
                 maxLength={7}
               />
             </div>
-            <p className="mt-1 text-xs text-gray-400">Fondos de avatares, badges, elementos secundarios</p>
+            <p className="mt-1 text-xs text-zinc-400">Fondos de avatares, badges, elementos secundarios</p>
           </div>
         </div>
 
         {/* Presets */}
         <div className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">Temas rápidos</p>
+          <p className="text-sm font-medium text-zinc-700 mb-3">Temas rápidos</p>
           <div className="flex flex-wrap gap-2">
             {COLOR_PRESETS.map((preset) => (
               <button
                 key={preset.name}
                 onClick={() => handlePresetClick(preset)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 hover:border-gray-400 transition-colors text-xs font-medium text-gray-700"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-zinc-200 hover:border-zinc-400 transition-colors text-xs font-medium text-zinc-700"
                 title={preset.name}
               >
                 <span
@@ -352,16 +352,16 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
         </div>
 
         {/* Preview */}
-        <div className="border border-gray-200 rounded-lg p-4">
+        <div className="border border-zinc-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-4">
-            <Eye className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Vista previa</span>
+            <Eye className="w-4 h-4 text-zinc-500" />
+            <span className="text-sm font-medium text-zinc-700">Vista previa</span>
           </div>
 
           <div className="flex gap-4">
             {/* Mini sidebar preview */}
-            <div className="w-48 bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
+            <div className="w-48 bg-white border border-zinc-200 rounded-lg overflow-hidden">
+              <div className="px-3 py-2.5 border-b border-zinc-100 flex items-center gap-2">
                 {/* Logo o inicial */}
                 {currentLogoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -380,7 +380,7 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
                     </span>
                   </div>
                 )}
-                <span className="text-sm font-bold text-gray-900 truncate">
+                <span className="text-sm font-bold text-zinc-900 truncate">
                   {companyName || 'CRM'}
                 </span>
               </div>
@@ -392,12 +392,12 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
                   <div className="w-3.5 h-3.5 rounded" style={{ backgroundColor: primaryColor }} />
                   Dashboard
                 </div>
-                <div className="flex items-center gap-2 px-2 py-1.5 rounded text-xs text-gray-500">
-                  <div className="w-3.5 h-3.5 rounded bg-gray-200" />
+                <div className="flex items-center gap-2 px-2 py-1.5 rounded text-xs text-zinc-500">
+                  <div className="w-3.5 h-3.5 rounded bg-zinc-200" />
                   Inventario
                 </div>
-                <div className="flex items-center gap-2 px-2 py-1.5 rounded text-xs text-gray-500">
-                  <div className="w-3.5 h-3.5 rounded bg-gray-200" />
+                <div className="flex items-center gap-2 px-2 py-1.5 rounded text-xs text-zinc-500">
+                  <div className="w-3.5 h-3.5 rounded bg-zinc-200" />
                   Pedidos
                 </div>
               </div>
@@ -413,8 +413,8 @@ export function CompanySettingsForm({ settings, onSave, submitting }: CompanySet
                   <span className="text-white text-xs font-bold">A</span>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-900">Admin</p>
-                  <p className="text-[10px] text-gray-400">Administrador</p>
+                  <p className="text-xs font-medium text-zinc-900">Admin</p>
+                  <p className="text-[10px] text-zinc-400">Administrador</p>
                 </div>
               </div>
 

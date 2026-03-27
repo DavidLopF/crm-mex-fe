@@ -154,7 +154,7 @@ export function BulkPriceUpdateModal({ isOpen, onClose, onConfirm }: BulkPriceUp
         {step === 'upload' && (
           <>
             <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-zinc-500">
                 Sube un archivo Excel con las columnas: <strong>SKU</strong>, <strong>Precio</strong> y opcionalmente <strong>Costo</strong>.
               </p>
               <Button variant="outline" size="sm" onClick={downloadTemplate} className="flex items-center gap-1.5 whitespace-nowrap">
@@ -167,11 +167,11 @@ export function BulkPriceUpdateModal({ isOpen, onClose, onConfirm }: BulkPriceUp
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
               onClick={() => inputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+              className="border-2 border-dashed border-zinc-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
             >
-              <FileSpreadsheet className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-700">Arrastra tu archivo aquí o haz clic para seleccionar</p>
-              <p className="text-xs text-gray-400 mt-1">Formatos soportados: .xlsx, .xls</p>
+              <FileSpreadsheet className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
+              <p className="text-sm font-medium text-zinc-700">Arrastra tu archivo aquí o haz clic para seleccionar</p>
+              <p className="text-xs text-zinc-400 mt-1">Formatos soportados: .xlsx, .xls</p>
               <input
                 ref={inputRef}
                 type="file"
@@ -204,24 +204,24 @@ export function BulkPriceUpdateModal({ isOpen, onClose, onConfirm }: BulkPriceUp
               )}
             </div>
 
-            <div className="border border-gray-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
+            <div className="border border-zinc-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 sticky top-0">
+                <thead className="bg-zinc-50 sticky top-0">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">#</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">SKU</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Precio</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Costo</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">SKU</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">Precio</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">Costo</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-zinc-100">
                   {rows.map((r) => (
                     <tr key={r._rowNum} className={r._valid ? '' : 'bg-red-50'}>
-                      <td className="px-3 py-2 text-gray-400">{r._rowNum}</td>
-                      <td className="px-3 py-2 font-mono text-gray-900">{r.sku || '—'}</td>
-                      <td className="px-3 py-2 text-gray-700">{r._valid ? `$${r.defaultPrice.toFixed(2)}` : '—'}</td>
-                      <td className="px-3 py-2 text-gray-500">{r.cost !== undefined ? `$${r.cost.toFixed(2)}` : '—'}</td>
+                      <td className="px-3 py-2 text-zinc-400">{r._rowNum}</td>
+                      <td className="px-3 py-2 font-mono text-zinc-900">{r.sku || '—'}</td>
+                      <td className="px-3 py-2 text-zinc-700">{r._valid ? `$${r.defaultPrice.toFixed(2)}` : '—'}</td>
+                      <td className="px-3 py-2 text-zinc-500">{r.cost !== undefined ? `$${r.cost.toFixed(2)}` : '—'}</td>
                       <td className="px-3 py-2">
                         {r._valid ? (
                           <Badge variant="success">Válida</Badge>
@@ -263,7 +263,7 @@ export function BulkPriceUpdateModal({ isOpen, onClose, onConfirm }: BulkPriceUp
                   : <AlertTriangle className="w-7 h-7 text-amber-600" />}
               </div>
               <div>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-base font-semibold text-zinc-900">
                   {result.updated} precio{result.updated !== 1 ? 's' : ''} actualizado{result.updated !== 1 ? 's' : ''}
                 </p>
                 {result.errors.length > 0 && (
@@ -284,7 +284,7 @@ export function BulkPriceUpdateModal({ isOpen, onClose, onConfirm }: BulkPriceUp
                   <tbody className="divide-y divide-red-100">
                     {result.errors.map((e, i) => (
                       <tr key={i}>
-                        <td className="px-3 py-2 font-mono text-gray-700">{e.sku}</td>
+                        <td className="px-3 py-2 font-mono text-zinc-700">{e.sku}</td>
                         <td className="px-3 py-2 text-red-600">{e.reason}</td>
                       </tr>
                     ))}

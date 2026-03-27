@@ -125,8 +125,8 @@ export default function AlmacenesPage() {
           <Warehouse className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Almacenes</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Almacenes</h1>
+          <p className="text-sm text-zinc-500">
             Gestiona los almacenes y bodegas de tu operación
           </p>
         </div>

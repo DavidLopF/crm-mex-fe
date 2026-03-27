@@ -114,12 +114,12 @@ export default function InventarioPage() {
     <PermissionGuard moduleCode="INVENTARIO">
     <main className="p-6">
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
-      
+
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
-            <p className="text-gray-500">Gestión de productos y control de stock</p>
+            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight tracking-tight">Inventario</h1>
+            <p className="text-sm text-zinc-500">Gestión de productos y control de stock</p>
           </div>
         </div>
         

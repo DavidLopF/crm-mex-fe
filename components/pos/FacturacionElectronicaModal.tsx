@@ -115,11 +115,11 @@ function ClientPickerCombobox({ selectedName, onSelect, onClear }: ClientPickerP
           <UserCheck className="w-3.5 h-3.5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{selectedName}</p>
+          <p className="text-sm font-medium text-zinc-900 truncate">{selectedName}</p>
           <p className="text-xs text-primary/70">Cliente seleccionado — datos prellenados</p>
         </div>
         <button type="button" onClick={onClear}
-          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
           title="Cambiar cliente">
           <X className="w-3.5 h-3.5" />
         </button>
@@ -130,27 +130,27 @@ function ClientPickerCombobox({ selectedName, onSelect, onClear }: ClientPickerP
   return (
     <div className="relative" ref={containerRef}>
       <div className="relative flex items-center">
-        <Search className="absolute left-3 w-3.5 h-3.5 text-gray-400 pointer-events-none z-10" />
+        <Search className="absolute left-3 w-3.5 h-3.5 text-zinc-400 pointer-events-none z-10" />
         <input
           type="text"
           placeholder="Buscar cliente por nombre o NIT..."
-          className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+          className="w-full pl-9 pr-8 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
           value={query}
           onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
           onFocus={() => setIsOpen(true)}
           autoComplete="off"
         />
-        <ChevronDown className={`absolute right-2.5 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`absolute right-2.5 w-3.5 h-3.5 text-zinc-400 pointer-events-none transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-xl overflow-hidden">
           <div className="max-h-48 overflow-y-auto">
             {searching ? (
-              <div className="flex items-center justify-center gap-2 py-5 text-gray-400 text-sm">
+              <div className="flex items-center justify-center gap-2 py-5 text-zinc-400 text-sm">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />Buscando...
               </div>
             ) : options.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-5">
+              <p className="text-sm text-zinc-400 text-center py-5">
                 {query ? `Sin resultados para "${query}"` : 'Escribe para buscar clientes...'}
               </p>
             ) : (
@@ -158,13 +158,13 @@ function ClientPickerCombobox({ selectedName, onSelect, onClear }: ClientPickerP
                 <button key={c.id} type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => { onSelect(c); setIsOpen(false); setQuery(''); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-left transition-colors border-b border-gray-50 last:border-0">
-                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <User className="w-3.5 h-3.5 text-gray-500" />
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-50 text-left transition-colors border-b border-zinc-50 last:border-0">
+                  <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                    <User className="w-3.5 h-3.5 text-zinc-500" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{c.name}</p>
-                    {c.document && <p className="text-xs text-gray-400">NIT: {c.document}</p>}
+                    <p className="text-sm font-medium text-zinc-800 truncate">{c.name}</p>
+                    {c.document && <p className="text-xs text-zinc-400">NIT: {c.document}</p>}
                   </div>
                 </button>
               ))
@@ -206,13 +206,13 @@ function CityPickerCombobox({ selectedCity, onSelect, onClear }: CityPickerProps
           <MapPin className="w-3.5 h-3.5 text-emerald-600" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900">{selectedCity.cityName}</p>
+          <p className="text-sm font-medium text-zinc-900">{selectedCity.cityName}</p>
           <p className="text-xs text-emerald-700">
             {selectedCity.departmentName} · Cód. {selectedCity.cityCode}
           </p>
         </div>
         <button type="button" onClick={onClear}
-          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
           title="Cambiar ciudad">
           <X className="w-3.5 h-3.5" />
         </button>
@@ -223,23 +223,23 @@ function CityPickerCombobox({ selectedCity, onSelect, onClear }: CityPickerProps
   return (
     <div className="relative z-[80]" ref={containerRef}>
       <div className="relative flex items-center">
-        <MapPin className="absolute left-3 w-3.5 h-3.5 text-gray-400 pointer-events-none z-10" />
+        <MapPin className="absolute left-3 w-3.5 h-3.5 text-zinc-400 pointer-events-none z-10" />
         <input
           type="text"
           placeholder="Buscar ciudad o municipio..."
-          className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 transition-colors"
+          className="w-full pl-9 pr-8 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 transition-colors"
           value={query}
           onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
           onFocus={() => setIsOpen(true)}
           autoComplete="off"
         />
-        <ChevronDown className={`absolute right-2.5 w-3.5 h-3.5 text-gray-400 pointer-events-none transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`absolute right-2.5 w-3.5 h-3.5 text-zinc-400 pointer-events-none transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
       {isOpen && (
-        <div className="absolute z-[90] w-full bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute z-[90] w-full bottom-full mb-1 bg-white border border-zinc-200 rounded-lg shadow-xl overflow-hidden">
           <div className="max-h-52 overflow-y-auto">
             {results.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-5">
+              <p className="text-sm text-zinc-400 text-center py-5">
                 Sin resultados para &quot;{query}&quot;
               </p>
             ) : (
@@ -247,13 +247,13 @@ function CityPickerCombobox({ selectedCity, onSelect, onClear }: CityPickerProps
                 <button key={city.cityCode} type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => { onSelect(city); setIsOpen(false); setQuery(''); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 text-left transition-colors border-b border-gray-50 last:border-0">
-                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-3.5 h-3.5 text-gray-500" />
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-50 text-left transition-colors border-b border-zinc-50 last:border-0">
+                  <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-3.5 h-3.5 text-zinc-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-800">{city.cityName}</p>
-                    <p className="text-xs text-gray-400">{city.departmentName} · {city.cityCode}</p>
+                    <p className="text-sm font-medium text-zinc-800">{city.cityName}</p>
+                    <p className="text-xs text-zinc-400">{city.departmentName} · {city.cityCode}</p>
                   </div>
                 </button>
               ))
@@ -456,7 +456,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
   }
 
   // ── Render ──────────────────────────────────────────────────────────────
-  const inputCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30';
+  const inputCls = 'w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30';
 
   return (
     <Modal isOpen onClose={onClose} title="Generar Factura Electrónica DIAN" size="xl">
@@ -468,17 +468,17 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
             <div className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
               step === s ? 'text-primary'
               : STEP_LABELS.indexOf(step) > i ? 'text-green-600'
-              : 'text-gray-400'
+              : 'text-zinc-400'
             }`}>
               <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border ${
                 step === s ? 'bg-primary text-white border-primary'
                 : STEP_LABELS.indexOf(step) > i ? 'bg-green-600 text-white border-green-600'
-                : 'border-gray-300 text-gray-400'
+                : 'border-zinc-300 text-zinc-400'
               }`}>{i + 1}</span>
               {STEP_TITLES[s]}
             </div>
             {i < STEP_LABELS.length - 1 && (
-              <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+              <ChevronRight className="w-4 h-4 text-zinc-300 flex-shrink-0" />
             )}
           </div>
         ))}
@@ -500,7 +500,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
 
           {/* Buscador de clientes */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">
+            <label className="block text-xs font-semibold text-zinc-600 uppercase tracking-wide">
               Seleccionar cliente existente
             </label>
             <ClientPickerCombobox
@@ -513,10 +513,10 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
           {/* Divisor */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-zinc-200" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-xs text-gray-400">
+              <span className="bg-white px-3 text-xs text-zinc-400">
                 o completa los datos manualmente
               </span>
             </div>
@@ -525,7 +525,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
           {/* Formulario buyer */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
                 Nombre o Razón Social <span className="text-red-500">*</span>
               </label>
               <input type="text" value={buyer.name}
@@ -534,7 +534,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
                 NIT <span className="text-red-500">*</span>
               </label>
               <input type="text" value={buyer.nit}
@@ -543,7 +543,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
                 Dígito de Verificación
               </label>
               <input type="text" value={buyer.nitDv}
@@ -552,7 +552,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
                 Correo Electrónico <span className="text-red-500">*</span>
               </label>
               <input type="email" value={buyer.email}
@@ -561,7 +561,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
                 Teléfono
               </label>
               <input type="tel" value={buyer.phone}
@@ -570,7 +570,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
                 Dirección <span className="text-red-500">*</span>
               </label>
               <input type="text" value={buyer.address}
@@ -580,9 +580,9 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
 
             {/* ── Ciudad DANE — autocompletado ── */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
                 Ciudad / Municipio <span className="text-red-500">*</span>
-                <span className="text-gray-400 font-normal ml-1">
+                <span className="text-zinc-400 font-normal ml-1">
                   (los códigos DANE se llenan automáticamente)
                 </span>
               </label>
@@ -593,9 +593,9 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
               />
               {/* Muestra los códigos DANE si están seleccionados */}
               {buyer.cityCode && (
-                <div className="mt-1.5 flex gap-3 text-xs text-gray-400">
-                  <span>Ciudad: <span className="font-mono text-gray-600">{buyer.cityCode}</span></span>
-                  <span>Dpto.: <span className="font-mono text-gray-600">{buyer.departmentCode}</span></span>
+                <div className="mt-1.5 flex gap-3 text-xs text-zinc-400">
+                  <span>Ciudad: <span className="font-mono text-zinc-600">{buyer.cityCode}</span></span>
+                  <span>Dpto.: <span className="font-mono text-zinc-600">{buyer.departmentCode}</span></span>
                   <span>{buyer.departmentName}</span>
                 </div>
               )}
@@ -615,7 +615,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
       ════════════════════════════════════════════════════════════ */}
       {step === 'lines' && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-zinc-500">
             Revisa las líneas de la factura para la venta{' '}
             <span className="font-mono font-medium">{sale.code}</span>.
             Los impuestos se calcularon automáticamente.
@@ -634,10 +634,10 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
           </div>
 
           {/* Tabla de líneas */}
-          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <div className="overflow-x-auto border border-zinc-200 rounded-lg">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="text-xs uppercase text-gray-500 tracking-wide">
+              <thead className="bg-zinc-50">
+                <tr className="text-xs uppercase text-zinc-500 tracking-wide">
                   <th className="text-left px-3 py-2">Descripción</th>
                   <th className="text-center px-3 py-2 w-16">Cant.</th>
                   <th className="text-right px-3 py-2 w-28">P. Unit.</th>
@@ -653,21 +653,21 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
                   const taxCode = line.taxes?.[0]?.taxCode;
                   const taxPct  = line.taxes?.[0]?.taxRate ?? 0;
                   return (
-                    <tr key={i} className="border-t border-gray-100">
-                      <td className="px-3 py-2.5 text-gray-900">{line.description}</td>
-                      <td className="px-3 py-2.5 text-center text-gray-600">{line.quantity}</td>
-                      <td className="px-3 py-2.5 text-right text-gray-600">{fmt(line.unitPrice)}</td>
-                      <td className="px-3 py-2.5 text-right text-gray-600">{fmt(base)}</td>
+                    <tr key={i} className="border-t border-zinc-100">
+                      <td className="px-3 py-2.5 text-zinc-900">{line.description}</td>
+                      <td className="px-3 py-2.5 text-center text-zinc-600">{line.quantity}</td>
+                      <td className="px-3 py-2.5 text-right text-zinc-600">{fmt(line.unitPrice)}</td>
+                      <td className="px-3 py-2.5 text-right text-zinc-600">{fmt(base)}</td>
                       <td className="px-3 py-2.5 text-right">
                         {taxAmt > 0 ? (
                           <span className="text-amber-700">
                             {fmt(taxAmt)}
-                            <span className="text-xs text-gray-400 ml-1">
+                            <span className="text-xs text-zinc-400 ml-1">
                               ({taxCode === '01' ? 'IVA' : taxCode} {taxPct}%)
                             </span>
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs">Exento</span>
+                          <span className="text-zinc-400 text-xs">Exento</span>
                         )}
                       </td>
                       <td className="px-3 py-2.5 text-right font-semibold">{fmt(base + taxAmt)}</td>
@@ -675,16 +675,16 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
                   );
                 })}
               </tbody>
-              <tfoot className="bg-gray-50 border-t-2 border-gray-200">
+              <tfoot className="bg-zinc-50 border-t-2 border-zinc-200">
                 <tr>
                   <td colSpan={3} />
-                  <td className="px-3 py-2 text-right text-xs font-medium text-gray-500">
+                  <td className="px-3 py-2 text-right text-xs font-medium text-zinc-500">
                     Base: {fmt(lines.reduce((a, l) => a + l.quantity * l.unitPrice, 0))}
                   </td>
                   <td className="px-3 py-2 text-right text-xs font-medium text-amber-700">
                     IVA: {fmt(lines.reduce((a, l) => a + (l.taxes?.reduce((b, t) => b + t.taxAmount, 0) ?? 0), 0))}
                   </td>
-                  <td className="px-3 py-2 text-right font-bold text-gray-900">
+                  <td className="px-3 py-2 text-right font-bold text-zinc-900">
                     {fmt(lines.reduce((a, l) => {
                       const base = l.quantity * l.unitPrice;
                       const tax  = l.taxes?.reduce((b, t) => b + t.taxAmount, 0) ?? 0;
@@ -727,18 +727,18 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
             )}
             <DianStatusBadge status={result.dianStatus} />
             {result.statusMessage && (
-              <p className="text-sm text-gray-500 mt-2 max-w-md">{result.statusMessage}</p>
+              <p className="text-sm text-zinc-500 mt-2 max-w-md">{result.statusMessage}</p>
             )}
           </div>
 
-          <div className="border border-gray-200 rounded-lg divide-y divide-gray-100">
+          <div className="border border-zinc-200 rounded-lg divide-y divide-zinc-100">
             <div className="flex justify-between items-center px-4 py-3 text-sm">
-              <span className="text-gray-500">Documento ID</span>
+              <span className="text-zinc-500">Documento ID</span>
               <span className="font-medium font-mono">#{result.documentId}</span>
             </div>
             <div className="px-4 py-3 text-sm">
-              <p className="text-gray-500 mb-1">CUFE</p>
-              <p className="font-mono text-xs text-gray-700 break-all bg-gray-50 p-2 rounded">
+              <p className="text-zinc-500 mb-1">CUFE</p>
+              <p className="font-mono text-xs text-zinc-700 break-all bg-zinc-50 p-2 rounded">
                 {result.cufe}
               </p>
             </div>
@@ -756,7 +756,7 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
 
             <button type="button" onClick={() => triggerDownload('zip')}
               disabled={downloading !== null}
-              className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors text-sm font-medium">
+              className="flex items-center justify-center gap-2 px-4 py-3 border border-zinc-200 bg-zinc-50 text-zinc-700 rounded-lg hover:bg-zinc-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors text-sm font-medium">
               {downloading === 'zip'
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Descargando...</>
                 : <><Download className="w-4 h-4" /> Descargar ZIP DIAN</>

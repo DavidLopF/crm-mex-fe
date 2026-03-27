@@ -39,7 +39,7 @@ export function InventoryStats({ productos, statistics }: InventoryStatsProps) {
         title="Productos Inactivos"
         value={productosInactivos}
         icon={XCircle}
-        iconClassName="bg-gray-100 text-gray-600"
+        iconClassName="bg-zinc-100 text-zinc-600"
       />
     </div>
   );
