@@ -25,7 +25,7 @@ function CopyCodeBtn({ code }: { code: string }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); handle(); }}
-      className="ml-1 p-0.5 rounded hover:bg-gray-200 text-gray-300 hover:text-gray-600 transition-colors"
+      className="ml-1 p-0.5 rounded hover:bg-zinc-200 text-zinc-300 hover:text-zinc-600 transition-colors"
       title="Copiar código"
     >
       {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
@@ -48,7 +48,7 @@ function PaymentBadge({ method }: { method: PaymentMethod }) {
     DAVIPLATA: 'Daviplata',
   };
   return (
-    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${styles[method] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${styles[method] ?? 'bg-zinc-100 text-zinc-600'}`}>
       {labels[method] ?? method}
     </span>
   );
@@ -206,18 +206,18 @@ export function SalesList() {
         {/* ── Filtros ── */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
               placeholder="Buscar por código, cliente o vendedor..."
-              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+              className="w-full pl-10 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
               value={search}
               onChange={(e) => { setSearch(e.target.value); resetPage(); }}
             />
           </div>
 
           <select
-            className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); resetPage(); }}
           >
@@ -228,7 +228,7 @@ export function SalesList() {
           </select>
 
           <select
-            className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
             value={filterPayment}
             onChange={(e) => { setFilterPayment(e.target.value as PaymentMethod | ''); resetPage(); }}
           >
@@ -240,9 +240,9 @@ export function SalesList() {
           </select>
 
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
             <select
-              className="pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+              className="pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
               value={filterSellerId}
               onChange={(e) => { setFilterSellerId(e.target.value === '' ? '' : Number(e.target.value)); resetPage(); }}
             >
@@ -251,17 +251,17 @@ export function SalesList() {
             </select>
           </div>
 
-          <input type="date" className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+          <input type="date" className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
             value={filterFrom} onChange={(e) => { setFilterFrom(e.target.value); resetPage(); }} />
-          <span className="text-gray-400 text-sm">a</span>
-          <input type="date" className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+          <span className="text-zinc-400 text-sm">a</span>
+          <input type="date" className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
             value={filterTo} onChange={(e) => { setFilterTo(e.target.value); resetPage(); }} />
 
           {/* Botón exportar */}
           <button
             onClick={handleExport}
             disabled={isExporting || loading}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-zinc-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
             title="Exportar todos los resultados a Excel"
           >
             {isExporting
@@ -277,7 +277,7 @@ export function SalesList() {
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
         ) : sales.length === 0 ? (
-          <div className="text-center py-10 text-gray-400">
+          <div className="text-center py-10 text-zinc-400">
             <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No se encontraron ventas</p>
           </div>
@@ -286,7 +286,7 @@ export function SalesList() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b-2 border-gray-200 text-gray-500 text-xs uppercase tracking-wide">
+                  <tr className="border-b-2 border-zinc-200 text-zinc-500 text-xs uppercase tracking-wide">
                     <th className="text-left py-2 px-3">Código</th>
                     <th className="text-left py-2 px-3">Fecha</th>
                     <th className="text-left py-2 px-3">Cliente</th>
@@ -300,16 +300,16 @@ export function SalesList() {
                 </thead>
                 <tbody>
                   {sales.map((sale) => (
-                    <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr key={sale.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                       <td className="py-2.5 px-3">
                         <span className="flex items-center gap-0.5">
                           <span className="font-mono text-xs">{sale.code}</span>
                           <CopyCodeBtn code={sale.code} />
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-gray-600 whitespace-nowrap">{fmtD(sale.createdAt)}</td>
+                      <td className="py-2.5 px-3 text-zinc-600 whitespace-nowrap">{fmtD(sale.createdAt)}</td>
                       <td className="py-2.5 px-3">{sale.clientName || 'Público general'}</td>
-                      <td className="py-2.5 px-3 text-gray-600">{sale.sellerName || '—'}</td>
+                      <td className="py-2.5 px-3 text-zinc-600">{sale.sellerName || '—'}</td>
                       <td className="py-2.5 px-3 text-center">{sale.items.length}</td>
                       <td className="py-2.5 px-3 text-right font-semibold whitespace-nowrap">{fmt(sale.total)}</td>
                       <td className="py-2.5 px-3 text-center">
@@ -336,7 +336,7 @@ export function SalesList() {
                         <div className="flex items-center justify-center gap-1">
                           {/* Ver detalle */}
                           <button
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-primary transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-primary transition-colors"
                             onClick={() => handleViewSale(sale.id)}
                             title="Ver detalle"
                           >
@@ -348,7 +348,7 @@ export function SalesList() {
                               className={`p-1.5 rounded-lg transition-colors ${
                                 sale.returnedAt
                                   ? 'text-amber-500 hover:bg-amber-50 hover:text-amber-700'
-                                  : 'text-gray-400 hover:bg-blue-50 hover:text-blue-600'
+                                  : 'text-zinc-400 hover:bg-blue-50 hover:text-blue-600'
                               }`}
                               onClick={() => setEditSale(sale)}
                               title={sale.returnedAt ? 'Corregir venta devuelta' : 'Editar venta'}
@@ -359,7 +359,7 @@ export function SalesList() {
                           {/* Devolver — solo supervisores con canEdit */}
                           {canEdit && sale.statusCode === 'PENDIENTE' && !sale.returnedAt && (
                             <button
-                              className="p-1.5 rounded-lg hover:bg-amber-50 text-gray-400 hover:text-amber-600 transition-colors"
+                              className="p-1.5 rounded-lg hover:bg-amber-50 text-zinc-400 hover:text-amber-600 transition-colors"
                               onClick={() => setReturnSale(sale)}
                               title="Devolver al vendedor"
                             >
@@ -379,7 +379,7 @@ export function SalesList() {
                               </span>
                             ) : (
                               <button
-                                className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-700 transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-green-50 text-zinc-400 hover:text-green-700 transition-colors"
                                 onClick={() => setFeSale(sale)}
                                 title="Generar Factura Electrónica DIAN"
                               >
@@ -396,18 +396,18 @@ export function SalesList() {
             </div>
 
             {/* ── Paginación mejorada ── */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-100">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-zinc-100">
               {/* Info y selector de filas por página */}
               <div className="flex items-center gap-3">
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-zinc-500">
                   {total === 0
                     ? 'Sin resultados'
                     : `Mostrando ${rangeFrom}–${rangeTo} de ${total} ventas`}
                 </p>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-gray-400">Filas:</span>
+                  <span className="text-xs text-zinc-400">Filas:</span>
                   <select
-                    className="text-xs border border-gray-200 rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                    className="text-xs border border-zinc-200 rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-primary/40"
                     value={limit}
                     onChange={(e) => { setLimit(Number(e.target.value)); resetPage(); }}
                   >
@@ -423,7 +423,7 @@ export function SalesList() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Página anterior"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -431,7 +431,7 @@ export function SalesList() {
 
                 {getPageNumbers().map((p, i) =>
                   p === '...'
-                    ? <span key={`e${i}`} className="w-6 text-center text-xs text-gray-400">…</span>
+                    ? <span key={`e${i}`} className="w-6 text-center text-xs text-zinc-400">…</span>
                     : (
                       <button
                         key={p}
@@ -439,7 +439,7 @@ export function SalesList() {
                         className={`min-w-[2rem] h-8 px-2 rounded-lg text-xs font-medium transition-colors ${
                           p === page
                             ? 'bg-primary text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                         }`}
                       >
                         {p}
@@ -450,7 +450,7 @@ export function SalesList() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Página siguiente"
                 >
                   <ChevronRight className="w-4 h-4" />

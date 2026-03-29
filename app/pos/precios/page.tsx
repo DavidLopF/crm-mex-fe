@@ -57,10 +57,10 @@ interface TierRowEditorProps {
 
 function TierRowEditor({ tier, index, onChange, onRemove }: TierRowEditorProps) {
   return (
-    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2">
+    <div className="flex items-center gap-2 bg-white border border-zinc-200 rounded-xl px-3 py-2">
       {/* Cantidad mínima */}
       <div className="flex-none w-24">
-        <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-0.5">
+        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
           Desde (pzas)
         </label>
         <input
@@ -68,13 +68,13 @@ function TierRowEditor({ tier, index, onChange, onRemove }: TierRowEditorProps) 
           min={1}
           value={tier.minQty}
           onChange={(e) => onChange(index, 'minQty', e.target.value)}
-          className="w-full text-sm font-semibold border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
+          className="w-full text-sm font-semibold border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
         />
       </div>
 
       {/* Precio */}
       <div className="flex-none w-28">
-        <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-0.5">
+        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
           Precio unit.
         </label>
         <input
@@ -83,13 +83,13 @@ function TierRowEditor({ tier, index, onChange, onRemove }: TierRowEditorProps) 
           step={0.01}
           value={tier.price}
           onChange={(e) => onChange(index, 'price', e.target.value)}
-          className="w-full text-sm font-semibold border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
+          className="w-full text-sm font-semibold border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
         />
       </div>
 
       {/* Etiqueta */}
       <div className="flex-1 min-w-0">
-        <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-0.5">
+        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
           Etiqueta
         </label>
         <input
@@ -97,14 +97,14 @@ function TierRowEditor({ tier, index, onChange, onRemove }: TierRowEditorProps) 
           placeholder="Ej. Por docena"
           value={tier.tierLabel}
           onChange={(e) => onChange(index, 'tierLabel', e.target.value)}
-          className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
+          className="w-full text-sm border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
         />
       </div>
 
       {/* Eliminar */}
       <button
         onClick={() => onRemove(index)}
-        className="flex-none mt-4 w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+        className="flex-none mt-4 w-8 h-8 flex items-center justify-center rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors"
         aria-label="Eliminar tier"
       >
         <Trash2 className="w-4 h-4" />
@@ -131,24 +131,24 @@ function ProductCard({
   const hasTiers = state.tiers.length > 0;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+    <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden">
       {/* Header del producto */}
       <button
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-50 transition-colors text-left"
         onClick={() => onToggle(product.variantId)}
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <p className="font-semibold text-gray-900 text-sm">{product.productName}</p>
+            <p className="font-semibold text-zinc-900 text-sm">{product.productName}</p>
             {product.variantName && (
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="text-xs text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full">
                 {product.variantName}
               </span>
             )}
-            <span className="text-xs text-gray-400 font-mono">{product.sku}</span>
+            <span className="text-xs text-zinc-400 font-mono">{product.sku}</span>
           </div>
           <div className="flex items-center gap-4 mt-1">
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-zinc-500">
               Precio base: <strong>{formatPrice(product.defaultPrice)}</strong>
             </span>
             {hasTiers ? (
@@ -157,7 +157,7 @@ function ProductCard({
                 {state.tiers.length} tier{state.tiers.length !== 1 ? 's' : ''}
               </span>
             ) : (
-              <span className="text-xs text-gray-400">Sin tiers configurados</span>
+              <span className="text-xs text-zinc-400">Sin tiers configurados</span>
             )}
             {state.dirty && (
               <span className="text-xs text-amber-600 font-medium">• Cambios sin guardar</span>
@@ -168,19 +168,19 @@ function ProductCard({
         <div className="flex items-center gap-2 ml-3 flex-shrink-0">
           {state.saving && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
           {state.expanded ? (
-            <ChevronUp className="w-4 h-4 text-gray-400" />
+            <ChevronUp className="w-4 h-4 text-zinc-400" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-400" />
+            <ChevronDown className="w-4 h-4 text-zinc-400" />
           )}
         </div>
       </button>
 
       {/* Contenido expandido */}
       {state.expanded && (
-        <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/60 space-y-3">
+        <div className="border-t border-zinc-100 px-5 py-4 bg-zinc-50/60 space-y-3">
           {/* Lista de tiers */}
           {state.tiers.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-2">
+            <p className="text-sm text-zinc-400 text-center py-2">
               No hay tiers de precio. Agrega uno abajo.
             </p>
           ) : (
@@ -224,7 +224,7 @@ function ProductCard({
           </div>
 
           {/* Hint de precio base */}
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-zinc-400">
             Precio base del producto: {formatPrice(product.defaultPrice)} — se aplica cuando
             ningún tier coincide con la cantidad.
           </p>
@@ -423,32 +423,32 @@ export default function PreciosPage() {
       <div className="p-6 max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Precios por Volumen</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Precios por Volumen</h1>
+          <p className="text-sm text-zinc-500">
             Configura tiers de precio para cada producto. A mayor cantidad, menor precio unitario.
           </p>
         </div>
 
         {/* Buscador */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             type="text"
             placeholder="Buscar por nombre, SKU o categoría..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            className="w-full pl-9 pr-4 py-3 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         </div>
 
         {/* Lista de productos */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-400">
             <Loader2 className="w-8 h-8 animate-spin" />
             <p className="text-sm">Cargando productos...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-400">
             <PackageSearch className="w-12 h-12 opacity-40" />
             <p className="text-sm font-medium">
               {search ? 'Sin resultados para la búsqueda' : 'No hay productos disponibles'}

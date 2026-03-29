@@ -27,9 +27,9 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const { name, value } = payload[0];
   return (
-    <div className="bg-white border border-gray-100 rounded-xl px-3 py-2 shadow-lg text-sm">
-      <p className="font-semibold text-gray-900">{name}</p>
-      <p className="text-gray-500">{value.toLocaleString('es-CO')}</p>
+    <div className="bg-white border border-zinc-100 rounded-xl px-3 py-2 shadow-lg text-sm">
+      <p className="font-semibold text-zinc-900">{name}</p>
+      <p className="text-zinc-500">{value.toLocaleString('es-CO')}</p>
     </div>
   );
 }

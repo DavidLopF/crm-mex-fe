@@ -39,10 +39,10 @@ export default function PosPage() {
         <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="px-4 pt-4 pb-2 flex-shrink-0">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-zinc-900 tracking-tight leading-tight">
               Punto de Venta
             </h1>
-            <p className="text-gray-500 text-xs md:text-sm">
+            <p className="text-zinc-500 text-xs md:text-sm">
               Selecciona productos para agregar al carrito
             </p>
           </div>
@@ -57,14 +57,14 @@ export default function PosPage() {
         </div>
 
         {/* ── Carrito: panel lateral en tablet/desktop ── */}
-        <div className="hidden md:flex w-[340px] lg:w-[380px] flex-shrink-0 border-l border-gray-200 flex-col overflow-hidden">
+        <div className="hidden md:flex w-[340px] lg:w-[380px] flex-shrink-0 border-l border-zinc-200 flex-col overflow-hidden">
           <Cart />
         </div>
 
         {/* ── Botón flotante del carrito (solo móvil) ── */}
         {cart.length > 0 && (
           <button
-            className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3.5 bg-gray-900 text-white rounded-2xl shadow-2xl active:scale-95 transition-transform"
+            className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3.5 bg-zinc-900 text-white rounded-2xl shadow-2xl active:scale-95 transition-transform"
             style={{ bottom: 'calc(max(env(safe-area-inset-bottom), 0px) + 20px)' }}
             onClick={() => setShowMobileCart(true)}
           >
@@ -95,7 +95,7 @@ export default function PosPage() {
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-                <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                <div className="w-10 h-1 bg-zinc-300 rounded-full" />
               </div>
               <div className="flex-1 overflow-hidden">
                 <Cart onClose={() => setShowMobileCart(false)} />

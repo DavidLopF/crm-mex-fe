@@ -48,7 +48,7 @@ function todayStr() {
 
 /** Muestra la diferencia con color semáforo: verde = exacto/sobrante, rojo = faltante */
 function DiffCell({ diff }: { diff: number }) {
-  if (diff === 0) return <span className="text-gray-400 text-sm">—</span>;
+  if (diff === 0) return <span className="text-zinc-400 text-sm">—</span>;
   const positive = diff > 0;
   return (
     <span className={`text-sm font-semibold ${positive ? 'text-green-600' : 'text-red-600'}`}>
@@ -69,12 +69,12 @@ interface ReconcileRowProps {
 function ReconcileRow({ icon, label, calculated, declared, onDeclaredChange }: ReconcileRowProps) {
   const diff = declared - calculated;
   return (
-    <div className="grid grid-cols-4 gap-3 items-center py-3 border-b border-gray-100 last:border-0">
+    <div className="grid grid-cols-4 gap-3 items-center py-3 border-b border-zinc-100 last:border-0">
       <div className="flex items-center gap-2 col-span-1">
-        <span className="text-gray-500">{icon}</span>
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-zinc-500">{icon}</span>
+        <span className="text-sm font-medium text-zinc-700">{label}</span>
       </div>
-      <div className="text-right text-sm font-semibold text-gray-800">{fmt(calculated)}</div>
+      <div className="text-right text-sm font-semibold text-zinc-800">{fmt(calculated)}</div>
       <div>
         <input
           type="number"
@@ -83,7 +83,7 @@ function ReconcileRow({ icon, label, calculated, declared, onDeclaredChange }: R
           value={declared === 0 ? '' : declared}
           placeholder="0.00"
           onChange={(e) => onDeclaredChange(parseFloat(e.target.value) || 0)}
-          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          className="w-full px-3 py-1.5 text-sm border border-zinc-200 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         />
       </div>
       <div className="text-right">
@@ -127,13 +127,13 @@ function HistoryPanel() {
         onClick={toggle}
       >
         <div className="flex items-center gap-2">
-          <History className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-semibold text-gray-700">Historial de cierres</span>
+          <History className="w-4 h-4 text-zinc-500" />
+          <span className="text-sm font-semibold text-zinc-700">Historial de cierres</span>
           {total > 0 && (
-            <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{total}</span>
+            <span className="text-xs bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full">{total}</span>
           )}
         </div>
-        {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        {expanded ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
       </button>
 
       {expanded && (
@@ -143,13 +143,13 @@ function HistoryPanel() {
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           ) : closes.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 py-4">Sin cierres registrados</p>
+            <p className="text-center text-sm text-zinc-400 py-4">Sin cierres registrados</p>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-200 text-gray-500 uppercase tracking-wide">
+                    <tr className="border-b border-zinc-200 text-zinc-500 uppercase tracking-wide">
                       <th className="text-left py-2 px-2">Período</th>
                       <th className="text-left py-2 px-2">Cajero</th>
                       <th className="text-right py-2 px-2">Total</th>
@@ -165,11 +165,11 @@ function HistoryPanel() {
                       const totalDiff = c.diffEfectivo + c.diffTarjeta + c.diffNequi + c.diffDaviplata;
                       const hasIssue  = totalDiff < -0.01;
                       return (
-                        <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
-                          <td className="py-2 px-2 text-gray-500 whitespace-nowrap">
+                        <tr key={c.id} className="border-b border-zinc-50 hover:bg-zinc-50">
+                          <td className="py-2 px-2 text-zinc-500 whitespace-nowrap">
                             {fmtDate(c.periodFrom).split(',')[0]} – {fmtDate(c.periodTo).split(',')[0]}
                           </td>
-                          <td className="py-2 px-2 text-gray-600">{c.closedByName}</td>
+                          <td className="py-2 px-2 text-zinc-600">{c.closedByName}</td>
                           <td className="py-2 px-2 text-right font-semibold">{fmt(c.totalSales)}</td>
                           <td className="py-2 px-2 text-right text-emerald-700">{fmt(c.totalEfectivo)}</td>
                           <td className="py-2 px-2 text-right text-blue-700">{fmt(c.totalTarjeta)}</td>
@@ -193,13 +193,13 @@ function HistoryPanel() {
                   <button
                     onClick={() => load(Math.max(1, page - 1))}
                     disabled={page === 1}
-                    className="px-2 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-40"
+                    className="px-2 py-1 text-xs rounded bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40"
                   >‹</button>
-                  <span className="px-2 py-1 text-xs text-gray-500">{page}/{totalPages}</span>
+                  <span className="px-2 py-1 text-xs text-zinc-500">{page}/{totalPages}</span>
                   <button
                     onClick={() => load(Math.min(totalPages, page + 1))}
                     disabled={page === totalPages}
-                    className="px-2 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-40"
+                    className="px-2 py-1 text-xs rounded bg-zinc-100 hover:bg-zinc-200 disabled:opacity-40"
                   >›</button>
                 </div>
               )}
@@ -291,11 +291,11 @@ export function CierreCaja() {
       <Card className="p-4">
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex-1">
-            <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
               <Calculator className="w-4 h-4 text-primary" />
               Cierre de Caja
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-zinc-400 mt-0.5">
               Concilia lo vendido con el dinero físico en caja
             </p>
           </div>
@@ -303,24 +303,24 @@ export function CierreCaja() {
           {/* Período */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex flex-col gap-0.5">
-              <label className="text-xs text-gray-500">Desde</label>
+              <label className="text-xs text-zinc-500">Desde</label>
               <input
                 type="date"
                 value={from}
                 max={to}
                 onChange={(e) => { setFrom(e.target.value); setSummary(null); }}
-                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+                className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
             </div>
             <div className="flex flex-col gap-0.5">
-              <label className="text-xs text-gray-500">Hasta</label>
+              <label className="text-xs text-zinc-500">Hasta</label>
               <input
                 type="date"
                 value={to}
                 min={from}
                 max={today}
                 onChange={(e) => { setTo(e.target.value); setSummary(null); }}
-                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+                className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
             </div>
             <div className="flex flex-col justify-end">
@@ -339,7 +339,7 @@ export function CierreCaja() {
 
       {/* ── Sin datos aún ── */}
       {!summary && !loadingSum && (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-12 text-zinc-400">
           <Calculator className="w-12 h-12 opacity-20 mb-3" />
           <p className="text-sm">Selecciona un período y presiona <strong>Calcular</strong></p>
         </div>
@@ -351,19 +351,19 @@ export function CierreCaja() {
           {/* KPIs del período */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Card className="p-4">
-              <p className="text-xs text-gray-500 uppercase font-medium mb-1">Ventas pagadas</p>
-              <p className="text-2xl font-bold text-gray-900">{summary.salesCount}</p>
+              <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Ventas pagadas</p>
+              <p className="text-2xl font-bold text-zinc-900 tracking-tight">{summary.salesCount}</p>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-gray-500 uppercase font-medium mb-1">Total ventas</p>
-              <p className="text-xl font-bold text-gray-900">{fmt(summary.totalSales)}</p>
+              <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Total ventas</p>
+              <p className="text-xl font-semibold text-zinc-900 tracking-tight">{fmt(summary.totalSales)}</p>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-gray-500 uppercase font-medium mb-1">Total declarado</p>
-              <p className="text-xl font-bold text-gray-900">{fmt(totalDeclared)}</p>
+              <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Total declarado</p>
+              <p className="text-xl font-semibold text-zinc-900 tracking-tight">{fmt(totalDeclared)}</p>
             </Card>
             <Card className={`p-4 ${hasDifference ? 'border-2 border-red-200 bg-red-50/40' : 'border-2 border-green-200 bg-green-50/40'}`}>
-              <p className="text-xs text-gray-500 uppercase font-medium mb-1">Diferencia total</p>
+              <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Diferencia total</p>
               <div className="flex items-center gap-2">
                 {hasDifference
                   ? <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
@@ -378,10 +378,10 @@ export function CierreCaja() {
 
           {/* Tabla de conciliación por medio de pago */}
           <Card className="p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Conciliación por medio de pago</h3>
+            <h3 className="text-sm font-semibold text-zinc-700 mb-3">Conciliación por medio de pago</h3>
 
             {/* Encabezados */}
-            <div className="grid grid-cols-4 gap-3 pb-2 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="grid grid-cols-4 gap-3 pb-2 border-b border-zinc-200 text-xs font-medium text-zinc-500 uppercase tracking-wide">
               <div>Medio</div>
               <div className="text-right">Sistema</div>
               <div className="text-right">Declarado</div>
@@ -418,10 +418,10 @@ export function CierreCaja() {
             />
 
             {/* Totales */}
-            <div className="grid grid-cols-4 gap-3 items-center pt-3 border-t-2 border-gray-200 mt-1">
-              <div className="text-sm font-bold text-gray-700">Total</div>
-              <div className="text-right text-sm font-bold text-gray-900">{fmt(summary.totalSales)}</div>
-              <div className="text-right text-sm font-bold text-gray-900">{fmt(totalDeclared)}</div>
+            <div className="grid grid-cols-4 gap-3 items-center pt-3 border-t-2 border-zinc-200 mt-1">
+              <div className="text-sm font-bold text-zinc-700">Total</div>
+              <div className="text-right text-sm font-bold text-zinc-900">{fmt(summary.totalSales)}</div>
+              <div className="text-right text-sm font-bold text-zinc-900">{fmt(totalDeclared)}</div>
               <div className="text-right">
                 <DiffCell diff={totalDiff} />
               </div>
@@ -431,7 +431,7 @@ export function CierreCaja() {
           {/* Notas y botón guardar */}
           <Card className="p-4 space-y-3">
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">
+              <label className="text-xs font-medium text-zinc-500 block mb-1">
                 Notas del cierre (opcional)
               </label>
               <textarea
@@ -439,7 +439,7 @@ export function CierreCaja() {
                 placeholder="Observaciones, incidencias, etc."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
+                className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
               />
             </div>
 

@@ -84,11 +84,11 @@ export function ProductGrid() {
     <>
       {/* Buscador — grande y touch-friendly */}
       <div className="relative mb-4 sticky top-0 bg-white/95 backdrop-blur-sm z-10 pt-1 pb-2">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" style={{ marginTop: '2px' }} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" style={{ marginTop: '2px' }} />
         <input
           type="text"
           placeholder="Buscar por nombre o SKU..."
-          className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-2xl text-base focus:outline-none focus:border-primary transition-colors"
+          className="w-full pl-12 pr-4 py-3.5 border-2 border-zinc-200 rounded-2xl text-base focus:outline-none focus:border-primary transition-colors"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           autoComplete="off"
@@ -106,7 +106,7 @@ export function ProductGrid() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <div className="w-10 h-10 rounded-full border-3 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-gray-400">Cargando productos...</p>
+          <p className="text-sm text-zinc-400">Cargando productos...</p>
         </div>
       ) : offlineNoCache ? (
         /* Sin internet y sin caché — estado especial */
@@ -127,7 +127,7 @@ export function ProductGrid() {
           </button>
         </div>
       ) : products.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-400">
           <Package className="w-14 h-14 opacity-30" />
           <p className="text-base">No se encontraron productos</p>
           {searchTerm && (
@@ -165,7 +165,7 @@ export function ProductGrid() {
                   active:scale-[0.97] select-none
                   ${inCart
                     ? 'border-primary bg-primary/5 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                    : 'border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm'
                   }
                   ${outOfStock ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
@@ -192,28 +192,28 @@ export function ProductGrid() {
                 )}
 
                 {/* Nombre del producto */}
-                <p className="text-sm font-semibold text-gray-900 leading-snug mb-1 pr-8 break-words">
+                <p className="text-sm font-semibold text-zinc-900 leading-snug mb-1 pr-8 break-words">
                   {product.productName}
                 </p>
                 {product.variantName && (
-                  <p className="text-xs text-gray-400 mb-2 break-words">{product.variantName}</p>
+                  <p className="text-xs text-zinc-400 mb-2 break-words">{product.variantName}</p>
                 )}
 
                 {/* Categoría */}
-                <p className="text-[11px] text-gray-400 mb-3">{product.category}</p>
+                <p className="text-[11px] text-zinc-400 mb-3">{product.category}</p>
 
                 {/* Precio y stock */}
                 <div className="mt-auto flex items-end justify-between gap-1">
                   <div>
                     {hasTiers && maxPrice && maxPrice !== bestPrice ? (
                       <>
-                        <p className="text-[11px] text-gray-400 line-through">{formatPrice(maxPrice)}</p>
+                        <p className="text-[11px] text-zinc-400 line-through">{formatPrice(maxPrice)}</p>
                         <p className="text-base font-bold text-primary leading-tight">{formatPrice(bestPrice)}</p>
                       </>
                     ) : (
-                      <p className="text-base font-bold text-gray-900">{formatPrice(bestPrice)}</p>
+                      <p className="text-base font-bold text-zinc-900">{formatPrice(bestPrice)}</p>
                     )}
-                    <p className={`text-[11px] mt-0.5 ${outOfStock ? 'text-red-500' : 'text-gray-400'}`}>
+                    <p className={`text-[11px] mt-0.5 ${outOfStock ? 'text-red-500' : 'text-zinc-400'}`}>
                       {outOfStock ? 'Sin stock' : `Stock: ${product.stockTotal}`}
                     </p>
                   </div>
@@ -222,7 +222,7 @@ export function ProductGrid() {
                   <div
                     className={`
                       w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center transition-colors
-                      ${inCart ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}
+                      ${inCart ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600'}
                     `}
                   >
                     <Plus className="w-5 h-5" />

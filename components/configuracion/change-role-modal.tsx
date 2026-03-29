@@ -20,6 +20,7 @@ import {
 import { Modal, Button } from "@/components/ui";
 import type { UserDetail, Role, CreateRoleDto } from "@/services/users";
 import { getAllRoles, createRole, getRolePermissions, updateRolePermissions } from "@/services/users";
+import { HIDDEN_MODULES } from "@/lib/hooks";
 
 // ── Metadatos visuales por moduleCode del backend ───────────────────────────
 type IconComponent = React.ComponentType<{ className?: string }>;
@@ -149,10 +150,12 @@ export function ChangeRoleModal({
     setSelectedPerms(new Set());
     try {
       const data = await getRolePermissions(roleId);
-      setBackendModules(data);
+      // Filtrar módulos que no están implementados en esta rama del frontend
+      const filteredData = data.filter((mod) => !HIDDEN_MODULES.has(mod.moduleCode));
+      setBackendModules(filteredData);
       // Construir set de permisos activos usando "MODULEKEY.canAction"
       const active: string[] = [];
-      for (const mod of data) {
+      for (const mod of filteredData) {
         if (mod.canView)   active.push(`${mod.moduleCode}.canView`);
         if (mod.canCreate) active.push(`${mod.moduleCode}.canCreate`);
         if (mod.canEdit)   active.push(`${mod.moduleCode}.canEdit`);
@@ -296,24 +299,24 @@ export function ChangeRoleModal({
             <Shield className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-zinc-900">
               Gestión de Roles
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-zinc-500">
               Usuario:{" "}
-              <span className="font-medium text-gray-700">{user.fullName}</span>
+              <span className="font-medium text-zinc-700">{user.fullName}</span>
             </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1.5">
+        <div className="flex gap-1 bg-zinc-100 rounded-xl p-1.5">
           <button
             onClick={() => setTab("assign")}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-medium transition-all ${
               tab === "assign"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-700"
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
@@ -324,8 +327,8 @@ export function ChangeRoleModal({
               onClick={() => setTab("create")}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-medium transition-all ${
                 tab === "create"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-zinc-900 shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-700"
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -337,8 +340,8 @@ export function ChangeRoleModal({
               onClick={() => setTab("permissions")}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-medium transition-all ${
                 tab === "permissions"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-zinc-900 shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-700"
               }`}
             >
               <Lock className="w-3.5 h-3.5" />
@@ -354,8 +357,8 @@ export function ChangeRoleModal({
       {tab === "assign" && (
         <div className="space-y-5">
           {/* Rol actual */}
-          <div className="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl border border-gray-200">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="flex items-center justify-between p-3.5 bg-zinc-50 rounded-xl border border-zinc-200">
+            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
               Rol actual
             </span>
             <span className="inline-flex items-center gap-1.5 text-sm text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full font-medium">
@@ -366,7 +369,7 @@ export function ChangeRoleModal({
 
           {/* Lista de roles */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2">
               Seleccionar nuevo rol
             </label>
             {loadingRoles ? (
@@ -374,7 +377,7 @@ export function ChangeRoleModal({
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="h-14 bg-gray-100 rounded-xl animate-pulse"
+                    className="h-14 bg-zinc-100 rounded-xl animate-pulse"
                   />
                 ))}
               </div>
@@ -405,8 +408,8 @@ export function ChangeRoleModal({
                         isSelected && !isCurrent
                           ? "border-purple-500 bg-purple-50"
                           : isCurrent
-                            ? "border-gray-200 bg-gray-50 cursor-default opacity-60"
-                            : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                            ? "border-zinc-200 bg-zinc-50 cursor-default opacity-60"
+                            : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -414,24 +417,24 @@ export function ChangeRoleModal({
                           className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                             isSelected && !isCurrent
                               ? "bg-purple-100"
-                              : "bg-gray-100"
+                              : "bg-zinc-100"
                           }`}
                         >
                           <Shield
-                            className={`w-4 h-4 ${isSelected && !isCurrent ? "text-purple-600" : "text-gray-400"}`}
+                            className={`w-4 h-4 ${isSelected && !isCurrent ? "text-purple-600" : "text-zinc-400"}`}
                           />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                          <p className="text-sm font-medium text-zinc-900 flex items-center gap-2">
                             {role.name}
                             {isCurrent && (
-                              <span className="text-xs text-gray-400 font-normal">
+                              <span className="text-xs text-zinc-400 font-normal">
                                 (actual)
                               </span>
                             )}
                           </p>
                           {role.description && (
-                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                            <p className="text-xs text-zinc-500 mt-0.5 line-clamp-1">
                               {role.description}
                             </p>
                           )}
@@ -440,7 +443,7 @@ export function ChangeRoleModal({
                       {isSelected && !isCurrent ? (
                         <Check className="w-5 h-5 text-purple-600 flex-shrink-0" />
                       ) : !isCurrent ? (
-                        <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                        <ChevronRight className="w-4 h-4 text-zinc-300 flex-shrink-0" />
                       ) : null}
                     </button>
                   );
@@ -450,12 +453,12 @@ export function ChangeRoleModal({
                 {isAdmin && (
                   <button
                     onClick={() => setTab("create")}
-                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all group"
+                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-dashed border-zinc-200 hover:border-purple-300 hover:bg-purple-50 transition-all group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
-                      <Plus className="w-4 h-4 text-gray-400 group-hover:text-purple-600" />
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
+                      <Plus className="w-4 h-4 text-zinc-400 group-hover:text-purple-600" />
                     </div>
-                    <span className="text-sm text-gray-400 group-hover:text-purple-600 font-medium transition-colors">
+                    <span className="text-sm text-zinc-400 group-hover:text-purple-600 font-medium transition-colors">
                       Crear nuevo rol...
                     </span>
                   </button>
@@ -507,7 +510,7 @@ export function ChangeRoleModal({
               <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
                 <Lock className="w-7 h-7 text-red-400" />
               </div>
-              <p className="text-gray-500 text-sm text-center">
+              <p className="text-zinc-500 text-sm text-center">
                 Solo los administradores pueden crear nuevos roles.
               </p>
             </div>
@@ -521,7 +524,7 @@ export function ChangeRoleModal({
               )}
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1.5">
                   Nombre del rol{" "}
                   <span className="text-red-500 normal-case">*</span>
                 </label>
@@ -530,13 +533,13 @@ export function ChangeRoleModal({
                   value={newRoleName}
                   onChange={(e) => setNewRoleName(e.target.value)}
                   placeholder="Ej: Supervisor, Vendedor, Almacenista..."
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1.5">
                   Descripción
                 </label>
                 <textarea
@@ -544,11 +547,11 @@ export function ChangeRoleModal({
                   onChange={(e) => setNewRoleDesc(e.target.value)}
                   placeholder="Describe las responsabilidades de este rol..."
                   rows={3}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
+                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1.5">
                   Codigo
                 </label>
                 <textarea
@@ -556,7 +559,7 @@ export function ChangeRoleModal({
                   onChange={(e) => setNewRoleCode(e.target.value)}
                   placeholder="Codigo del rol..."
                   rows={3}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
+                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none"
                 />
               </div>
 
@@ -611,7 +614,7 @@ export function ChangeRoleModal({
               <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
                 <Lock className="w-7 h-7 text-red-400" />
               </div>
-              <p className="text-gray-500 text-sm text-center">
+              <p className="text-zinc-500 text-sm text-center">
                 Solo los administradores pueden gestionar permisos.
               </p>
             </div>
@@ -619,7 +622,7 @@ export function ChangeRoleModal({
             <>
               {/* Selector de rol */}
               <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-1.5">
                   Configurar permisos de
                 </label>
                 {rolesError ? (
@@ -644,7 +647,7 @@ export function ChangeRoleModal({
                       setSelectedPerms(new Set());
                       if (id !== "") fetchPermissions(id as number);
                     }}
-                    className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white"
+                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 bg-white"
                   >
                     <option value="">Seleccionar rol...</option>
                     {roles.map((role) => (
@@ -659,8 +662,8 @@ export function ChangeRoleModal({
               {permRoleId !== "" && (
                 <>
                   {/* Counter */}
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span className="font-medium text-gray-700">
+                  <div className="flex items-center justify-between text-xs text-zinc-500">
+                    <span className="font-medium text-zinc-700">
                       {permRole?.name}
                     </span>
                     <span>
@@ -675,7 +678,7 @@ export function ChangeRoleModal({
                   {loadingPerms ? (
                     <div className="space-y-2">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                        <div key={i} className="h-12 bg-zinc-100 rounded-xl animate-pulse" />
                       ))}
                     </div>
                   ) : permsError ? (
@@ -705,18 +708,18 @@ export function ChangeRoleModal({
                       const activeCount = keys.filter((k) => selectedPerms.has(k)).length;
 
                       return (
-                        <div key={mod.moduleCode} className="border border-gray-200 rounded-xl overflow-hidden">
+                        <div key={mod.moduleCode} className="border border-zinc-200 rounded-xl overflow-hidden">
                           {/* Módulo header */}
                           <button
                             onClick={() => toggleModule(mod.moduleCode)}
-                            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                            className="w-full flex items-center justify-between px-4 py-3 bg-zinc-50 hover:bg-zinc-100 transition-colors"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${colorClass}`}>
                                 <Icon className="w-3 h-3" />
                                 {mod.moduleName}
                               </span>
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-zinc-400">
                                 {activeCount}/{actions.length}
                               </span>
                             </div>
@@ -724,16 +727,16 @@ export function ChangeRoleModal({
                               allSelected
                                 ? `${checkColor} border-transparent`
                                 : someSelected
-                                  ? "bg-gray-200 border-gray-300"
-                                  : "bg-white border-gray-300"
+                                  ? "bg-zinc-200 border-zinc-300"
+                                  : "bg-white border-zinc-300"
                             }`}>
                               {allSelected && <Check className="w-3 h-3 text-white" />}
-                              {someSelected && !allSelected && <div className="w-2 h-0.5 bg-gray-500 rounded" />}
+                              {someSelected && !allSelected && <div className="w-2 h-0.5 bg-zinc-500 rounded" />}
                             </div>
                           </button>
 
                           {/* Acciones individuales */}
-                          <div className="divide-y divide-gray-100">
+                          <div className="divide-y divide-zinc-100">
                             {actions.map((action) => {
                               const key = `${mod.moduleCode}.${action}`;
                               const isActive = selectedPerms.has(key);
@@ -741,15 +744,15 @@ export function ChangeRoleModal({
                                 <button
                                   key={key}
                                   onClick={() => togglePerm(key)}
-                                  className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
+                                  className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50 transition-colors text-left"
                                 >
-                                  <p className="text-sm text-gray-800 font-medium">
+                                  <p className="text-sm text-zinc-800 font-medium">
                                     {ACTION_LABELS[action]}
                                   </p>
                                   <div className={`w-5 h-5 rounded flex items-center justify-center border-2 flex-shrink-0 ml-3 transition-all ${
                                     isActive
                                       ? `${checkColor} border-transparent`
-                                      : "bg-white border-gray-300"
+                                      : "bg-white border-zinc-300"
                                   }`}>
                                     {isActive && <Check className="w-3 h-3 text-white" />}
                                   </div>

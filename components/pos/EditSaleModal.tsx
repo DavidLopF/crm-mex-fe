@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import {
-  Minus, Plus, Trash2, X, Search, Banknote, CreditCard, Save, Loader2,
+  Minus, Plus, Trash2, Search, Banknote, CreditCard, Save, Loader2,
 } from 'lucide-react';
 import { Button, Modal } from '@/components/ui';
 import { updateSale, getPosProducts, type SaleResponseDto, type PaymentMethod } from '@/services/pos';
@@ -203,14 +203,11 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
       <div className="flex flex-col max-h-[90vh]">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 flex-shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Editar Venta</h2>
-            <p className="text-sm text-gray-500 font-mono">{sale.code}</p>
+            <h2 className="text-lg font-bold text-zinc-900">Editar Venta</h2>
+            <p className="text-sm text-zinc-500 font-mono">{sale.code}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400">
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* ── Body ── */}
@@ -219,7 +216,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
           {/* Lista de items */}
           <div className="px-6 py-4 space-y-2">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">Productos</h3>
+              <h3 className="text-sm font-semibold text-zinc-700">Productos</h3>
               <button
                 type="button"
                 onClick={() => setShowSearch((v) => !v)}
@@ -233,8 +230,8 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
             {/* Buscador de productos */}
             {showSearch && (
               <div className="relative mb-3">
-                <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl bg-white focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary">
-                  <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 px-3 py-2 border border-zinc-200 rounded-xl bg-white focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary">
+                  <Search className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                   <input
                     autoFocus
                     type="text"
@@ -243,22 +240,22 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
                     value={search}
                     onChange={(e) => handleSearch(e.target.value)}
                   />
-                  {searching && <Loader2 className="w-4 h-4 text-gray-400 animate-spin flex-shrink-0" />}
+                  {searching && <Loader2 className="w-4 h-4 text-zinc-400 animate-spin flex-shrink-0" />}
                 </div>
                 {searchResults.length > 0 && (
-                  <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                  <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg overflow-hidden">
                     {searchResults.map((p) => (
                       <button
                         key={p.variantId}
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => addProduct(p)}
-                        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 text-left border-b border-gray-50 last:border-0"
+                        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50 text-left border-b border-zinc-50 last:border-0"
                       >
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{p.productName}</p>
-                          {p.variantName && <p className="text-xs text-gray-400">{p.variantName}</p>}
-                          <p className="text-xs text-gray-400">SKU: {p.sku}</p>
+                          <p className="text-sm font-medium text-zinc-900">{p.productName}</p>
+                          {p.variantName && <p className="text-xs text-zinc-400">{p.variantName}</p>}
+                          <p className="text-xs text-zinc-400">SKU: {p.sku}</p>
                         </div>
                         <p className="text-sm font-semibold text-primary ml-4">{formatPrice(p.defaultPrice)}</p>
                       </button>
@@ -269,7 +266,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
             )}
 
             {items.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-6">
+              <p className="text-sm text-zinc-400 text-center py-6">
                 No hay productos. Agrega al menos uno.
               </p>
             )}
@@ -277,24 +274,24 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
             {items.map((item) => (
               <div
                 key={item.variantId}
-                className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
+                className="flex items-start gap-3 p-3 bg-zinc-50 rounded-xl border border-zinc-100"
               >
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 leading-snug">{item.productName}</p>
-                  {item.variantName && <p className="text-xs text-gray-400 mt-0.5">{item.variantName}</p>}
+                  <p className="text-sm font-medium text-zinc-900 leading-snug">{item.productName}</p>
+                  {item.variantName && <p className="text-xs text-zinc-400 mt-0.5">{item.variantName}</p>}
                   {/* Precio editable */}
                   <div className="flex items-center gap-1.5 mt-1.5">
-                    <span className="text-xs text-gray-500">$</span>
+                    <span className="text-xs text-zinc-500">$</span>
                     <input
                       type="number"
                       min="0.01"
                       step="0.01"
-                      className="w-24 text-xs font-semibold text-gray-800 border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-primary/40"
+                      className="w-24 text-xs font-semibold text-zinc-800 border border-zinc-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-primary/40"
                       value={item.unitPrice}
                       onChange={(e) => updateUnitPrice(item.variantId, e.target.value)}
                     />
-                    <span className="text-xs text-gray-400">c/u</span>
+                    <span className="text-xs text-zinc-400">c/u</span>
                     {item.appliedTierLabel && (
                       <span className="text-[11px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
                         {item.appliedTierLabel}
@@ -307,17 +304,17 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-0.5">
                     <button
-                      className="w-8 h-8 flex items-center justify-center rounded-l-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded-l-xl border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 transition-colors"
                       onClick={() => updateQty(item.variantId, item.qty - 1)}
                       aria-label="Reducir"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-10 h-8 text-center text-sm font-bold border-y border-gray-200 flex items-center justify-center bg-white">
+                    <span className="w-10 h-8 text-center text-sm font-bold border-y border-zinc-200 flex items-center justify-center bg-white">
                       {item.qty}
                     </span>
                     <button
-                      className="w-8 h-8 flex items-center justify-center rounded-r-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded-r-xl border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100 transition-colors"
                       onClick={() => updateQty(item.variantId, item.qty + 1)}
                       aria-label="Aumentar"
                     >
@@ -325,11 +322,11 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-zinc-900">
                       {formatPrice(item.unitPrice * item.qty)}
                     </span>
                     <button
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors"
                       onClick={() => removeItem(item.variantId)}
                       aria-label="Eliminar"
                     >
@@ -342,8 +339,8 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
           </div>
 
           {/* Cliente y notas */}
-          <div className="px-6 pb-4 space-y-2.5 border-t border-gray-100 pt-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Cliente y notas</h3>
+          <div className="px-6 pb-4 space-y-2.5 border-t border-zinc-100 pt-4">
+            <h3 className="text-sm font-semibold text-zinc-700 mb-2">Cliente y notas</h3>
             {/* ClientSelector adaptado al modal (lee desde el store, pero lo usamos en modo controlado) */}
             <_EditClientSelector
               clientId={clientId}
@@ -353,7 +350,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
             <input
               type="text"
               placeholder="Notas (opcional)"
-              className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+              className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -361,11 +358,11 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
         </div>
 
         {/* ── Footer: IVA + Totales + Acciones ── */}
-        <div className="flex-shrink-0 px-6 py-4 border-t-2 border-gray-100 bg-gray-50/80 space-y-3">
+        <div className="flex-shrink-0 px-6 py-4 border-t-2 border-zinc-100 bg-zinc-50/80 space-y-3">
 
           {/* Medio de pago */}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-1.5">Medio de pago</p>
+            <p className="text-xs font-medium text-zinc-500 mb-1.5">Medio de pago</p>
             <div className="grid grid-cols-4 gap-1.5">
               {PAYMENT_METHODS.map((pm) => (
                 <button
@@ -376,7 +373,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
                     flex flex-col items-center gap-1 py-2 px-1 rounded-xl border-2 text-xs font-medium transition-all
                     ${paymentMethod === pm.value
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                      : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'
                     }
                   `}
                 >
@@ -393,11 +390,11 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
             onClick={() => setIncludesIva((v) => !v)}
             className={`
               w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all
-              ${includesIva ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}
+              ${includesIva ? 'border-primary bg-primary/5 text-primary' : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'}
             `}
           >
             <span className="text-sm font-medium">Incluye IVA (16%)</span>
-            <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-2 ${includesIva ? 'bg-primary' : 'bg-gray-300'}`}>
+            <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-2 ${includesIva ? 'bg-primary' : 'bg-zinc-300'}`}>
               <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${includesIva ? 'translate-x-5' : 'translate-x-0'}`} />
             </span>
           </button>
@@ -406,7 +403,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
           <div className="space-y-1">
             {includesIva && (
               <>
-                <div className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center justify-between text-sm text-zinc-500">
                   <span>Subtotal</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
@@ -414,12 +411,12 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
                   <span>IVA 16%</span>
                   <span>+ {formatPrice(taxAmount)}</span>
                 </div>
-                <div className="border-t border-gray-200 pt-1" />
+                <div className="border-t border-zinc-200 pt-1" />
               </>
             )}
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-gray-500">Total a cobrar</span>
-              <span className="text-2xl font-bold text-gray-900">{formatPrice(total)}</span>
+              <span className="text-sm text-zinc-500">Total a cobrar</span>
+              <span className="text-2xl font-bold text-zinc-900 tracking-tight">{formatPrice(total)}</span>
             </div>
           </div>
 
@@ -437,7 +434,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
               )}
             </Button>
             <Button
-              className="px-5 h-12 rounded-2xl bg-gray-200 text-gray-700 hover:bg-gray-300"
+              className="px-5 h-12 rounded-2xl bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
               onClick={onClose}
               disabled={submitting}
             >
@@ -545,10 +542,10 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
       <div className="flex items-center gap-2 px-3 py-2.5 bg-primary/5 border border-primary/20 rounded-xl">
         <UserCheck className="w-4 h-4 text-primary flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{clientName}</p>
-          <p className="text-xs text-gray-400">#{clientId}</p>
+          <p className="text-sm font-medium text-zinc-900 truncate">{clientName}</p>
+          <p className="text-xs text-zinc-400">#{clientId}</p>
         </div>
-        <button onClick={clear} className="p-1 rounded-lg hover:bg-primary/10 text-gray-400 hover:text-primary">
+        <button onClick={clear} className="p-1 rounded-lg hover:bg-primary/10 text-zinc-400 hover:text-primary">
           <XIcon className="w-4 h-4" />
         </button>
       </div>
@@ -558,10 +555,10 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
   // ── Si hay nombre libre, mostrar chip ──
   if (!clientId && clientName) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-        <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <p className="flex-1 text-sm text-gray-700 truncate">{clientName}</p>
-        <button onClick={clear} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+      <div className="flex items-center gap-2 px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+        <User className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+        <p className="flex-1 text-sm text-zinc-700 truncate">{clientName}</p>
+        <button onClick={clear} className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-400">
           <XIcon className="w-4 h-4" />
         </button>
       </div>
@@ -573,42 +570,42 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
     <div className="relative">
       {!creatingNew ? (
         <>
-          <div className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-xl bg-white focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition-all">
-            <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2.5 border border-zinc-200 rounded-xl bg-white focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition-all">
+            <Search className="w-4 h-4 text-zinc-400 flex-shrink-0" />
             <input
               type="text"
               placeholder="Buscar cliente o nombre libre..."
-              className="flex-1 text-sm bg-transparent outline-none text-gray-700 placeholder:text-gray-400"
+              className="flex-1 text-sm bg-transparent outline-none text-zinc-700 placeholder:text-zinc-400"
               value={query}
               onChange={(e) => search(e.target.value)}
               onFocus={() => setOpen(true)}
               onBlur={handleBlur}
             />
-            {loading && <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />}
+            {loading && <Loader2 className="w-3.5 h-3.5 text-zinc-400 animate-spin" />}
           </div>
           {open && (
-            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
               {results.map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => selectClient(c.id, c.name)}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-left border-b border-gray-50 last:border-0"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 text-left border-b border-zinc-50 last:border-0"
                 >
-                  <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-700">{c.name}</span>
+                  <User className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+                  <span className="text-sm text-zinc-700">{c.name}</span>
                 </button>
               ))}
               {!loading && results.length === 0 && (
-                <div className="px-4 py-2.5 text-sm text-gray-400">Sin clientes para mostrar.</div>
+                <div className="px-4 py-2.5 text-sm text-zinc-400">Sin clientes para mostrar.</div>
               )}
               {query.trim().length >= 1 && (
                 <button
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => { setCreatingNew(true); setNewName(query.trim()); setOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-primary/5 text-left text-primary text-sm font-medium border-t border-gray-100"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-primary/5 text-left text-primary text-sm font-medium border-t border-zinc-100"
                 >
                   <span>+ Crear cliente &quot;{query.trim()}&quot;</span>
                 </button>
@@ -623,14 +620,14 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
             autoFocus
             type="text"
             placeholder="Nombre *"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:ring-1 focus:ring-primary/30"
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white outline-none focus:ring-1 focus:ring-primary/30"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
           />
           <input
             type="text"
             placeholder="Documento / NIT (opcional)"
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white outline-none focus:ring-1 focus:ring-primary/30"
+            className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-lg bg-white outline-none focus:ring-1 focus:ring-primary/30"
             value={newDoc}
             onChange={(e) => setNewDoc(e.target.value)}
           />
@@ -647,7 +644,7 @@ function _EditClientSelector({ clientId, clientName, onChange }: EditClientSelec
             <button
               type="button"
               onClick={() => { setCreatingNew(false); setNewName(''); setNewDoc(''); setCreateError(''); }}
-              className="px-3 py-1.5 text-xs text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200"
+              className="px-3 py-1.5 text-xs text-zinc-500 bg-zinc-100 rounded-lg hover:bg-zinc-200"
             >
               Cancelar
             </button>

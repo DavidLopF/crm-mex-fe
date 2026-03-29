@@ -23,8 +23,8 @@ function CustomTooltip({ active, payload, formatValue, unit }: any) {
   if (!active || !payload?.length) return null;
   const { value } = payload[0];
   return (
-    <div className="bg-white border border-gray-100 rounded-xl px-3 py-2 shadow-lg text-sm">
-      <p className="font-semibold text-gray-900">
+    <div className="bg-white border border-zinc-100 rounded-xl px-3 py-2 shadow-lg text-sm">
+      <p className="font-semibold text-zinc-900">
         {formatValue ? formatValue(value) : value.toLocaleString('es-CO')}
         {unit ? ` ${unit}` : ''}
       </p>

@@ -174,13 +174,13 @@ export function ClientSelector() {
           <UserCheck className="w-4 h-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{clientName}</p>
+          <p className="text-sm font-semibold text-zinc-900 truncate">{clientName}</p>
           <p className="text-[11px] text-primary/70 font-medium">Cliente vinculado · #{clientId}</p>
         </div>
         <button
           type="button"
           onClick={clearClient}
-          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+          className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors flex-shrink-0"
           title="Quitar cliente"
         >
           <X className="w-4 h-4" />
@@ -200,17 +200,17 @@ export function ClientSelector() {
           setIsOpen(true);
           setTimeout(() => inputRef.current?.focus(), 50);
         }}
-        className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
+        className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
       >
-        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-          <User className="w-4 h-4 text-gray-500" />
+        <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center flex-shrink-0">
+          <User className="w-4 h-4 text-zinc-500" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{clientName}</p>
-          <p className="text-[11px] text-gray-400">Nombre libre — toca para cambiar</p>
+          <p className="text-sm font-medium text-zinc-900 truncate">{clientName}</p>
+          <p className="text-[11px] text-zinc-400">Nombre libre — toca para cambiar</p>
         </div>
         <X
-          className="w-4 h-4 text-gray-400 hover:text-red-500 flex-shrink-0"
+          className="w-4 h-4 text-zinc-400 hover:text-red-500 flex-shrink-0"
           onClick={(e) => { e.stopPropagation(); clearClient(); }}
         />
       </button>
@@ -223,12 +223,12 @@ export function ClientSelector() {
 
       {/* Input de búsqueda */}
       <div className="relative flex items-center">
-        <Search className="absolute left-3.5 w-4 h-4 text-gray-400 pointer-events-none z-10" />
+        <Search className="absolute left-3.5 w-4 h-4 text-zinc-400 pointer-events-none z-10" />
         <input
           ref={inputRef}
           type="text"
           placeholder="Buscar o seleccionar cliente..."
-          className="w-full pl-10 pr-9 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+          className="w-full pl-10 pr-9 py-3 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -238,24 +238,24 @@ export function ClientSelector() {
           autoComplete="off"
         />
         <ChevronDown
-          className={`absolute right-3 w-4 h-4 text-gray-400 transition-transform pointer-events-none ${isOpen ? 'rotate-180' : ''}`}
+          className={`absolute right-3 w-4 h-4 text-zinc-400 transition-transform pointer-events-none ${isOpen ? 'rotate-180' : ''}`}
         />
       </div>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute z-50 w-full mt-1.5 bg-white border border-zinc-200 rounded-xl shadow-xl overflow-hidden">
 
           {/* ── Lista de clientes ── */}
           {!showCreate && (
             <div className="max-h-52 overflow-y-auto">
               {loadingSearch ? (
-                <div className="flex items-center justify-center py-6 gap-2 text-gray-400">
+                <div className="flex items-center justify-center py-6 gap-2 text-zinc-400">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm">Buscando...</span>
                 </div>
               ) : options.length === 0 ? (
-                <div className="py-4 px-4 text-sm text-gray-400 text-center">
+                <div className="py-4 px-4 text-sm text-zinc-400 text-center">
                   {query
                     ? <>No hay resultados para <strong>"{query}"</strong></>
                     : 'Escribe para buscar clientes...'}
@@ -267,15 +267,15 @@ export function ClientSelector() {
                     type="button"
                     onMouseDown={(e) => e.preventDefault()} // evita que blur cierre antes del click
                     onClick={() => selectClient(client)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-left transition-colors border-b border-gray-50 last:border-0"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 text-left transition-colors border-b border-zinc-50 last:border-0"
                   >
-                    <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <User className="w-3.5 h-3.5 text-gray-500" />
+                    <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                      <User className="w-3.5 h-3.5 text-zinc-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm text-gray-800 font-medium truncate block">{client.name}</span>
+                      <span className="text-sm text-zinc-800 font-medium truncate block">{client.name}</span>
                       {client.document && (
-                        <span className="text-xs text-gray-400 truncate block">{client.document}</span>
+                        <span className="text-xs text-zinc-400 truncate block">{client.document}</span>
                       )}
                     </div>
                   </button>
@@ -290,7 +290,7 @@ export function ClientSelector() {
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={startCreate}
-              className="w-full flex items-center gap-3 px-4 py-3 border-t border-gray-100 hover:bg-green-50 text-green-700 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 border-t border-zinc-100 hover:bg-green-50 text-green-700 transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                 <UserPlus className="w-3.5 h-3.5 text-green-600" />
@@ -301,10 +301,10 @@ export function ClientSelector() {
             </button>
           ) : (
             /* ── Formulario inline de creación ── */
-            <div className="p-3 space-y-2.5 border-t border-gray-100 bg-gray-50/50">
+            <div className="p-3 space-y-2.5 border-t border-zinc-100 bg-zinc-50/50">
               <div className="flex items-center gap-1.5 mb-1">
                 <UserPlus className="w-3.5 h-3.5 text-green-600" />
-                <p className="text-xs font-semibold text-gray-700">Nuevo cliente</p>
+                <p className="text-xs font-semibold text-zinc-700">Nuevo cliente</p>
               </div>
 
               <input
@@ -314,7 +314,7 @@ export function ClientSelector() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={handleCreateKeyDown}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white"
+                className="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white"
               />
 
               <input
@@ -323,7 +323,7 @@ export function ClientSelector() {
                 value={newDoc}
                 onChange={(e) => setNewDoc(e.target.value)}
                 onKeyDown={handleCreateKeyDown}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white"
+                className="w-full px-3 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white"
               />
 
               {createError && (
@@ -335,7 +335,7 @@ export function ClientSelector() {
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={cancelCreate}
-                  className="flex-1 py-2 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors bg-white"
+                  className="flex-1 py-2 text-xs font-medium text-zinc-500 border border-zinc-200 rounded-lg hover:bg-zinc-100 transition-colors bg-white"
                 >
                   Cancelar
                 </button>

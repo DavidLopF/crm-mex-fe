@@ -204,12 +204,12 @@ export function BulkPriceTiersModal({ isOpen, onClose, onConfirm }: BulkPriceTie
         {step === 'upload' && (
           <>
             <div className="flex justify-between items-start gap-3">
-              <div className="text-sm text-gray-500 space-y-1">
+              <div className="text-sm text-zinc-500 space-y-1">
                 <p>
                   Sube un Excel con columnas: <strong>SKU</strong>, <strong>CantidadMinima</strong>,{' '}
                   <strong>Precio</strong> y opcionalmente <strong>Etiqueta</strong>.
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-zinc-400">
                   Un SKU puede tener <em>múltiples filas</em> — cada fila es un tier de precio según cantidad.
                   Los tiers existentes serán reemplazados completamente.
                 </p>
@@ -230,13 +230,13 @@ export function BulkPriceTiersModal({ isOpen, onClose, onConfirm }: BulkPriceTie
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
               onClick={() => inputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+              className="border-2 border-dashed border-zinc-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
             >
-              <FileSpreadsheet className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-700">
+              <FileSpreadsheet className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
+              <p className="text-sm font-medium text-zinc-700">
                 Arrastra tu archivo aquí o haz clic para seleccionar
               </p>
-              <p className="text-xs text-gray-400 mt-1">Formatos soportados: .xlsx, .xls</p>
+              <p className="text-xs text-zinc-400 mt-1">Formatos soportados: .xlsx, .xls</p>
               <input
                 ref={inputRef}
                 type="file"
@@ -247,20 +247,20 @@ export function BulkPriceTiersModal({ isOpen, onClose, onConfirm }: BulkPriceTie
             </div>
 
             {/* Ejemplo visual rápido */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-500">
-              <p className="font-semibold text-gray-600 mb-2 flex items-center gap-1">
+            <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 text-xs text-zinc-500">
+              <p className="font-semibold text-zinc-600 mb-2 flex items-center gap-1">
                 <Layers className="w-3.5 h-3.5" /> Ejemplo de estructura:
               </p>
               <table className="w-full text-left">
                 <thead>
-                  <tr className="text-gray-400">
+                  <tr className="text-zinc-400">
                     <th className="pr-4 pb-1">SKU</th>
                     <th className="pr-4 pb-1">CantidadMinima</th>
                     <th className="pr-4 pb-1">Precio</th>
                     <th className="pb-1">Etiqueta</th>
                   </tr>
                 </thead>
-                <tbody className="text-gray-600">
+                <tbody className="text-zinc-600">
                   <tr><td className="pr-4">PROD-001</td><td className="pr-4">1</td><td className="pr-4">$299.99</td><td>Precio unitario</td></tr>
                   <tr><td className="pr-4">PROD-001</td><td className="pr-4">5</td><td className="pr-4">$269.99</td><td>Por 5 o más</td></tr>
                   <tr><td className="pr-4">PROD-001</td><td className="pr-4">10</td><td className="pr-4">$249.99</td><td>Al mayoreo</td></tr>
@@ -296,19 +296,19 @@ export function BulkPriceTiersModal({ isOpen, onClose, onConfirm }: BulkPriceTie
             </div>
 
             {/* Tabla agrupada por SKU */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden max-h-80 overflow-y-auto">
+            <div className="border border-zinc-200 rounded-lg overflow-hidden max-h-80 overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 sticky top-0">
+                <thead className="bg-zinc-50 sticky top-0">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase w-8">#</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">SKU</th>
-                    <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">Cant. Mín.</th>
-                    <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">Precio</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Etiqueta</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Estado</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase w-8">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">SKU</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold text-zinc-500 uppercase">Cant. Mín.</th>
+                    <th className="px-3 py-2 text-right text-xs font-semibold text-zinc-500 uppercase">Precio</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">Etiqueta</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-zinc-100">
                   {skuGroups.map((group, gi) =>
                     group.tiers.map((tier, ti) => (
                       <tr
@@ -316,32 +316,32 @@ export function BulkPriceTiersModal({ isOpen, onClose, onConfirm }: BulkPriceTie
                         className={[
                           tier._valid ? '' : 'bg-red-50',
                           // Separador visual entre grupos de SKU
-                          ti === 0 && gi > 0 ? 'border-t-2 border-gray-300' : '',
+                          ti === 0 && gi > 0 ? 'border-t-2 border-zinc-300' : '',
                         ].join(' ')}
                       >
-                        <td className="px-3 py-2 text-gray-400 text-xs">{tier._rowNum}</td>
+                        <td className="px-3 py-2 text-zinc-400 text-xs">{tier._rowNum}</td>
                         {/* SKU sólo en la primera fila del grupo */}
-                        <td className="px-3 py-2 font-mono text-gray-900">
+                        <td className="px-3 py-2 font-mono text-zinc-900">
                           {ti === 0 ? (
                             <span className="flex items-center gap-1">
                               {tier.sku || '—'}
                               {group.tiers.length > 1 && (
-                                <span className="text-xs text-gray-400 font-normal">
+                                <span className="text-xs text-zinc-400 font-normal">
                                   ×{group.tiers.length}
                                 </span>
                               )}
                             </span>
                           ) : (
-                            <span className="text-gray-300 pl-3">└</span>
+                            <span className="text-zinc-300 pl-3">└</span>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-right text-gray-700">
+                        <td className="px-3 py-2 text-right text-zinc-700">
                           {tier._valid ? tier.minQty : '—'}
                         </td>
-                        <td className="px-3 py-2 text-right text-gray-700">
+                        <td className="px-3 py-2 text-right text-zinc-700">
                           {tier._valid ? `$${tier.price.toFixed(2)}` : '—'}
                         </td>
-                        <td className="px-3 py-2 text-gray-500 text-xs">
+                        <td className="px-3 py-2 text-zinc-500 text-xs">
                           {tier.tierLabel || '—'}
                         </td>
                         <td className="px-3 py-2">
@@ -406,11 +406,11 @@ export function BulkPriceTiersModal({ isOpen, onClose, onConfirm }: BulkPriceTie
                 )}
               </div>
               <div>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-base font-semibold text-zinc-900">
                   {result.updatedSkus} SKU{result.updatedSkus !== 1 ? 's' : ''} actualizado
                   {result.updatedSkus !== 1 ? 's' : ''}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-zinc-500">
                   {result.tiersCreated} tier{result.tiersCreated !== 1 ? 's' : ''} de precio creado
                   {result.tiersCreated !== 1 ? 's' : ''}
                 </p>
@@ -434,7 +434,7 @@ export function BulkPriceTiersModal({ isOpen, onClose, onConfirm }: BulkPriceTie
                   <tbody className="divide-y divide-red-100">
                     {result.errors.map((e, i) => (
                       <tr key={i}>
-                        <td className="px-3 py-2 font-mono text-gray-700">{e.sku}</td>
+                        <td className="px-3 py-2 font-mono text-zinc-700">{e.sku}</td>
                         <td className="px-3 py-2 text-red-600">{e.reason}</td>
                       </tr>
                     ))}

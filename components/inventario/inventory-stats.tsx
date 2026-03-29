@@ -1,4 +1,4 @@
-import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle } from 'lucide-react';
+import { Package, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 import { StatCard } from '@/components/dashboard';
 import { Producto } from '@/types';
 import { ProductStatistics } from '@/services/products';
@@ -39,7 +39,7 @@ export function InventoryStats({ productos, statistics }: InventoryStatsProps) {
         title="Productos Inactivos"
         value={productosInactivos}
         icon={XCircle}
-        iconClassName="bg-gray-100 text-gray-600"
+        iconClassName="bg-zinc-100 text-zinc-600"
       />
     </div>
   );

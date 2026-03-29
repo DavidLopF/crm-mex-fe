@@ -179,7 +179,7 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
         {step === 'upload' && (
           <>
             <div className="flex justify-between items-start gap-3">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-zinc-500">
                 Sube un Excel con: <strong>Nombre</strong>, <strong>SKU</strong>, <strong>Precio</strong>, <strong>Categoria</strong> (requeridos) y campos opcionales como Costo, NombreVariante, Stock, etc.
               </p>
               <Button variant="outline" size="sm" onClick={downloadTemplate} className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
@@ -192,11 +192,11 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
               onClick={() => inputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+              className="border-2 border-dashed border-zinc-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
             >
-              <FileSpreadsheet className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-700">Arrastra tu archivo aquí o haz clic para seleccionar</p>
-              <p className="text-xs text-gray-400 mt-1">Formatos soportados: .xlsx, .xls</p>
+              <FileSpreadsheet className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
+              <p className="text-sm font-medium text-zinc-700">Arrastra tu archivo aquí o haz clic para seleccionar</p>
+              <p className="text-xs text-zinc-400 mt-1">Formatos soportados: .xlsx, .xls</p>
               <input
                 ref={inputRef}
                 type="file"
@@ -229,25 +229,25 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
               )}
             </div>
 
-            <div className="border border-gray-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
+            <div className="border border-zinc-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 sticky top-0">
+                <thead className="bg-zinc-50 sticky top-0">
                   <tr>
                     {['#', 'Nombre', 'SKU', 'Precio', 'Categoría', 'Variante', 'Stock', 'Estado'].map((h) => (
-                      <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                      <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-zinc-500 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-zinc-100">
                   {rows.map((r) => (
                     <tr key={r._rowNum} className={r._valid ? '' : 'bg-red-50'}>
-                      <td className="px-3 py-2 text-gray-400">{r._rowNum}</td>
-                      <td className="px-3 py-2 font-medium text-gray-900 max-w-32 truncate">{r.name || '—'}</td>
-                      <td className="px-3 py-2 font-mono text-gray-700">{r.sku || '—'}</td>
-                      <td className="px-3 py-2 text-gray-700">{r._valid ? `$${r.defaultPrice.toFixed(2)}` : '—'}</td>
-                      <td className="px-3 py-2 text-gray-600 max-w-24 truncate">{r.categoryName || '—'}</td>
-                      <td className="px-3 py-2 text-gray-500 max-w-24 truncate">{r.variantName || '—'}</td>
-                      <td className="px-3 py-2 text-gray-600">{r.stock ?? 0}</td>
+                      <td className="px-3 py-2 text-zinc-400">{r._rowNum}</td>
+                      <td className="px-3 py-2 font-medium text-zinc-900 max-w-32 truncate">{r.name || '—'}</td>
+                      <td className="px-3 py-2 font-mono text-zinc-700">{r.sku || '—'}</td>
+                      <td className="px-3 py-2 text-zinc-700">{r._valid ? `$${r.defaultPrice.toFixed(2)}` : '—'}</td>
+                      <td className="px-3 py-2 text-zinc-600 max-w-24 truncate">{r.categoryName || '—'}</td>
+                      <td className="px-3 py-2 text-zinc-500 max-w-24 truncate">{r.variantName || '—'}</td>
+                      <td className="px-3 py-2 text-zinc-600">{r.stock ?? 0}</td>
                       <td className="px-3 py-2">
                         {r._valid ? (
                           <Badge variant="success">Válida</Badge>
@@ -289,7 +289,7 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
                   : <AlertTriangle className="w-7 h-7 text-amber-600" />}
               </div>
               <div>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-base font-semibold text-zinc-900">
                   {result.created} producto{result.created !== 1 ? 's' : ''} importado{result.created !== 1 ? 's' : ''}
                 </p>
                 {result.errors.length > 0 && (
@@ -310,7 +310,7 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
                   <tbody className="divide-y divide-red-100">
                     {result.errors.map((e, i) => (
                       <tr key={i}>
-                        <td className="px-3 py-2 font-mono text-gray-700">{e.sku}</td>
+                        <td className="px-3 py-2 font-mono text-zinc-700">{e.sku}</td>
                         <td className="px-3 py-2 text-red-600">{e.reason}</td>
                       </tr>
                     ))}

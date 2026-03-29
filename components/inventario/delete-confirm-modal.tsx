@@ -36,36 +36,36 @@ export function DeleteConfirmModal({ isOpen, onClose, onConfirm, producto }: Del
 
         {/* Mensaje */}
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-base font-semibold text-zinc-900 mb-2">
             ¿Está seguro de eliminar este producto?
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-zinc-600 mb-4">
             Esta acción no se puede deshacer. Se eliminará permanentemente:
           </p>
         </div>
 
         {/* Información del producto */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Producto:</span>
-              <span className="text-sm text-gray-900 font-semibold">{producto.nombre}</span>
+              <span className="text-sm font-medium text-zinc-700">Producto:</span>
+              <span className="text-sm text-zinc-900 font-semibold">{producto.nombre}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">SKU:</span>
-              <span className="text-sm text-gray-900 font-mono">{producto.sku}</span>
+              <span className="text-sm font-medium text-zinc-700">SKU:</span>
+              <span className="text-sm text-zinc-900 font-mono">{producto.sku}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Categoría:</span>
-              <span className="text-sm text-gray-900">{producto.categoria}</span>
+              <span className="text-sm font-medium text-zinc-700">Categoría:</span>
+              <span className="text-sm text-zinc-900">{producto.categoria}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Stock Total:</span>
-              <span className="text-sm text-gray-900 font-semibold">{producto.stockTotal} unidades</span>
+              <span className="text-sm font-medium text-zinc-700">Stock Total:</span>
+              <span className="text-sm text-zinc-900 font-semibold">{producto.stockTotal} unidades</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Variaciones:</span>
-              <span className="text-sm text-gray-900">{producto.variaciones.length} variaciones</span>
+              <span className="text-sm font-medium text-zinc-700">Variaciones:</span>
+              <span className="text-sm text-zinc-900">{producto.variaciones.length} variaciones</span>
             </div>
           </div>
         </div>

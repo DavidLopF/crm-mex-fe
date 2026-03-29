@@ -50,8 +50,8 @@ function variantLabel(v: VarianteOption): string {
 function MovimientoRow({ mov }: { mov: KardexMovimiento }) {
   const isEntrada = mov.tipo === 'ENTRADA';
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
-      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
+    <tr className="hover:bg-zinc-50 transition-colors">
+      <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
         {formatDate(mov.fecha)}
       </td>
       <td className="px-4 py-3">
@@ -68,9 +68,9 @@ function MovimientoRow({ mov }: { mov: KardexMovimiento }) {
           {mov.tipo}
         </span>
       </td>
-      <td className="px-4 py-3 text-sm text-gray-700">{mov.concepto}</td>
-      <td className="px-4 py-3 text-sm font-mono text-gray-600">{mov.referencia}</td>
-      <td className="px-4 py-3 text-sm text-gray-500">{mov.almacen ?? '—'}</td>
+      <td className="px-4 py-3 text-sm text-zinc-700">{mov.concepto}</td>
+      <td className="px-4 py-3 text-sm font-mono text-zinc-600">{mov.referencia}</td>
+      <td className="px-4 py-3 text-sm text-zinc-500">{mov.almacen ?? '—'}</td>
       <td
         className={`px-4 py-3 text-right text-sm font-semibold ${
           isEntrada ? 'text-green-700' : 'text-red-600'
@@ -79,10 +79,10 @@ function MovimientoRow({ mov }: { mov: KardexMovimiento }) {
         {isEntrada ? '+' : '-'}
         {formatNumber(mov.qty)}
       </td>
-      <td className="px-4 py-3 text-right text-sm text-gray-600">
+      <td className="px-4 py-3 text-right text-sm text-zinc-600">
         {formatCurrency(mov.costo)}
       </td>
-      <td className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+      <td className="px-4 py-3 text-right text-sm font-bold text-zinc-900">
         {formatNumber(mov.saldo)}
       </td>
     </tr>
@@ -164,16 +164,16 @@ function ProductSelector({
         style={{ borderColor: primaryColor + '40', backgroundColor: primaryColor + '08' }}
       >
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 truncate">{variantLabel(selected)}</p>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">SKU: {selected.sku}</p>
+          <p className="font-semibold text-zinc-900 truncate">{variantLabel(selected)}</p>
+          <p className="text-xs text-zinc-400 font-mono mt-0.5">SKU: {selected.sku}</p>
         </div>
         <button
           type="button"
           onClick={() => onSelect(null)}
-          className="p-1 rounded-md hover:bg-gray-200 transition-colors flex-shrink-0"
+          className="p-1 rounded-md hover:bg-zinc-200 transition-colors flex-shrink-0"
           title="Cambiar producto"
         >
-          <X className="w-4 h-4 text-gray-500" />
+          <X className="w-4 h-4 text-zinc-500" />
         </button>
       </div>
     );
@@ -184,7 +184,7 @@ function ProductSelector({
     <div ref={containerRef} className="relative">
       {/* Input de búsqueda */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
         <input
           ref={inputRef}
           type="text"
@@ -195,32 +195,32 @@ function ProductSelector({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 focus:border-transparent"
+          className="w-full pl-9 pr-8 py-2.5 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 focus:border-transparent"
           style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
           autoFocus
         />
         <ChevronDown
-          className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </div>
 
       {/* Lista desplegable — siempre visible al abrir */}
       {open && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg overflow-hidden">
           {loading && (
-            <div className="px-4 py-3 text-xs text-gray-400 text-center">
+            <div className="px-4 py-3 text-xs text-zinc-400 text-center">
               Cargando productos...
             </div>
           )}
 
           {!loading && filteredVariantes.length === 0 && (
-            <div className="px-4 py-3 text-xs text-gray-400 text-center">
+            <div className="px-4 py-3 text-xs text-zinc-400 text-center">
               {search ? `Sin resultados para "${search}"` : 'No hay productos disponibles'}
             </div>
           )}
 
           {!loading && filteredVariantes.length > 0 && (
-            <ul className="max-h-64 overflow-y-auto divide-y divide-gray-50">
+            <ul className="max-h-64 overflow-y-auto divide-y divide-zinc-50">
               {filteredVariantes.map((v) => (
                 <li key={v.id}>
                   <button
@@ -232,17 +232,17 @@ function ProductSelector({
                       setOpen(false);
                       setSearch('');
                     }}
-                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
+                    className="w-full text-left px-4 py-2.5 text-sm hover:bg-zinc-50 transition-colors flex items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-zinc-900">
                         {v.product.name}
                       </span>
                       {v.variantName && (
-                        <span className="text-gray-500"> — {v.variantName}</span>
+                        <span className="text-zinc-500"> — {v.variantName}</span>
                       )}
                     </div>
-                    <span className="text-xs text-gray-400 font-mono flex-shrink-0">
+                    <span className="text-xs text-zinc-400 font-mono flex-shrink-0">
                       {v.sku}
                     </span>
                   </button>
@@ -305,8 +305,8 @@ export function KardexReport() {
   return (
     <div className="space-y-5">
       {/* Panel de filtros */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <div className="bg-white rounded-xl border border-zinc-200 p-4 space-y-3">
+        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
           Seleccionar producto
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -321,12 +321,12 @@ export function KardexReport() {
 
           {/* Filtro desde */}
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <Filter className="w-4 h-4 text-zinc-400 flex-shrink-0" />
             <input
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none"
+              className="text-sm border border-zinc-200 rounded-lg px-3 py-2.5 focus:outline-none"
               title="Desde"
               disabled={!selectedVariant}
             />
@@ -337,7 +337,7 @@ export function KardexReport() {
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none disabled:opacity-50"
+            className="text-sm border border-zinc-200 rounded-lg px-3 py-2.5 focus:outline-none disabled:opacity-50"
             title="Hasta"
             disabled={!selectedVariant}
           />
@@ -346,14 +346,14 @@ export function KardexReport() {
 
       {/* Cargando kardex */}
       {selectedVariant && loadingKardex && (
-        <div className="bg-white rounded-xl border border-gray-200 flex items-center justify-center py-16 text-gray-400 text-sm">
+        <div className="bg-white rounded-xl border border-zinc-200 flex items-center justify-center py-16 text-zinc-400 text-sm">
           Cargando movimientos...
         </div>
       )}
 
       {/* Error */}
       {selectedVariant && !loadingKardex && kardexError && (
-        <div className="bg-white rounded-xl border border-gray-200 flex items-center justify-center py-16 text-red-500 text-sm">
+        <div className="bg-white rounded-xl border border-zinc-200 flex items-center justify-center py-16 text-red-500 text-sm">
           {kardexError}
         </div>
       )}
@@ -364,23 +364,23 @@ export function KardexReport() {
           {/* Info variante + resumen + stock */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Info del producto */}
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            <div className="lg:col-span-2 bg-white rounded-xl border border-zinc-200 p-4">
+              <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
                 Producto
               </h3>
-              <p className="text-base font-bold text-gray-900">
+              <p className="text-base font-bold text-zinc-900">
                 {kardex.variante.productName}
               </p>
               {kardex.variante.variantName && (
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-zinc-500 mt-0.5">
                   {kardex.variante.variantName}
                 </p>
               )}
-              <p className="text-xs text-gray-400 mt-1 font-mono">
+              <p className="text-xs text-zinc-400 mt-1 font-mono">
                 SKU: {kardex.variante.sku}
               </p>
               {kardex.variante.categoryName && (
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-zinc-400 mt-0.5">
                   Categoría: {kardex.variante.categoryName}
                 </p>
               )}
@@ -390,9 +390,9 @@ export function KardexReport() {
                   {kardex.stockActual.map((s) => (
                     <div
                       key={s.almacen}
-                      className="text-xs rounded-lg border border-gray-100 px-3 py-1.5 bg-gray-50 flex items-center gap-2"
+                      className="text-xs rounded-lg border border-zinc-100 px-3 py-1.5 bg-zinc-50 flex items-center gap-2"
                     >
-                      <span className="font-medium text-gray-600">{s.almacen}:</span>
+                      <span className="font-medium text-zinc-600">{s.almacen}:</span>
                       <span
                         className="font-bold"
                         style={{ color: primaryColor }}
@@ -400,7 +400,7 @@ export function KardexReport() {
                         {formatNumber(s.qtyDisponible)} disp.
                       </span>
                       {s.qtyReservada > 0 && (
-                        <span className="text-gray-400">
+                        <span className="text-zinc-400">
                           / {formatNumber(s.qtyReservada)} res.
                         </span>
                       )}
@@ -411,8 +411,8 @@ export function KardexReport() {
             </div>
 
             {/* Resumen de movimientos */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <div className="bg-white rounded-xl border border-zinc-200 p-4">
+              <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">
                 Resumen del período
               </h3>
               <div className="space-y-2.5">
@@ -435,9 +435,9 @@ export function KardexReport() {
                   </span>
                 </div>
                 <div
-                  className="flex justify-between items-center pt-2.5 border-t border-gray-100"
+                  className="flex justify-between items-center pt-2.5 border-t border-zinc-100"
                 >
-                  <span className="text-sm font-semibold text-gray-700">
+                  <span className="text-sm font-semibold text-zinc-700">
                     Saldo final
                   </span>
                   <span
@@ -452,7 +452,7 @@ export function KardexReport() {
           </div>
 
           {/* Gráfico de evolución del stock */}
-          {kardex.movimientos.length > 1 && (
+          {kardex.movimientos.length > 0 && (
             <KardexMovimientosChart
               movimientos={kardex.movimientos}
               primaryColor={primaryColor}
@@ -460,18 +460,18 @@ export function KardexReport() {
           )}
 
           {/* Tabla de movimientos */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-700">
+          <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-zinc-100 bg-zinc-50 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-zinc-700">
                 Movimientos
               </h3>
-              <span className="text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-2 py-0.5">
+              <span className="text-xs text-zinc-400 bg-white border border-zinc-200 rounded-full px-2 py-0.5">
                 {kardex.movimientos.length} registros
               </span>
             </div>
 
             {kardex.movimientos.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-14 gap-2 text-gray-400">
+              <div className="flex flex-col items-center justify-center py-14 gap-2 text-zinc-400">
                 <p className="text-sm">No hay movimientos en el período seleccionado.</p>
                 {(from || to) && (
                   <p className="text-xs">Prueba ampliando el rango de fechas.</p>
@@ -481,12 +481,12 @@ export function KardexReport() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100">
+                    <tr className="border-b border-zinc-100">
                       {['Fecha', 'Tipo', 'Concepto', 'Referencia', 'Almacén', 'Cantidad', 'Costo/Precio', 'Saldo'].map(
                         (h) => (
                           <th
                             key={h}
-                            className={`px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide ${
+                            className={`px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wide ${
                               ['Cantidad', 'Costo/Precio', 'Saldo'].includes(h)
                                 ? 'text-right'
                                 : 'text-left'
@@ -498,7 +498,7 @@ export function KardexReport() {
                       )}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-zinc-50">
                     {kardex.movimientos.map((mov, idx) => (
                       <MovimientoRow key={idx} mov={mov} />
                     ))}

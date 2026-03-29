@@ -23,12 +23,12 @@ function CustomTooltip({ active, payload, label }: any) {
   const items = payload.filter((p: any) => p.value !== 0 && p.value !== undefined);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-lg text-sm min-w-[180px]">
-      <p className="text-xs text-gray-400 mb-2">{fmtDate(label)}</p>
+    <div className="bg-white border border-zinc-100 rounded-xl px-4 py-3 shadow-lg text-sm min-w-[180px]">
+      <p className="text-xs text-zinc-400 mb-2">{fmtDate(label)}</p>
       {items.map((p: any) => (
         <div key={p.dataKey} className="flex justify-between gap-4">
           <span style={{ color: p.color }} className="font-medium">{p.name}</span>
-          <span className="font-bold text-gray-900">
+          <span className="font-bold text-zinc-900">
             {p.dataKey === 'saldo'
               ? p.value.toLocaleString('es-CO')
               : `${p.dataKey === 'entrada' ? '+' : '-'}${Math.abs(p.value).toLocaleString('es-CO')}`}
@@ -60,12 +60,12 @@ export function KardexMovimientosChart({ movimientos, primaryColor }: Props) {
   }));
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className="bg-white rounded-xl border border-zinc-200 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-700">
+        <h3 className="text-sm font-semibold text-zinc-700">
           Evolución del stock
         </h3>
-        <div className="flex items-center gap-3 text-xs text-gray-400">
+        <div className="flex items-center gap-3 text-xs text-zinc-400">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" />
             Entradas

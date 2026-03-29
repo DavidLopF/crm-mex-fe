@@ -22,6 +22,12 @@ const ROUTE_TO_MODULE: Record<string, string> = {
 };
 
 /**
+ * Módulos ocultos intencionalmente en UI.
+ * Mantener vacío para que todos los módulos de backend sean gestionables.
+ */
+export const HIDDEN_MODULES = new Set<string>();
+
+/**
  * Hook que expone helpers de permisos para un módulo dado.
  *
  * @param moduleCode — Código del módulo (ej: "DASHBOARD", "PEDIDOS", etc.)

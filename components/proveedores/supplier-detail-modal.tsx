@@ -192,20 +192,20 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
             <Truck className="w-8 h-8 text-orange-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900">{supplier.name}</h3>
+            <h3 className="text-xl font-semibold text-zinc-900 tracking-tight">{supplier.name}</h3>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant={supplier.isActive ? 'success' : 'danger'}>
                 {supplier.isActive ? 'Activo' : 'Inactivo'}
               </Badge>
               {supplier.rfc && (
-                <span className="text-sm text-gray-500 font-mono">{supplier.rfc}</span>
+                <span className="text-sm text-zinc-500 font-mono">{supplier.rfc}</span>
               )}
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-zinc-200">
           <div className="flex gap-1">
             {tabs.map((tab) => (
               <button
@@ -214,7 +214,7 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300'
                 }`}
               >
                 {tab.icon}
@@ -244,33 +244,33 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
             </div>
 
             {/* Información de contacto */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Información de Contacto</h4>
+            <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+              <h4 className="text-sm font-semibold text-zinc-700 mb-3">Información de Contacto</h4>
               <div className="space-y-3">
                 {supplier.email && (
                   <div className="flex items-center gap-3">
-                    <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <Mail className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                     <div className="flex-1">
-                      <span className="text-xs text-gray-500 block">Email</span>
-                      <span className="text-sm font-medium text-gray-900">{supplier.email}</span>
+                      <span className="text-xs text-zinc-500 block">Email</span>
+                      <span className="text-sm font-medium text-zinc-900">{supplier.email}</span>
                     </div>
                   </div>
                 )}
                 {supplier.phone && (
                   <div className="flex items-center gap-3">
-                    <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <Phone className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                     <div className="flex-1">
-                      <span className="text-xs text-gray-500 block">Teléfono</span>
-                      <span className="text-sm font-medium text-gray-900">{supplier.phone}</span>
+                      <span className="text-xs text-zinc-500 block">Teléfono</span>
+                      <span className="text-sm font-medium text-zinc-900">{supplier.phone}</span>
                     </div>
                   </div>
                 )}
                 {(supplier.address || supplier.city || supplier.state) && (
                   <div className="flex items-center gap-3">
-                    <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                     <div className="flex-1">
-                      <span className="text-xs text-gray-500 block">Dirección</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-xs text-zinc-500 block">Dirección</span>
+                      <span className="text-sm font-medium text-zinc-900">
                         {[supplier.address, supplier.city, supplier.state, supplier.zipCode]
                           .filter(Boolean)
                           .join(', ')}
@@ -283,33 +283,33 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
 
             {/* Persona de contacto */}
             {(supplier.contactName || supplier.contactPhone || supplier.contactEmail) && (
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Persona de Contacto</h4>
+              <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+                <h4 className="text-sm font-semibold text-zinc-700 mb-3">Persona de Contacto</h4>
                 <div className="space-y-3">
                   {supplier.contactName && (
                     <div className="flex items-center gap-3">
-                      <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <User className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                       <div className="flex-1">
-                        <span className="text-xs text-gray-500 block">Nombre</span>
-                        <span className="text-sm font-medium text-gray-900">{supplier.contactName}</span>
+                        <span className="text-xs text-zinc-500 block">Nombre</span>
+                        <span className="text-sm font-medium text-zinc-900">{supplier.contactName}</span>
                       </div>
                     </div>
                   )}
                   {supplier.contactPhone && (
                     <div className="flex items-center gap-3">
-                      <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <Phone className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                       <div className="flex-1">
-                        <span className="text-xs text-gray-500 block">Teléfono</span>
-                        <span className="text-sm font-medium text-gray-900">{supplier.contactPhone}</span>
+                        <span className="text-xs text-zinc-500 block">Teléfono</span>
+                        <span className="text-sm font-medium text-zinc-900">{supplier.contactPhone}</span>
                       </div>
                     </div>
                   )}
                   {supplier.contactEmail && (
                     <div className="flex items-center gap-3">
-                      <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <Mail className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                       <div className="flex-1">
-                        <span className="text-xs text-gray-500 block">Email</span>
-                        <span className="text-sm font-medium text-gray-900">{supplier.contactEmail}</span>
+                        <span className="text-xs text-zinc-500 block">Email</span>
+                        <span className="text-sm font-medium text-zinc-900">{supplier.contactEmail}</span>
                       </div>
                     </div>
                   )}
@@ -318,23 +318,23 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
             )}
 
             {/* Fechas */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Información del Registro</h4>
+            <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+              <h4 className="text-sm font-semibold text-zinc-700 mb-3">Información del Registro</h4>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <Calendar className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs text-gray-500 block">Fecha de Registro</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs text-zinc-500 block">Fecha de Registro</span>
+                    <span className="text-sm font-medium text-zinc-900">
                       {formatDateTime(supplier.createdAt)}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <Calendar className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs text-gray-500 block">Última Actualización</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-xs text-zinc-500 block">Última Actualización</span>
+                    <span className="text-sm font-medium text-zinc-900">
                       {formatDateTime(supplier.updatedAt)}
                     </span>
                   </div>
@@ -344,9 +344,9 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
 
             {/* Notas */}
             {supplier.notes && (
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Notas</h4>
-                <p className="text-sm text-gray-600 whitespace-pre-line">{supplier.notes}</p>
+              <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+                <h4 className="text-sm font-semibold text-zinc-700 mb-2">Notas</h4>
+                <p className="text-sm text-zinc-600 whitespace-pre-line">{supplier.notes}</p>
               </div>
             )}
           </div>
@@ -357,7 +357,7 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
           <div className="space-y-4">
             {/* Header con botón de agregar */}
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-zinc-500">
                 {loadingProducts ? 'Cargando...' : `${supplierProducts.length} producto(s) en catálogo`}
               </p>
               {!showAddProduct && (
@@ -377,33 +377,33 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
               <Card>
                 <CardContent className="p-4 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-gray-900">Agregar Producto al Catálogo</h4>
+                    <h4 className="text-sm font-semibold text-zinc-900">Agregar Producto al Catálogo</h4>
                     <button
                       onClick={() => { setShowAddProduct(false); setSelectedProduct(null); setSearchQuery(''); }}
-                      className="p-1 hover:bg-gray-100 rounded"
+                      className="p-1 hover:bg-zinc-100 rounded"
                     >
-                      <X className="w-4 h-4 text-gray-500" />
+                      <X className="w-4 h-4 text-zinc-500" />
                     </button>
                   </div>
 
                   {!selectedProduct ? (
                     <div className="space-y-2">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                         <input
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Buscar producto por nombre o SKU..."
-                          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                           autoFocus
                         />
                         {searchLoading && (
-                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 animate-spin" />
                         )}
                       </div>
                       {searchResults.length > 0 && (
-                        <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+                        <div className="max-h-48 overflow-y-auto border border-zinc-200 rounded-lg divide-y divide-zinc-100">
                           {searchResults.map((item) => (
                             <button
                               key={item.id}
@@ -412,21 +412,21 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                             >
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-sm font-medium text-zinc-900">{item.name}</p>
+                                  <p className="text-xs text-zinc-500">
                                     {item.sku && <span className="font-mono">{item.sku}</span>}
                                     {item.variantName && <span> · {item.variantName}</span>}
                                     {item.category && <span> · {item.category}</span>}
                                   </p>
                                 </div>
-                                <span className="text-xs text-gray-400">{formatCurrency(item.price)}</span>
+                                <span className="text-xs text-zinc-400">{formatCurrency(item.price)}</span>
                               </div>
                             </button>
                           ))}
                         </div>
                       )}
                       {debouncedSearch.length >= 2 && !searchLoading && searchResults.length === 0 && (
-                        <p className="text-xs text-gray-400 text-center py-2">Sin resultados</p>
+                        <p className="text-xs text-zinc-400 text-center py-2">Sin resultados</p>
                       )}
                     </div>
                   ) : (
@@ -435,8 +435,8 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                       <div className="flex items-center gap-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
                         <Package className="w-5 h-5 text-orange-600 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{selectedProduct.name}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-sm font-medium text-zinc-900 truncate">{selectedProduct.name}</p>
+                          <p className="text-xs text-zinc-500">
                             {selectedProduct.sku && <span className="font-mono">{selectedProduct.sku}</span>}
                             {selectedProduct.variantName && <span> · {selectedProduct.variantName}</span>}
                           </p>
@@ -452,33 +452,33 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                       {/* Form fields */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-xs text-gray-600 mb-1 block">Costo del Proveedor *</label>
+                          <label className="text-xs text-zinc-600 mb-1 block">Costo del Proveedor *</label>
                           <input
                             type="number"
                             value={supplierCostInput}
                             onChange={(e) => setSupplierCostInput(e.target.value)}
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            className="w-full px-3 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                             placeholder="0.00"
                             step="0.01"
                             min="0"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-600 mb-1 block">SKU del Proveedor</label>
+                          <label className="text-xs text-zinc-600 mb-1 block">SKU del Proveedor</label>
                           <input
                             type="text"
                             value={addForm.supplierSku || ''}
                             onChange={(e) => setAddForm(f => ({ ...f, supplierSku: e.target.value }))}
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            className="w-full px-3 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                             placeholder="SKU-PROV"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-600 mb-1 block">Moneda</label>
+                          <label className="text-xs text-zinc-600 mb-1 block">Moneda</label>
                           <select
                             value={addForm.currency || 'MXN'}
                             onChange={(e) => setAddForm(f => ({ ...f, currency: e.target.value }))}
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            className="w-full px-3 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                           >
                             <option value="MXN">MXN</option>
                             <option value="USD">USD</option>
@@ -486,23 +486,23 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                           </select>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-600 mb-1 block">Lead Time (días)</label>
+                          <label className="text-xs text-zinc-600 mb-1 block">Lead Time (días)</label>
                           <input
                             type="number"
                             value={addForm.leadTimeDays ?? ''}
                             onChange={(e) => setAddForm(f => ({ ...f, leadTimeDays: e.target.value ? parseInt(e.target.value) : undefined }))}
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            className="w-full px-3 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                             placeholder="—"
                             min="0"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-600 mb-1 block">Pedido Mínimo</label>
+                          <label className="text-xs text-zinc-600 mb-1 block">Pedido Mínimo</label>
                           <input
                             type="number"
                             value={addForm.minOrderQty ?? ''}
                             onChange={(e) => setAddForm(f => ({ ...f, minOrderQty: e.target.value ? parseInt(e.target.value) : undefined }))}
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            className="w-full px-3 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                             placeholder="—"
                             min="1"
                           />
@@ -513,9 +513,9 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                               type="checkbox"
                               checked={addForm.isPreferred || false}
                               onChange={(e) => setAddForm(f => ({ ...f, isPreferred: e.target.checked }))}
-                              className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                              className="w-4 h-4 text-orange-500 border-zinc-300 rounded focus:ring-orange-500"
                             />
-                            <span className="text-sm text-gray-700">Proveedor preferido</span>
+                            <span className="text-sm text-zinc-700">Proveedor preferido</span>
                           </label>
                         </div>
                       </div>
@@ -551,57 +551,57 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
 
             {/* Products table */}
             {loadingProducts ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-zinc-400">
                 <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                 <p className="text-sm">Cargando productos...</p>
               </div>
             ) : supplierProducts.length === 0 ? (
-              <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+              <div className="text-center py-10 text-zinc-400 bg-zinc-50 rounded-lg border border-dashed border-zinc-200">
+                <Package className="w-10 h-10 mx-auto mb-2 text-zinc-300" />
                 <p className="text-sm">Este proveedor no tiene productos en su catálogo</p>
-                <p className="text-xs text-gray-400 mt-1">Agregue productos para vincularlos con este proveedor</p>
+                <p className="text-xs text-zinc-400 mt-1">Agregue productos para vincularlos con este proveedor</p>
               </div>
             ) : (
-              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <div className="overflow-x-auto border border-zinc-200 rounded-lg">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-zinc-50 border-b border-zinc-200">
                     <tr>
-                      <th className="text-left px-3 py-2 font-medium text-gray-600">Producto</th>
-                      <th className="text-left px-3 py-2 font-medium text-gray-600">SKU Interno</th>
-                      <th className="text-left px-3 py-2 font-medium text-gray-600">SKU Prov.</th>
-                      <th className="text-right px-3 py-2 font-medium text-gray-600">Costo</th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600">Moneda</th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600">Lead Time</th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600">Min.</th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600">Pref.</th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600 w-10"></th>
+                      <th className="text-left px-3 py-2 font-medium text-zinc-600">Producto</th>
+                      <th className="text-left px-3 py-2 font-medium text-zinc-600">SKU Interno</th>
+                      <th className="text-left px-3 py-2 font-medium text-zinc-600">SKU Prov.</th>
+                      <th className="text-right px-3 py-2 font-medium text-zinc-600">Costo</th>
+                      <th className="text-center px-3 py-2 font-medium text-zinc-600">Moneda</th>
+                      <th className="text-center px-3 py-2 font-medium text-zinc-600">Lead Time</th>
+                      <th className="text-center px-3 py-2 font-medium text-zinc-600">Min.</th>
+                      <th className="text-center px-3 py-2 font-medium text-zinc-600">Pref.</th>
+                      <th className="text-center px-3 py-2 font-medium text-zinc-600 w-10"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-zinc-100">
                     {supplierProducts.map((sp) => (
-                      <tr key={sp.id} className="hover:bg-gray-50">
+                      <tr key={sp.id} className="hover:bg-zinc-50">
                         <td className="px-3 py-2">
-                          <p className="font-medium text-gray-900 text-sm">{sp.product.name}</p>
+                          <p className="font-medium text-zinc-900 text-sm">{sp.product.name}</p>
                           {sp.product.category && (
-                            <p className="text-xs text-gray-400">{sp.product.category.name}</p>
+                            <p className="text-xs text-zinc-400">{sp.product.category.name}</p>
                           )}
                         </td>
-                        <td className="px-3 py-2 font-mono text-xs text-gray-500">
+                        <td className="px-3 py-2 font-mono text-xs text-zinc-500">
                           {sp.product.variants?.[0]?.sku || '—'}
                         </td>
-                        <td className="px-3 py-2 font-mono text-xs text-gray-500">
+                        <td className="px-3 py-2 font-mono text-xs text-zinc-500">
                           {sp.supplierSku || '—'}
                         </td>
-                        <td className="px-3 py-2 text-right font-medium text-gray-900">
+                        <td className="px-3 py-2 text-right font-medium text-zinc-900">
                           {formatCurrency(sp.supplierCost)}
                         </td>
-                        <td className="px-3 py-2 text-center text-xs text-gray-500">
+                        <td className="px-3 py-2 text-center text-xs text-zinc-500">
                           {sp.currency || 'MXN'}
                         </td>
-                        <td className="px-3 py-2 text-center text-gray-600">
+                        <td className="px-3 py-2 text-center text-zinc-600">
                           {sp.leadTimeDays != null ? `${sp.leadTimeDays}d` : '—'}
                         </td>
-                        <td className="px-3 py-2 text-center text-gray-600">
+                        <td className="px-3 py-2 text-center text-zinc-600">
                           {sp.minOrderQty != null ? sp.minOrderQty : '—'}
                         </td>
                         <td className="px-3 py-2 text-center">
@@ -613,7 +613,7 @@ export function SupplierDetailModal({ isOpen, onClose, supplier }: SupplierDetai
                           <button
                             onClick={() => handleRemoveProduct(sp.productId)}
                             disabled={removingId === sp.productId}
-                            className="p-1 hover:bg-red-50 rounded text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                            className="p-1 hover:bg-red-50 rounded text-zinc-400 hover:text-red-500 transition-colors disabled:opacity-50"
                             title="Eliminar del catálogo"
                           >
                             {removingId === sp.productId ? (

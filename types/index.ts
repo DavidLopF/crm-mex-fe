@@ -27,7 +27,7 @@ export interface Producto {
   precio: number;
   costo: number;
   categoria: string;
-  imagen?: string;
+  imageUrl?: string;
   variaciones: ProductoVariacion[];
   stockTotal: number;
   activo: boolean;

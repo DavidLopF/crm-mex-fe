@@ -14,9 +14,9 @@ const fmtDay = (dateStr: string) =>
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-lg text-sm">
-      <p className="text-gray-500 text-xs mb-1">{fmtDay(label)}</p>
-      <p className="font-bold text-gray-900">{fmtCOP(payload[0].value)}</p>
+    <div className="bg-white border border-zinc-100 rounded-xl px-4 py-3 shadow-lg text-sm">
+      <p className="text-zinc-500 text-xs mb-1">{fmtDay(label)}</p>
+      <p className="font-bold text-zinc-900">{fmtCOP(payload[0].value)}</p>
     </div>
   );
 }
