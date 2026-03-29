@@ -54,8 +54,17 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       const { operation, error, permanent } = (e as CustomEvent<SyncErrorDetail>).detail;
       const label = MODULE_LABELS[operation.module] ?? 'Operación';
       if (permanent) {
+        // Si el error indica que el estado ya estaba aplicado, no es un error real
+        const alreadyApplied = error.includes('ya está') || error.includes('mismo estado') || error.toLowerCase().includes('pagada a pagada') || error.toLowerCase().includes('cannot transition');
+        if (alreadyApplied) {
+          toast.success('El estado ya estaba actualizado en el servidor.', {
+            title: '✅ Sincronización completada',
+            duration: 5000,
+          });
+          return;
+        }
         toast.error(
-          `No se pudo sincronizar (${label}): ${error}. Fue descartada tras 3 intentos.`,
+          `No se pudo sincronizar (${label}): ${error}`,
           { title: '❌ Error de sincronización', duration: 10000 },
         );
       }

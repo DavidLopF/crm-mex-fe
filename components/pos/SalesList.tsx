@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useConnectivity } from '@/lib/hooks/use-connectivity';
 import { Search, Eye, FileText, User, Copy, Check, ChevronLeft, ChevronRight, Pencil, CornerUpLeft, Receipt, Download, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { getSales, getSaleById, type SaleResponseDto, type PaymentMethod } from '@/services/pos';
@@ -61,6 +62,7 @@ const PAGE_SIZE_OPTIONS = [10, 15, 20, 50];
 export function SalesList() {
   const { can } = useAuth();
   const canEdit = can('POS', 'canEdit');
+  const { isOnline } = useConnectivity();
 
   const [sales, setSales]               = useState<SaleResponseDto[]>([]);
   const [total, setTotal]               = useState(0);
@@ -122,10 +124,18 @@ export function SalesList() {
   }, [loadSales]);
 
   const handleViewSale = async (saleId: number) => {
+    // Si no hay internet, usar el objeto ya cargado en la lista (evita el fetch fallido)
+    if (!isOnline) {
+      const cached = sales.find((s) => s.id === saleId);
+      if (cached) { setSelectedSale(cached); return; }
+    }
     try {
       const sale = await getSaleById(saleId);
       setSelectedSale(sale);
     } catch (err) {
+      // Fallback offline: usar lo que ya tenemos en la lista
+      const cached = sales.find((s) => s.id === saleId);
+      if (cached) { setSelectedSale(cached); return; }
       console.error('Error cargando venta:', err);
     }
   };
@@ -204,74 +214,75 @@ export function SalesList() {
     <>
       <Card className="p-4">
         {/* ── Filtros ── */}
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <input
-              type="text"
-              placeholder="Buscar por código, cliente o vendedor..."
-              className="w-full pl-10 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); resetPage(); }}
-            />
-          </div>
-
-          <select
-            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
-            value={filterStatus}
-            onChange={(e) => { setFilterStatus(e.target.value); resetPage(); }}
-          >
-            <option value="">Todos los estados</option>
-            <option value="PENDIENTE">Pendiente</option>
-            <option value="PAGADA">Pagada</option>
-            <option value="ANULADA">Anulada</option>
-          </select>
-
-          <select
-            className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
-            value={filterPayment}
-            onChange={(e) => { setFilterPayment(e.target.value as PaymentMethod | ''); resetPage(); }}
-          >
-            <option value="">Todos los medios</option>
-            <option value="EFECTIVO">Efectivo</option>
-            <option value="TARJETA">Tarjeta</option>
-            <option value="NEQUI">Nequi</option>
-            <option value="DAVIPLATA">Daviplata</option>
-          </select>
-
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
-            <select
-              className="pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
-              value={filterSellerId}
-              onChange={(e) => { setFilterSellerId(e.target.value === '' ? '' : Number(e.target.value)); resetPage(); }}
+        <div className="space-y-2 mb-4">
+          {/* Búsqueda + exportar */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Buscar por código, cliente o vendedor..."
+                className="w-full pl-10 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); resetPage(); }}
+              />
+            </div>
+            <button
+              onClick={handleExport}
+              disabled={isExporting || loading}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm border border-zinc-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap flex-shrink-0"
+              title="Exportar todos los resultados a Excel"
             >
-              <option value="">Todos los vendedores</option>
-              {users.map((u) => <option key={u.id} value={u.id}>{u.fullName}</option>)}
-            </select>
+              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">{isExporting ? 'Exportando...' : 'Exportar Excel'}</span>
+            </button>
           </div>
 
-          <input type="date" className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
-            value={filterFrom} onChange={(e) => { setFilterFrom(e.target.value); resetPage(); }} />
-          <span className="text-zinc-400 text-sm">a</span>
-          <input type="date" className="px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
-            value={filterTo} onChange={(e) => { setFilterTo(e.target.value); resetPage(); }} />
+          {/* Filtros secundarios */}
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              className="flex-1 min-w-[120px] px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+              value={filterStatus}
+              onChange={(e) => { setFilterStatus(e.target.value); resetPage(); }}
+            >
+              <option value="">Todos los estados</option>
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="PAGADA">Pagada</option>
+              <option value="ANULADA">Anulada</option>
+            </select>
 
-          {/* Botón exportar */}
-          <button
-            onClick={handleExport}
-            disabled={isExporting || loading}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-zinc-200 rounded-lg hover:bg-green-50 hover:border-green-300 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-            title="Exportar todos los resultados a Excel"
-          >
-            {isExporting
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <Download className="w-4 h-4" />}
-            {isExporting ? 'Exportando...' : 'Exportar Excel'}
-          </button>
+            <select
+              className="flex-1 min-w-[120px] px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+              value={filterPayment}
+              onChange={(e) => { setFilterPayment(e.target.value as PaymentMethod | ''); resetPage(); }}
+            >
+              <option value="">Todos los medios</option>
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="TARJETA">Tarjeta</option>
+              <option value="NEQUI">Nequi</option>
+              <option value="DAVIPLATA">Daviplata</option>
+            </select>
+
+            <div className="relative flex-1 min-w-[140px]">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+              <select
+                className="w-full pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+                value={filterSellerId}
+                onChange={(e) => { setFilterSellerId(e.target.value === '' ? '' : Number(e.target.value)); resetPage(); }}
+              >
+                <option value="">Todos los vendedores</option>
+                {users.map((u) => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+              </select>
+            </div>
+
+            <input type="date" className="flex-1 min-w-[130px] px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+              value={filterFrom} onChange={(e) => { setFilterFrom(e.target.value); resetPage(); }} />
+            <input type="date" className="flex-1 min-w-[130px] px-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/50"
+              value={filterTo} onChange={(e) => { setFilterTo(e.target.value); resetPage(); }} />
+          </div>
         </div>
 
-        {/* ── Tabla ── */}
+        {/* ── Contenido ── */}
         {loading ? (
           <div className="text-center py-10">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -283,7 +294,8 @@ export function SalesList() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* ── Vista tabla (md+) ── */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b-2 border-zinc-200 text-zinc-500 text-xs uppercase tracking-wide">
@@ -320,7 +332,6 @@ export function SalesList() {
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(sale.statusCode)}`}>
                             {sale.status}
                           </span>
-                          {/* Badge "Devuelta" — solo si fue devuelta al vendedor */}
                           {sale.returnedAt && (
                             <span
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800 border border-amber-200"
@@ -334,7 +345,6 @@ export function SalesList() {
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          {/* Ver detalle */}
                           <button
                             className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-primary transition-colors"
                             onClick={() => handleViewSale(sale.id)}
@@ -342,21 +352,15 @@ export function SalesList() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          {/* Editar: supervisor con canEdit, O cualquier vendedor si la venta fue devuelta */}
                           {sale.statusCode === 'PENDIENTE' && (canEdit || !!sale.returnedAt) && (
                             <button
-                              className={`p-1.5 rounded-lg transition-colors ${
-                                sale.returnedAt
-                                  ? 'text-amber-500 hover:bg-amber-50 hover:text-amber-700'
-                                  : 'text-zinc-400 hover:bg-blue-50 hover:text-blue-600'
-                              }`}
+                              className={`p-1.5 rounded-lg transition-colors ${sale.returnedAt ? 'text-amber-500 hover:bg-amber-50 hover:text-amber-700' : 'text-zinc-400 hover:bg-blue-50 hover:text-blue-600'}`}
                               onClick={() => setEditSale(sale)}
                               title={sale.returnedAt ? 'Corregir venta devuelta' : 'Editar venta'}
                             >
                               <Pencil className="w-4 h-4" />
                             </button>
                           )}
-                          {/* Devolver — solo supervisores con canEdit */}
                           {canEdit && sale.statusCode === 'PENDIENTE' && !sale.returnedAt && (
                             <button
                               className="p-1.5 rounded-lg hover:bg-amber-50 text-zinc-400 hover:text-amber-600 transition-colors"
@@ -366,8 +370,6 @@ export function SalesList() {
                               <CornerUpLeft className="w-4 h-4" />
                             </button>
                           )}
-
-                          {/* Facturación Electrónica — ventas PAGADAS */}
                           {sale.statusCode === 'PAGADA' && (
                             sale.feInvoiceId ? (
                               <span
@@ -379,9 +381,10 @@ export function SalesList() {
                               </span>
                             ) : (
                               <button
-                                className="p-1.5 rounded-lg hover:bg-green-50 text-zinc-400 hover:text-green-700 transition-colors"
-                                onClick={() => setFeSale(sale)}
-                                title="Generar Factura Electrónica DIAN"
+                                className="p-1.5 rounded-lg hover:bg-green-50 text-zinc-400 hover:text-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                onClick={() => isOnline && setFeSale(sale)}
+                                disabled={!isOnline}
+                                title={isOnline ? 'Generar Factura Electrónica DIAN' : 'Requiere conexión a internet'}
                               >
                                 <Receipt className="w-4 h-4" />
                               </button>
@@ -393,6 +396,82 @@ export function SalesList() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* ── Vista cards (mobile) ── */}
+            <div className="md:hidden space-y-2">
+              {sales.map((sale) => (
+                <div
+                  key={sale.id}
+                  className="border border-zinc-200 rounded-xl p-3 bg-white active:bg-zinc-50 transition-colors"
+                >
+                  {/* Fila 1: código + estado + acciones */}
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1">
+                        <span className="font-mono text-xs font-medium text-zinc-800 truncate">{sale.code}</span>
+                        <CopyCodeBtn code={sale.code} />
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">{fmtD(sale.createdAt)}</p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor(sale.statusCode)}`}>
+                        {sale.status}
+                      </span>
+                      {sale.returnedAt && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-100 text-amber-800">
+                          <CornerUpLeft className="w-2.5 h-2.5" />
+                          Dev.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Fila 2: cliente + vendedor */}
+                  <div className="flex items-center justify-between text-xs text-zinc-600 mb-2">
+                    <span className="truncate">{sale.clientName || 'Público general'}</span>
+                    <span className="text-zinc-400 ml-2 flex-shrink-0">{sale.sellerName || '—'}</span>
+                  </div>
+
+                  {/* Fila 3: pago + items + total + acciones */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <PaymentBadge method={sale.paymentMethod} />
+                      <span className="text-xs text-zinc-400">{sale.items.length} ítem{sale.items.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-zinc-900">{fmt(sale.total)}</span>
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          className="p-1.5 rounded-lg bg-zinc-100 text-zinc-600 active:bg-zinc-200 transition-colors"
+                          onClick={() => handleViewSale(sale.id)}
+                          title="Ver detalle"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {sale.statusCode === 'PENDIENTE' && (canEdit || !!sale.returnedAt) && (
+                          <button
+                            className={`p-1.5 rounded-lg transition-colors ${sale.returnedAt ? 'bg-amber-50 text-amber-600' : 'bg-zinc-100 text-zinc-500'}`}
+                            onClick={() => setEditSale(sale)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
+                        {sale.statusCode === 'PAGADA' && !sale.feInvoiceId && (
+                          <button
+                            className="p-1.5 rounded-lg bg-zinc-100 text-zinc-500 disabled:opacity-30 transition-colors"
+                            onClick={() => isOnline && setFeSale(sale)}
+                            disabled={!isOnline}
+                            title={isOnline ? 'Generar FE DIAN' : 'Requiere conexión'}
+                          >
+                            <Receipt className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* ── Paginación mejorada ── */}

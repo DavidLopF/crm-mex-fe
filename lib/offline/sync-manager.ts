@@ -157,6 +157,41 @@ async function executeOperation(op: OfflineOperation): Promise<unknown> {
 
 // ── Queue helpers (públicos para la UI) ──────────────────────────────────────
 
+/**
+ * Encola una operación de mutación para sincronizar cuando haya internet.
+ * Si ya existe una operación pendiente con el mismo método + path, la reemplaza
+ * (evita duplicados cuando el usuario repite la acción mientras está offline).
+ */
+export async function enqueueOperation(
+  op: Omit<OfflineOperation, 'id' | 'clientId' | 'queuedAt' | 'retries'>
+): Promise<void> {
+  const db = getOfflineDB();
+
+  // Deduplicar: si ya hay una operación pendiente con el mismo método + path, reemplazarla
+  const existing = await db.offlineQueue
+    .filter((item) => item.method === op.method && item.path === op.path)
+    .first();
+
+  if (existing?.id !== undefined) {
+    await db.offlineQueue.update(existing.id, {
+      body: op.body,
+      params: op.params,
+      queuedAt: Date.now(),
+      retries: 0,
+      lastError: undefined,
+    });
+  } else {
+    await db.offlineQueue.add({
+      ...op,
+      clientId: crypto.randomUUID(),
+      queuedAt: Date.now(),
+      retries: 0,
+    });
+  }
+
+  await emitQueueCount();
+}
+
 export async function getPendingCount(): Promise<number> {
   try {
     const db = getOfflineDB();

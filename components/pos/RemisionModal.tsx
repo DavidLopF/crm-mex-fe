@@ -5,6 +5,8 @@ import { Button, Modal } from '@/components/ui';
 import { changeSaleStatus, type SaleResponseDto } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
+import { useConnectivity } from '@/lib/hooks/use-connectivity';
+import { enqueueOperation } from '@/lib/offline/sync-manager';
 import { useState } from 'react';
 import { EditSaleModal } from './EditSaleModal';
 import { ReturnSaleModal } from './ReturnSaleModal';
@@ -18,6 +20,7 @@ interface Props {
 
 export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: Props) {
   const toast = useGlobalToast();
+  const { isOnline } = useConnectivity();
   const [sale, setSale]           = useState<SaleResponseDto>(initialSale);
   const [processing, setProcessing] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
@@ -48,9 +51,26 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
   const handleConfirmPayment = async () => {
     try {
       setProcessing(true);
+
+      if (!isOnline) {
+        // Modo contingencia: encolar para sincronizar al recuperar conexión
+        await enqueueOperation({
+          method: 'PATCH',
+          path: `/api/pos/sales/${sale.id}/status`,
+          body: { newStatusCode: 'PAGADA' },
+          module: 'pos',
+        });
+        // Actualización optimista local
+        setSale((prev) => ({ ...prev, statusCode: 'PAGADA', status: 'Pagada' }));
+        toast.success('El pago se sincronizará automáticamente al recuperar la conexión.', {
+          title: '📋 Pago registrado en contingencia',
+          duration: 7000,
+        });
+        onClose(true);
+        return;
+      }
+
       await changeSaleStatus(sale.id, 'PAGADA');
-      // Inventario → stock se descuenta al pagar
-      // pos-sales / pos-dashboard → historial y KPIs se actualizan en tiempo real
       broadcastInvalidation(['inventory', 'pos-sales', 'pos-dashboard']);
       toast.success('Pago registrado y stock actualizado', {
         title: '✅ ¡Venta confirmada!',

@@ -22,12 +22,15 @@ const nextConfig: NextConfig = {
 
 export default withPWA({
   dest: "public",
-  // Solo activar SW en producción (en dev crea ruido innecesario)
   disable: process.env.NODE_ENV === "development",
-  // Estrategia NetworkFirst para páginas — intenta servidor, cae a caché
-  // Estrategia CacheFirst para assets estáticos (_next/static)
+  // Cachea pages al navegar en el frontend para que estén disponibles offline
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  // Página que se sirve cuando el usuario está offline y no hay caché
+  fallbacks: {
+    document: "/~offline",
+  },
   workboxOptions: {
-    // Páginas navegables: NetworkFirst (30s timeout)
     runtimeCaching: [
       {
         urlPattern: /^\/(?!api\/).*/,
@@ -37,7 +40,7 @@ export default withPWA({
           networkTimeoutSeconds: 10,
           expiration: {
             maxEntries: 50,
-            maxAgeSeconds: 24 * 60 * 60, // 1 día
+            maxAgeSeconds: 24 * 60 * 60,
           },
         },
       },
@@ -48,7 +51,7 @@ export default withPWA({
           cacheName: "static-assets",
           expiration: {
             maxEntries: 200,
-            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 días
+            maxAgeSeconds: 30 * 24 * 60 * 60,
           },
         },
       },
@@ -59,7 +62,7 @@ export default withPWA({
           cacheName: "next-images",
           expiration: {
             maxEntries: 100,
-            maxAgeSeconds: 7 * 24 * 60 * 60, // 7 días
+            maxAgeSeconds: 7 * 24 * 60 * 60,
           },
         },
       },
