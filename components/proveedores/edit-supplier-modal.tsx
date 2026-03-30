@@ -84,12 +84,12 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
       <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
         {/* ── Información General ─── */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">
+          <h4 className="text-sm font-semibold text-zinc-700 mb-3 border-b pb-2">
             Información General
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Nombre / Razón Social <span className="text-red-500">*</span>
               </label>
               <input
@@ -97,41 +97,41 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej: Distribuidora Nacional SA de CV"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">RFC</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">RFC</label>
               <input
                 type="text"
                 value={rfc}
                 onChange={(e) => setRfc(e.target.value.toUpperCase())}
                 placeholder="Ej: XAXX010101000"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="proveedor@email.com"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Teléfono</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+52 55 1234 5678"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -139,40 +139,40 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
 
         {/* ── Dirección ─── */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">Dirección</h4>
+          <h4 className="text-sm font-semibold text-zinc-700 mb-3 border-b pb-2">Dirección</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Dirección</label>
               <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Calle, número, colonia"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Ciudad</label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Ej: Ciudad de México"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Estado</label>
               <input
                 type="text"
                 value={state}
                 onChange={(e) => setState(e.target.value)}
                 placeholder="Ej: CDMX"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Código Postal
               </label>
               <input
@@ -180,7 +180,7 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
                 value={zipCode}
                 onChange={(e) => setZipCode(e.target.value)}
                 placeholder="Ej: 06600"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -188,12 +188,12 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
 
         {/* ── Contacto ─── */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-2">
+          <h4 className="text-sm font-semibold text-zinc-700 mb-3 border-b pb-2">
             Persona de Contacto
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Nombre del Contacto
               </label>
               <input
@@ -201,11 +201,11 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
                 placeholder="Ej: Juan Pérez"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Teléfono del Contacto
               </label>
               <input
@@ -213,11 +213,11 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
                 placeholder="+52 55 1234 5678"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Email del Contacto
               </label>
               <input
@@ -225,7 +225,7 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
                 placeholder="contacto@email.com"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -233,7 +233,7 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
 
         {/* ── Estado ─── */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+          <label className="block text-sm font-medium text-zinc-700 mb-1">Estado</label>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -241,7 +241,7 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-green-100 text-green-700 ring-2 ring-green-500'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
               }`}
             >
               Activo
@@ -252,7 +252,7 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 !isActive
                   ? 'bg-red-100 text-red-700 ring-2 ring-red-500'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
               }`}
             >
               Inactivo
@@ -262,13 +262,13 @@ export function EditSupplierModal({ isOpen, onClose, onSave, supplier, submittin
 
         {/* ── Notas ─── */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+          <label className="block text-sm font-medium text-zinc-700 mb-1">Notas</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder="Información adicional..."
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </div>
       </div>

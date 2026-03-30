@@ -66,7 +66,7 @@ export function EditClientModal({ isOpen, onClose, onSave, client, submitting }:
       <div className="space-y-5">
         {/* Nombre */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-zinc-700 mb-1">
             Nombre <span className="text-red-500">*</span>
           </label>
           <input
@@ -74,14 +74,14 @@ export function EditClientModal({ isOpen, onClose, onSave, client, submitting }:
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Juan Pérez / Empresa SA de CV"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoFocus
           />
         </div>
 
         {/* Documento */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-zinc-700 mb-1">
             Documento (RFC / CURP / ID)
           </label>
           <input
@@ -89,16 +89,16 @@ export function EditClientModal({ isOpen, onClose, onSave, client, submitting }:
             value={document}
             onChange={(e) => setDocument(e.target.value)}
             placeholder="Ej: XAXX010101000"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-zinc-500">
             Opcional. Puede ser RFC, CURP o cualquier documento de identidad.
           </p>
         </div>
 
         {/* Estado */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-zinc-700 mb-1">
             Estado
           </label>
           <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export function EditClientModal({ isOpen, onClose, onSave, client, submitting }:
               className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                 isActive
                   ? 'bg-green-50 border-green-300 text-green-700'
-                  : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                  : 'bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50'
               }`}
             >
               ✅ Activo
@@ -119,7 +119,7 @@ export function EditClientModal({ isOpen, onClose, onSave, client, submitting }:
               className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                 !isActive
                   ? 'bg-red-50 border-red-300 text-red-700'
-                  : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                  : 'bg-white border-zinc-200 text-zinc-500 hover:bg-zinc-50'
               }`}
             >
               ❌ Inactivo

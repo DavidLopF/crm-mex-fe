@@ -20,7 +20,7 @@ interface LocalItem {
   key: number;
   variantId: number | '';
   qty: number;
-  unitCost: number;
+  unitCost: string;
 }
 
 export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }: CreatePurchaseOrderModalProps) {
@@ -28,7 +28,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
   const [notes, setNotes] = useState('');
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
   const [items, setItems] = useState<LocalItem[]>([
-    { key: 1, variantId: '', qty: 1, unitCost: 0 },
+    { key: 1, variantId: '', qty: 1, unitCost: '' },
   ]);
   const [suppliers, setSuppliers] = useState<SupplierListItem[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
@@ -62,7 +62,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
     setSupplierId('');
     setNotes('');
     setExpectedDeliveryDate('');
-    setItems([{ key: 1, variantId: '', qty: 1, unitCost: 0 }]);
+    setItems([{ key: 1, variantId: '', qty: 1, unitCost: '' }]);
     setNextKey(2);
   };
 
@@ -72,7 +72,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
   };
 
   const addItem = () => {
-    setItems([...items, { key: nextKey, variantId: '', qty: 1, unitCost: 0 }]);
+    setItems([...items, { key: nextKey, variantId: '', qty: 1, unitCost: '' }]);
     setNextKey(nextKey + 1);
   };
 
@@ -85,9 +85,9 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
     setItems(items.map(i => i.key === key ? { ...i, [field]: value } : i));
   };
 
-  const totalAmount = items.reduce((sum, i) => sum + (i.qty * i.unitCost), 0);
+  const totalAmount = items.reduce((sum, i) => sum + (i.qty * (parseFloat(i.unitCost) || 0)), 0);
 
-  const canSubmit = supplierId !== '' && items.every(i => i.variantId !== '' && i.qty > 0 && i.unitCost > 0);
+  const canSubmit = supplierId !== '' && items.every(i => i.variantId !== '' && i.qty > 0 && (parseFloat(i.unitCost) || 0) > 0);
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -97,7 +97,7 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
       items: items.map(i => ({
         variantId: Number(i.variantId),
         qty: i.qty,
-        unitCost: i.unitCost,
+        unitCost: parseFloat(i.unitCost) || 0,
       })),
       notes: notes.trim() || undefined,
       expectedDeliveryDate: expectedDeliveryDate || undefined,
@@ -112,13 +112,13 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
       <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
         {/* Proveedor */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-zinc-700 mb-1">
             Proveedor <span className="text-red-500">*</span>
           </label>
           <select
             value={supplierId}
             onChange={(e) => setSupplierId(e.target.value ? Number(e.target.value) : '')}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             disabled={loadingSuppliers}
           >
             <option value="">
@@ -132,21 +132,21 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
 
         {/* Fecha estimada de entrega */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-zinc-700 mb-1">
             Fecha Estimada de Entrega
           </label>
           <input
             type="date"
             value={expectedDeliveryDate}
             onChange={(e) => setExpectedDeliveryDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
 
         {/* Artículos */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-semibold text-gray-700">
+            <h4 className="text-sm font-semibold text-zinc-700">
               Artículos <span className="text-red-500">*</span>
             </h4>
             <Button onClick={addItem} variant="outline" className="flex items-center gap-1 text-xs py-1 px-2">
@@ -156,9 +156,9 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
 
           <div className="space-y-3">
             {items.map((item, index) => (
-              <div key={item.key} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <div key={item.key} className="bg-zinc-50 rounded-lg p-3 border border-zinc-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-500">Artículo #{index + 1}</span>
+                  <span className="text-xs font-medium text-zinc-500">Artículo #{index + 1}</span>
                   {items.length > 1 && (
                     <button
                       onClick={() => removeItem(item.key)}
@@ -170,40 +170,40 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs text-gray-500 mb-1">ID Variante</label>
+                    <label className="block text-xs text-zinc-500 mb-1">ID Variante</label>
                     <input
                       type="number"
                       value={item.variantId}
                       onChange={(e) => updateItem(item.key, 'variantId', e.target.value ? Number(e.target.value) : '')}
                       placeholder="ID de variante"
-                      className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Cantidad</label>
+                    <label className="block text-xs text-zinc-500 mb-1">Cantidad</label>
                     <input
                       type="number"
                       min={1}
                       value={item.qty}
                       onChange={(e) => updateItem(item.key, 'qty', Number(e.target.value))}
-                      className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Costo Unit.</label>
+                    <label className="block text-xs text-zinc-500 mb-1">Costo Unit.</label>
                     <input
                       type="number"
                       min={0}
                       step={0.01}
                       value={item.unitCost}
-                      onChange={(e) => updateItem(item.key, 'unitCost', Number(e.target.value))}
-                      className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => updateItem(item.key, 'unitCost', e.target.value)}
+                      className="w-full px-2 py-1.5 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
-                {item.qty > 0 && item.unitCost > 0 && (
-                  <p className="text-xs text-gray-500 mt-2 text-right">
-                    Subtotal: <span className="font-semibold text-gray-700">${(item.qty * item.unitCost).toFixed(2)}</span>
+                {item.qty > 0 && (parseFloat(item.unitCost) || 0) > 0 && (
+                  <p className="text-xs text-zinc-500 mt-2 text-right">
+                    Subtotal: <span className="font-semibold text-zinc-700">${(item.qty * (parseFloat(item.unitCost) || 0)).toFixed(2)}</span>
                   </p>
                 )}
               </div>
@@ -223,13 +223,13 @@ export function CreatePurchaseOrderModal({ isOpen, onClose, onSave, submitting }
 
         {/* Notas */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+          <label className="block text-sm font-medium text-zinc-700 mb-1">Notas</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder="Instrucciones o información adicional..."
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
+            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
           />
         </div>
       </div>

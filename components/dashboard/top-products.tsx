@@ -22,19 +22,19 @@ export function TopProducts({ productos }: TopProductsProps) {
           <div key={index} className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-xs font-medium text-gray-600">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-100 text-xs font-medium text-zinc-600">
                   {index + 1}
                 </span>
-                <span className="text-sm font-medium text-gray-900 truncate max-w-[180px]">
+                <span className="text-sm font-medium text-zinc-900 truncate max-w-[180px]">
                   {producto.name}
                 </span>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{formatCurrency(producto.revenue)}</p>
-                <p className="text-xs text-gray-500">{producto.qtySold} vendidos</p>
+                <p className="text-sm font-medium text-zinc-900">{formatCurrency(producto.revenue)}</p>
+                <p className="text-xs text-zinc-500">{producto.qtySold} vendidos</p>
               </div>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all"
                 style={{ width: `${(producto.qtySold / maxQty) * 100}%` }}

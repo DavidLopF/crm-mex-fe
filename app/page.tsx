@@ -1,14 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Calendar, Package, ShoppingCart, Building2 } from 'lucide-react';
+import { Package, ShoppingCart, Building2 } from 'lucide-react';
 import { InventarioTab, PedidosTab, ComprasTab } from '@/components/dashboard';
 import { PermissionGuard } from '@/components/layout';
 import { getDashboard, getDashboardCompras, DashboardSummary, DashboardComprasSummary } from '@/services/dashboard';
+import { useAuth } from '@/lib/auth-context';
 import { cn } from '@/lib/utils';
 
+function getGreeting(firstName: string): string {
+  const hour = new Date().getHours();
+  const saludo = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches';
+  return firstName ? `${saludo}, ${firstName}` : saludo;
+}
+
 function todayLabel(): string {
-  return new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 type TabId = 'inventario' | 'pedidos' | 'compras';
@@ -20,6 +27,8 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
 ];
 
 export default function DashboardPage() {
+  const { fullName } = useAuth();
+  const firstName = fullName?.split(' ')[0] ?? '';
   const [activeTab, setActiveTab] = useState<TabId>('inventario');
 
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
@@ -50,39 +59,33 @@ export default function DashboardPage() {
 
   return (
     <PermissionGuard moduleCode="DASHBOARD">
-      <main className="p-6">
+      <main className="px-6 py-8">
         <div className="space-y-6">
           {/* ── Header ── */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-500">Panel de control de CRM</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Calendar className="w-4 h-4" />
-              <span>{todayLabel()}</span>
+              <h1 className="text-2xl font-semibold text-zinc-900 tracking-tight">{getGreeting(firstName)}</h1>
+              <p className="mt-0.5 text-sm text-zinc-400 capitalize">{todayLabel()}</p>
             </div>
           </div>
 
-          {/* ── Tabs ── */}
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex gap-1">
-              {TABS.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
-                    activeTab === id
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-            </nav>
+          {/* ── Pill Tabs ── */}
+          <div className="inline-flex items-center gap-1 rounded-md bg-zinc-100 p-1">
+            {TABS.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={cn(
+                  'flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium transition-all duration-150',
+                  activeTab === id
+                    ? 'bg-white text-zinc-900 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700',
+                )}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* ── Tab content ── */}

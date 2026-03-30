@@ -44,10 +44,10 @@ export function PermissionGuard({ moduleCode, children }: PermissionGuardProps) 
       <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
         <ShieldX className="w-8 h-8 text-red-500" />
       </div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <h2 className="text-xl font-semibold text-zinc-900 mb-2">
         Sin acceso
       </h2>
-      <p className="text-gray-500 mb-6 max-w-md">
+      <p className="text-zinc-500 mb-6 max-w-md">
         No tienes permisos para acceder a este módulo. Contacta a un administrador si crees que esto es un error.
       </p>
       <button

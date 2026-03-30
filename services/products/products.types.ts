@@ -19,14 +19,18 @@ export interface ApiProduct {
   name: string;
   sku: string;
   category: string;
-  imageUrl?: string;
   categoryId: number;
   defaultPrice: number;
   currency: string;
   totalStock: number;
   status: string;
   description?: string;
-  image?: string;
+  /** Campo legacy */
+  image?: string | null;
+  /** Campo actual del backend */
+  imageUrl?: string | null;
+  /** true = el producto siempre debe venderse con IVA (16%) en POS */
+  requiresIva: boolean;
 }
 
 export interface ApiPagination {
@@ -63,10 +67,11 @@ export function mapApiProductToProducto(api: ApiProduct): Producto {
     precio: api.defaultPrice,
     costo: 0,
     categoria: api.category,
-    imageUrl: api.imageUrl,
+    imageUrl: api.imageUrl ?? api.image ?? undefined,
     variaciones: [],
     stockTotal: api.totalStock,
     activo: api.status === 'Activo',
+    requiresIva: api.requiresIva ?? false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -113,7 +118,12 @@ export interface ApiProductDetail {
   currency: string;
   totalStock: number;
   status: string;
-  imageUrl?: string;
+  /** Campo legacy */
+  image?: string | null;
+  /** Campo actual del backend */
+  imageUrl?: string | null;
+  /** true = el producto siempre debe venderse con IVA (16%) en POS */
+  requiresIva: boolean;
   createdAt: string;
   updatedAt: string;
   variants: ApiVariant[];
@@ -184,6 +194,8 @@ export interface CreateProductDto {
   cost?: number;
   currency?: string;
   image?: string;
+  /** true = el producto siempre debe venderse con IVA (16%) en POS (default: false) */
+  requiresIva?: boolean;
   variants: CreateProductVariantDto[];
 }
 
@@ -206,6 +218,8 @@ export interface UpdateProductDto {
   currency?: string;
   image?: string;
   isActive?: boolean;
+  /** Actualiza si el producto debe venderse siempre con IVA (16%) en POS */
+  requiresIva?: boolean;
   variants?: UpdateProductVariantDto[];
 }
 
@@ -221,7 +235,8 @@ export interface UpdateProductResponseDto {
   totalStock: number;
   status: string;
   description?: string;
-  image?: string;
+  image?: string | null;
+  imageUrl?: string | null;
   updatedAt: string;
   variants: ApiVariant[];
 }

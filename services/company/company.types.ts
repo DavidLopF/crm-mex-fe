@@ -5,6 +5,7 @@ export interface CompanySettings {
   companyName: string;
   primaryColor: string;   // Color principal (sidebar activo, botones, iconos)
   accentColor: string;    // Color de acento (fondos de avatares, badges)
+  logoUrl?: string | null; // URL pública del logo en S3 (opcional)
   updatedAt?: string;
 }
 
@@ -12,6 +13,7 @@ export interface UpdateCompanySettingsDto {
   companyName?: string;
   primaryColor?: string;
   accentColor?: string;
+  logoUrl?: string | null; // null = eliminar el logo actual
 }
 
 /** Valores por defecto */

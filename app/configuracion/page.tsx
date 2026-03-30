@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Users, Shield, Building2 } from 'lucide-react';
 import { RolesTable, UsersTable, ConfigTableSkeleton, CompanySettingsForm } from '@/components/configuracion';
 import {
@@ -24,7 +25,7 @@ import { useDebounce, useToast, useCrossTabSync } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/lib/company-context';
-import type { UpdateCompanySettingsDto } from '@/services/company';
+import type { UpdateCompanySettingsDto, CompanySettings } from '@/services/company';
 import { updateCompanySettings } from '@/services/company';
 import { PermissionGuard } from '@/components/layout';
 import { useConfigStore } from '@/stores';
@@ -33,28 +34,35 @@ import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 type Tab = 'users' | 'roles' | 'company';
 
 export default function ConfiguracionPage() {
-  // ── Store ─────────────────────────────────────────────────────
-  const activeTab = useConfigStore((s) => s.activeTab);
-  const setActiveTab = useConfigStore((s) => s.setActiveTab);
+  // ── Store (data — single shallow subscription) ──
+  const {
+    activeTab, roles, rolesTotal, rolesPage, rolesSearch, loadingRoles,
+    users, usersTotal, usersPage, usersSearch, usersStatusFilter, loadingUsers,
+    submitting,
+  } = useConfigStore(useShallow((s) => ({
+    activeTab: s.activeTab,
+    roles: s.roles,
+    rolesTotal: s.rolesTotal,
+    rolesPage: s.rolesPage,
+    rolesSearch: s.rolesSearch,
+    loadingRoles: s.loadingRoles,
+    users: s.users,
+    usersTotal: s.usersTotal,
+    usersPage: s.usersPage,
+    usersSearch: s.usersSearch,
+    usersStatusFilter: s.usersStatusFilter,
+    loadingUsers: s.loadingUsers,
+    submitting: s.submitting,
+  })));
 
-  const roles = useConfigStore((s) => s.roles);
-  const rolesTotal = useConfigStore((s) => s.rolesTotal);
-  const rolesPage = useConfigStore((s) => s.rolesPage);
-  const rolesSearch = useConfigStore((s) => s.rolesSearch);
-  const loadingRoles = useConfigStore((s) => s.loadingRoles);
+  // ── Store (actions — stable references) ──
+  const setActiveTab = useConfigStore((s) => s.setActiveTab);
   const setRoles = useConfigStore((s) => s.setRoles);
   const setLoadingRoles = useConfigStore((s) => s.setLoadingRoles);
   const setRolesPage = useConfigStore((s) => s.setRolesPage);
   const setRolesSearch = useConfigStore((s) => s.setRolesSearch);
   const patchRole = useConfigStore((s) => s.patchRole);
   const removeRole = useConfigStore((s) => s.removeRole);
-
-  const users = useConfigStore((s) => s.users);
-  const usersTotal = useConfigStore((s) => s.usersTotal);
-  const usersPage = useConfigStore((s) => s.usersPage);
-  const usersSearch = useConfigStore((s) => s.usersSearch);
-  const usersStatusFilter = useConfigStore((s) => s.usersStatusFilter);
-  const loadingUsers = useConfigStore((s) => s.loadingUsers);
   const setUsers = useConfigStore((s) => s.setUsers);
   const setLoadingUsers = useConfigStore((s) => s.setLoadingUsers);
   const setUsersPage = useConfigStore((s) => s.setUsersPage);
@@ -62,8 +70,6 @@ export default function ConfiguracionPage() {
   const setUsersStatusFilter = useConfigStore((s) => s.setUsersStatusFilter);
   const patchUser = useConfigStore((s) => s.patchUser);
   const removeUser = useConfigStore((s) => s.removeUser);
-
-  const submitting = useConfigStore((s) => s.submitting);
   const setSubmitting = useConfigStore((s) => s.setSubmitting);
 
   const toast = useToast();
@@ -255,7 +261,16 @@ export default function ConfiguracionPage() {
     setSubmitting(true);
     try {
       const updated = await updateCompanySettings(data);
-      applyCompanySettings(updated);
+      
+      const mergedSettings = { ...companySettings, ...data };
+      if (updated && typeof updated === 'object') {
+        const cleanUpdated = { ...updated } as any;
+        delete cleanUpdated.success;
+        delete cleanUpdated.message;
+        Object.assign(mergedSettings, cleanUpdated);
+      }
+      
+      applyCompanySettings(mergedSettings as CompanySettings);
       toast.success('Configuración de empresa actualizada exitosamente');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -284,13 +299,13 @@ export default function ConfiguracionPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
-            <p className="text-gray-500">Gestión de usuarios, roles y permisos del sistema</p>
+            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Configuración</h1>
+            <p className="text-zinc-500">Gestión de usuarios, roles y permisos del sistema</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-zinc-200">
           <nav className="flex gap-6">
             {tabs.map((tab) => (
               <button
@@ -300,7 +315,7 @@ export default function ConfiguracionPage() {
                   'flex items-center gap-2 px-1 py-3 text-sm font-medium border-b-2 transition-colors',
                   activeTab === tab.key
                     ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300'
                 )}
               >
                 <tab.icon className="w-4 h-4" />

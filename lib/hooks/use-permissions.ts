@@ -12,14 +12,20 @@ const ROUTE_TO_MODULE: Record<string, string> = {
   '/pedidos': 'PEDIDOS',
   '/clientes': 'CLIENTES',
   '/proveedores': 'PROVEEDORES',
+  '/pos': 'POS',
+  '/pos/precios': 'PRECIOS',
+  '/pos/reportes': 'REPORTES_POS',
+  '/reportes': 'REPORTES',
+  '/reportes/ventas-producto': 'REPORTES',
+  '/reportes/kardex': 'REPORTES',
   '/configuracion': 'CONFIG',
 };
 
 /**
- * Módulos del backend que NO están implementados en esta rama del frontend.
- * Se ocultan en la UI (sidebar, panel de permisos) aunque el backend los devuelva.
+ * Módulos ocultos intencionalmente en UI.
+ * Mantener vacío para que todos los módulos de backend sean gestionables.
  */
-export const HIDDEN_MODULES = new Set(['POS', 'PRECIOS', 'REPORTES_POS']);
+export const HIDDEN_MODULES = new Set<string>();
 
 /**
  * Hook que expone helpers de permisos para un módulo dado.

@@ -20,6 +20,8 @@ import { useToast, useCrossTabSync } from '@/lib/hooks';
 import { PermissionGuard } from '@/components/layout';
 import { useOrdersStore } from '@/stores';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
+import { OfflineCacheError, OfflineQueuedError } from '@/services/http-client';
+import { OfflineBanner } from '@/components/ui/offline-banner';
 
 // Mapeo de estados del backend a estados del frontend
 const mapEstadoBackendToFrontend = (statusCode: string): EstadoPedido => {
@@ -103,16 +105,29 @@ export default function PedidosPage() {
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [offlineState, setOfflineState] = useState<'none' | 'cache' | 'noCache'>('none');
   const toast = useToast();
 
   const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
+      // Detectar si el http-client sirve desde caché
+      let cacheHit = false;
+      const onCacheHit = () => { cacheHit = true; };
+      window.addEventListener('offline-cache-hit', onCacheHit, { once: true });
+
       const orderStatuses = await getOrders();
+      window.removeEventListener('offline-cache-hit', onCacheHit);
       const pedidosMapeados = mapOrdersToPedidos(orderStatuses);
       setPedidos(pedidosMapeados);
+      setOfflineState(cacheHit ? 'cache' : 'none');
     } catch (error) {
-      console.error('Error al cargar pedidos:', error);
+      if (error instanceof OfflineCacheError) {
+        setOfflineState('noCache');
+      } else {
+        console.error('Error al cargar pedidos:', error);
+        setOfflineState('none');
+      }
     } finally {
       setLoading(false);
     }
@@ -146,12 +161,15 @@ export default function PedidosPage() {
       await loadOrders();
       broadcastInvalidation(['orders', 'inventory']);
     } catch (error) {
-      console.error('Error al crear pedido:', error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Error al crear el pedido'
-      );
+      if (error instanceof OfflineQueuedError) {
+        toast.warning('Pedido guardado offline — se sincronizará cuando vuelva la conexión');
+        await loadOrders();
+      } else {
+        console.error('Error al crear pedido:', error);
+        toast.error(
+          error instanceof Error ? error.message : 'Error al crear el pedido'
+        );
+      }
     }
   };
 
@@ -250,8 +268,8 @@ export default function PedidosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pedidos</h1>
-          <p className="text-gray-500">Gestión de pedidos</p>
+          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Pedidos</h1>
+          <p className="text-zinc-500">Gestión de pedidos</p>
         </div>
         
         <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
@@ -263,8 +281,8 @@ export default function PedidosPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card className="p-4">
-          <p className="text-xs text-gray-500 mb-1">Total</p>
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+          <p className="text-xs text-zinc-500 mb-1">Total</p>
+          <p className="text-2xl font-bold text-zinc-900 tracking-tight">{stats.total}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-blue-600 mb-1">Cotizados</p>
@@ -284,13 +302,21 @@ export default function PedidosPage() {
         </Card>
       </div>
 
+      {/* Banner offline */}
+      {offlineState === 'cache' && (
+        <OfflineBanner variant="fromCache" onRetry={loadOrders} />
+      )}
+      {offlineState === 'noCache' && (
+        <OfflineBanner variant="noCache" onRetry={loadOrders} />
+      )}
+
       {/* Search */}
       <div className="relative max-w-lg">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
         <input
           type="text"
           placeholder="Buscar por número de pedido o cliente..."
-          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -301,7 +327,7 @@ export default function PedidosPage() {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4" />
-            <p className="text-sm text-gray-500">Cargando pedidos...</p>
+            <p className="text-sm text-zinc-500">Cargando pedidos...</p>
           </div>
         </div>
       ) : (

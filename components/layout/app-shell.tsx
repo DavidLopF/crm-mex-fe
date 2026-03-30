@@ -1,14 +1,15 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
+import { PageTransition } from '@/components/layout/page-transition';
 import { useSocketInit } from '@/lib/hooks/use-socket-init';
 
 /**
- * Componente invisible que inicializa la conexión SSE.
+ * Componente invisible que inicializa la conexión Socket.IO.
  * Se renderiza solo cuando el usuario está autenticado.
  */
 function SocketInitializer() {
@@ -24,16 +25,29 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const isPublicPage = ['/login', '/forgot-password', '/reset-password'].includes(pathname);
 
-  // While loading auth state, show a minimal spinner to avoid layout flash
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const update = () => {
+      const nextIsMobile = media.matches;
+      setIsMobile(nextIsMobile);
+      if (!nextIsMobile) setMobileSidebarOpen(false);
+    };
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-400">Cargando...</p>
+          <div className="w-8 h-8 rounded-full border-2 border-zinc-900 border-t-transparent animate-spin" />
+          <p className="text-sm text-zinc-400 font-medium tracking-wide">Cargando…</p>
         </div>
       </div>
     );
@@ -46,15 +60,26 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // Authenticated pages: full layout
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-zinc-50">
       <SocketInitializer />
-      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
+      <Sidebar
+        collapsed={collapsed}
+        onCollapsedChange={setCollapsed}
+        isMobile={isMobile}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
+      />
       <div
-        className="transition-all duration-300"
-        style={{ marginLeft: collapsed ? '5rem' : '16rem' }}
+        className="transition-all duration-300 ease-in-out"
+        style={{ marginLeft: isMobile ? 0 : (collapsed ? '5rem' : '16rem') }}
       >
-        <Header />
-        {children}
+        <Header
+          showMobileMenu={isMobile}
+          onMobileMenuClick={() => setMobileSidebarOpen((v) => !v)}
+        />
+        <PageTransition>
+          {children}
+        </PageTransition>
       </div>
     </div>
   );

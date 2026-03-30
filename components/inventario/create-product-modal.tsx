@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Plus, Minus, X, Upload } from 'lucide-react';
 import { Modal, Button, Card, CardContent, Select } from '@/components/ui';
@@ -21,17 +21,19 @@ const variacionesTemplate = [
 ];
 
 export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateProductModalProps) {
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [sku, setSku] = useState('');
-  const [precio, setPrecio] = useState<number>(0);
-  const [costo, setCosto] = useState<number>(0);
+  const [precio, setPrecio] = useState<string>('');
+  const [costo, setCosto] = useState<string>('');
   const [categoriaId, setCategoriaId] = useState<number | ''>('');
   const [imagen, setImagen] = useState('');
+  const [requiresIva, setRequiresIva] = useState(false);
   const [variaciones, setVariaciones] = useState<ProductoVariacion[]>([]);
   const [tipoVariacion, setTipoVariacion] = useState('');
   const [valorVariacion, setValorVariacion] = useState('');
-  const [stockVariacion, setStockVariacion] = useState<number>(0);
+  const [stockVariacion, setStockVariacion] = useState<string>('');
   
   // Estados para categorías del backend
   const [categorias, setCategorias] = useState<CategoryDto[]>([]);
@@ -65,14 +67,15 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
     setNombre('');
     setDescripcion('');
     setSku('');
-    setPrecio(0);
-    setCosto(0);
+    setPrecio('');
+    setCosto('');
     setCategoriaId('');
     setImagen('');
+    setRequiresIva(false);
     setVariaciones([]);
     setTipoVariacion('');
     setValorVariacion('');
-    setStockVariacion(0);
+    setStockVariacion('');
     setSubmitting(false);
   };
 
@@ -84,16 +87,19 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
   const handleAddVariacion = () => {
     if (!tipoVariacion || !valorVariacion) return;
 
+    const parsedStock = parseInt(stockVariacion, 10);
+    const safeStock = Number.isFinite(parsedStock) ? parsedStock : 0;
+
     const newVariacion: ProductoVariacion = {
       id: `var-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       nombre: tipoVariacion,
       valor: valorVariacion,
-      stock: stockVariacion,
+      stock: safeStock,
     };
 
     setVariaciones([...variaciones, newVariacion]);
     setValorVariacion('');
-    setStockVariacion(0);
+    setStockVariacion('');
   };
 
   const handleRemoveVariacion = (id: string) => {
@@ -115,16 +121,20 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
     setSubmitting(true);
 
     try {
+      const precioNumber = Number.isFinite(parseFloat(precio)) ? parseFloat(precio) : 0;
+      const costoNumber = Number.isFinite(parseFloat(costo)) ? parseFloat(costo) : 0;
+
       // Preparar el DTO para el backend
       const createDto: CreateProductDto = {
         name: nombre,
         description: descripcion || undefined,
         sku,
         categoryId: Number(categoriaId),
-        defaultPrice: precio,
-        cost: costo || undefined,
+        defaultPrice: precioNumber,
+        cost: costo ? costoNumber : undefined,
         currency: 'MXN',
         image: imagen || undefined,
+        requiresIva,
         variants: variaciones.map(v => ({
           variantName: `${v.nombre}: ${v.valor}`,
           stock: v.stock,
@@ -142,13 +152,14 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
         nombre,
         descripcion,
         sku,
-        precio,
-        costo,
+        precio: precioNumber,
+        costo: costoNumber,
         categoria: categoriaSeleccionada?.name || '',
         imageUrl: imagen || undefined,
         variaciones,
         stockTotal,
         activo: true,
+        requiresIva,
       };
 
       onSave(newProduct);
@@ -168,7 +179,35 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
   };
 
   const stockTotal = variaciones.reduce((sum, v) => sum + v.stock, 0);
+  const precioNumber = Number.isFinite(parseFloat(precio)) ? parseFloat(precio) : 0;
+  const costoNumber = Number.isFinite(parseFloat(costo)) ? parseFloat(costo) : 0;
   const valoresDisponibles = variacionesTemplate.find(v => v.nombre === tipoVariacion)?.valores || [];
+
+  const handleOpenImageChooser = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      if (onError) onError('Selecciona un archivo de imagen válido.');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      setImagen(result);
+    };
+    reader.onerror = () => {
+      if (onError) onError('No se pudo leer la imagen seleccionada.');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   return (
     <Modal
@@ -182,7 +221,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Nombre del Producto <span className="text-red-500">*</span>
               </label>
               <input
@@ -190,12 +229,12 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Ej: Camiseta Premium"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 SKU <span className="text-red-500">*</span>
               </label>
               <input
@@ -203,12 +242,12 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                 value={sku}
                 onChange={(e) => setSku(e.target.value.toUpperCase())}
                 placeholder="Ej: CAM-PREM-001"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Categoría <span className="text-red-500">*</span>
               </label>
               <Select 
@@ -228,7 +267,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 Descripción
               </label>
               <textarea
@@ -236,30 +275,41 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={3}
                 placeholder="Descripción del producto..."
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-700 mb-1">
                 URL de Imagen
               </label>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageFileChange}
+              />
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={imagen}
                   onChange={(e) => setImagen(e.target.value)}
                   placeholder="https://ejemplo.com/imagen.jpg"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Upload className="w-5 h-5 text-gray-600" />
+                <button
+                  type="button"
+                  onClick={handleOpenImageChooser}
+                  className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors"
+                >
+                  <Upload className="w-5 h-5 text-zinc-600" />
                 </button>
               </div>
               {imagen && (
-                <div className="mt-3 aspect-square rounded-lg overflow-hidden bg-gray-100 max-w-[200px]">
+                <div className="mt-3 aspect-square rounded-lg overflow-hidden bg-zinc-100 max-w-[200px]">
                   <Image
                     src={imagen}
                     alt="Preview"
@@ -273,60 +323,85 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Precio de Venta
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
                   <input
                     type="number"
-                    value={precio || ''}
-                    onChange={(e) => setPrecio(parseFloat(e.target.value) || 0)}
+                    value={precio}
+                    onChange={(e) => setPrecio(e.target.value)}
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-7 pr-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Costo
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
                   <input
                     type="number"
-                    value={costo || ''}
-                    onChange={(e) => setCosto(parseFloat(e.target.value) || 0)}
+                    value={costo}
+                    onChange={(e) => setCosto(e.target.value)}
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-7 pr-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
             </div>
 
-            {precio > 0 && costo > 0 && (
+            {precioNumber > 0 && costoNumber > 0 && (
               <Card>
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Margen de Ganancia:</span>
-                    <span className={`font-semibold ${precio > costo ? 'text-green-600' : 'text-red-600'}`}>
-                      {((precio - costo) / precio * 100).toFixed(1)}%
+                    <span className="text-zinc-600">Margen de Ganancia:</span>
+                    <span className={`font-semibold ${precioNumber > costoNumber ? 'text-green-600' : 'text-red-600'}`}>
+                      {(((precioNumber - costoNumber) / precioNumber) * 100).toFixed(1)}%
                     </span>
                   </div>
                 </CardContent>
               </Card>
             )}
+
+            {/* Toggle IVA obligatorio */}
+            <button
+              type="button"
+              onClick={() => setRequiresIva((v) => !v)}
+              className={`
+                w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all text-left
+                ${requiresIva
+                  ? 'border-amber-400 bg-amber-50 text-amber-800'
+                  : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'
+                }
+              `}
+            >
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Precio con IVA incluido (16%)</span>
+                <span className="text-xs text-zinc-400 leading-tight mt-0.5">
+                  {requiresIva
+                    ? 'El cajero no puede quitar el IVA en POS'
+                    : 'El cajero puede activar o desactivar el IVA en POS'}
+                </span>
+              </div>
+              <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-3 ${requiresIva ? 'bg-amber-500' : 'bg-zinc-300'}`}>
+                <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${requiresIva ? 'translate-x-5' : 'translate-x-0'}`} />
+              </span>
+            </button>
           </div>
         </div>
 
         {/* Variaciones */}
         <div className="border-t pt-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">
+          <h3 className="text-base font-semibold text-zinc-900 mb-4">
             Variaciones y Stock <span className="text-red-500">*</span>
           </h3>
 
@@ -364,18 +439,18 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                 value={valorVariacion}
                 onChange={(e) => setValorVariacion(e.target.value)}
                 placeholder="Valor"
-                className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled
               />
             )}
 
             <input
               type="number"
-              value={stockVariacion || ''}
-              onChange={(e) => setStockVariacion(parseInt(e.target.value) || 0)}
+              value={stockVariacion}
+              onChange={(e) => setStockVariacion(e.target.value)}
               placeholder="Stock"
               min="0"
-              className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <Button
@@ -396,7 +471,7 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2 flex-1">
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="font-medium text-gray-900 text-sm">
+                        <span className="font-medium text-zinc-900 text-sm">
                           {variacion.nombre}: {variacion.valor}
                         </span>
                       </div>
@@ -405,26 +480,26 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleVariacionStockChange(variacion.id, variacion.stock - 1)}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-zinc-100 rounded"
                           >
-                            <Minus className="w-3 h-3 text-gray-600" />
+                            <Minus className="w-3 h-3 text-zinc-600" />
                           </button>
                           <input
                             type="number"
                             value={variacion.stock}
                             onChange={(e) => handleVariacionStockChange(variacion.id, parseInt(e.target.value) || 0)}
-                            className="w-14 text-center border border-gray-200 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-14 text-center border border-zinc-200 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             min="0"
                           />
                           <button
                             onClick={() => handleVariacionStockChange(variacion.id, variacion.stock + 1)}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-zinc-100 rounded"
                           >
-                            <Plus className="w-3 h-3 text-gray-600" />
+                            <Plus className="w-3 h-3 text-zinc-600" />
                           </button>
                         </div>
                         
-                        <span className="text-sm text-gray-600 w-12 text-center">uds</span>
+                        <span className="text-sm text-zinc-600 w-12 text-center">uds</span>
                         
                         <button
                           onClick={() => handleRemoveVariacion(variacion.id)}
@@ -441,22 +516,22 @@ export function CreateProductModal({ isOpen, onClose, onSave, onError }: CreateP
               <Card>
                 <CardContent className="p-3 bg-purple-50 border border-purple-200">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-700">Stock Total:</span>
+                    <span className="font-medium text-zinc-700">Stock Total:</span>
                     <span className="text-xl font-bold text-purple-600">{stockTotal} unidades</span>
                   </div>
                 </CardContent>
               </Card>
             </div>
           ) : (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-              <p className="text-sm text-gray-500">No hay variaciones agregadas</p>
-              <p className="text-xs text-gray-400 mt-1">Agregue al menos una variación para continuar</p>
+            <div className="text-center py-8 bg-zinc-50 rounded-lg border border-dashed border-zinc-200">
+              <p className="text-sm text-zinc-500">No hay variaciones agregadas</p>
+              <p className="text-xs text-zinc-400 mt-1">Agregue al menos una variación para continuar</p>
             </div>
           )}
         </div>
 
         {/* Botones de acción */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200">
           <Button variant="outline" onClick={handleClose} disabled={submitting}>
             Cancelar
           </Button>

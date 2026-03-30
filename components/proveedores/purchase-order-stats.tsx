@@ -28,7 +28,7 @@ export function PurchaseOrderStats({ statistics }: PurchaseOrderStatsProps) {
         title="Borradores"
         value={draftOrders}
         icon={FileText}
-        iconClassName="bg-gray-100 text-gray-600"
+        iconClassName="bg-zinc-100 text-zinc-600"
       />
       <StatCard
         title="Enviadas"

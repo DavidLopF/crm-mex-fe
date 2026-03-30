@@ -34,7 +34,7 @@ interface PurchaseOrderDetailModalProps {
 
 /** Colores para los botones de transición */
 const TRANSITION_BUTTON_STYLES: Record<PurchaseOrderStatus, string> = {
-  draft: 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200',
+  draft: 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-zinc-200',
   sent: 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200',
   confirmed: 'bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200',
   partial: 'bg-orange-50 text-orange-700 hover:bg-orange-100 border-orange-200',
@@ -187,8 +187,8 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">{order.code}</h3>
-            <p className="text-sm text-gray-500 mt-1">Proveedor: {order.supplierName}</p>
+            <h3 className="text-xl font-semibold text-zinc-900 tracking-tight">{order.code}</h3>
+            <p className="text-sm text-zinc-500">Proveedor: {order.supplierName}</p>
           </div>
           <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${statusColor}`}>
             {statusLabel}
@@ -224,17 +224,17 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
 
         {/* Resumen financiero */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
-            <p className="text-xs text-gray-500 mb-1">Subtotal</p>
-            <p className="text-lg font-bold text-gray-900">{formatCurrency(order.subtotal)}</p>
+          <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200 text-center">
+            <p className="text-xs text-zinc-500 mb-1">Subtotal</p>
+            <p className="text-lg font-bold text-zinc-900">{formatCurrency(order.subtotal)}</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
-            <p className="text-xs text-gray-500 mb-1">Costos Internación</p>
-            <p className="text-lg font-bold text-gray-900">
+          <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200 text-center">
+            <p className="text-xs text-zinc-500 mb-1">Costos Internación</p>
+            <p className="text-lg font-bold text-zinc-900">
               {totalLandedCosts > 0 ? formatCurrency(totalLandedCosts) : '—'}
             </p>
             {totalCostPct > 0 && (
-              <p className="text-[10px] text-gray-400">{totalCostPct.toFixed(1)}%</p>
+              <p className="text-[10px] text-zinc-400">{totalCostPct.toFixed(1)}%</p>
             )}
           </div>
           <div className="bg-primary/10 rounded-lg p-4 border border-primary/20 text-center">
@@ -244,11 +244,11 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
         </div>
 
         {/* Costos de internación — vista/edición */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Percent className="w-4 h-4 text-gray-500" />
-              <h4 className="text-sm font-semibold text-gray-700">Costos de Internación</h4>
+              <Percent className="w-4 h-4 text-zinc-500" />
+              <h4 className="text-sm font-semibold text-zinc-700">Costos de Internación</h4>
             </div>
             {onCostsUpdate && !editingCosts && (
               <button
@@ -265,7 +265,7 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
               {editFields.map((field) => (
                 <div key={field.key} className="flex items-center gap-3">
                   <span className="text-sm w-5 flex-shrink-0">{field.icon}</span>
-                  <span className="text-xs text-gray-600 w-20 flex-shrink-0">{field.label}</span>
+                  <span className="text-xs text-zinc-600 w-20 flex-shrink-0">{field.label}</span>
                   <div className="relative flex-shrink-0 w-24">
                     <input
                       type="number"
@@ -275,11 +275,11 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                       value={field.value || ''}
                       placeholder="0"
                       onChange={(e) => field.setter(parseFloat(e.target.value) || 0)}
-                      className="w-full pl-2 pr-6 py-1 border border-gray-200 rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                      className="w-full pl-2 pr-6 py-1 border border-zinc-200 rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-400">%</span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-auto tabular-nums">
+                  <span className="text-xs text-zinc-500 ml-auto tabular-nums">
                     {order.subtotal * field.value / 100 > 0
                       ? formatCurrency(order.subtotal * field.value / 100)
                       : '—'}
@@ -288,9 +288,9 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
               ))}
 
               {editTotalPct > 0 && (
-                <div className="pt-2 mt-1 border-t border-dashed border-gray-200 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-gray-700">Total ({editTotalPct.toFixed(1)}%)</span>
-                  <span className="text-sm font-bold text-gray-900">
+                <div className="pt-2 mt-1 border-t border-dashed border-zinc-200 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-zinc-700">Total ({editTotalPct.toFixed(1)}%)</span>
+                  <span className="text-sm font-bold text-zinc-900">
                     {formatCurrency(order.subtotal * editTotalPct / 100)}
                   </span>
                 </div>
@@ -307,7 +307,7 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                 </Button>
                 <button
                   onClick={() => setEditingCosts(false)}
-                  className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 transition-colors"
+                  className="text-xs text-zinc-500 hover:text-zinc-700 px-3 py-1.5 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -319,39 +319,39 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                 <div key={field.key} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{field.icon}</span>
-                    <span className="text-xs text-gray-600">{field.label}</span>
-                    <span className="text-[10px] text-gray-400">({field.pct}%)</span>
+                    <span className="text-xs text-zinc-600">{field.label}</span>
+                    <span className="text-[10px] text-zinc-400">({field.pct}%)</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 tabular-nums">
+                  <span className="text-sm font-medium text-zinc-900 tabular-nums">
                     {formatCurrency(field.cost)}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-gray-400">Sin costos de internación configurados.</p>
+            <p className="text-xs text-zinc-400">Sin costos de internación configurados.</p>
           )}
         </div>
 
         {/* Fechas */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">Fechas</h4>
+        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+          <h4 className="text-sm font-semibold text-zinc-700 mb-3">Fechas</h4>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <Calendar className="w-4 h-4 text-zinc-400 flex-shrink-0" />
               <div>
-                <span className="text-xs text-gray-500 block">Fecha de Creación</span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-xs text-zinc-500 block">Fecha de Creación</span>
+                <span className="text-sm font-medium text-zinc-900">
                   {formatDateTime(order.createdAt)}
                 </span>
               </div>
             </div>
             {order.expectedDeliveryDate && (
               <div className="flex items-center gap-3">
-                <Truck className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <Truck className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                 <div>
-                  <span className="text-xs text-gray-500 block">Entrega Esperada</span>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-xs text-zinc-500 block">Entrega Esperada</span>
+                  <span className="text-sm font-medium text-zinc-900">
                     {formatDateTime(order.expectedDeliveryDate)}
                   </span>
                 </div>
@@ -361,7 +361,7 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
               <div className="flex items-center gap-3">
                 <Package className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <div>
-                  <span className="text-xs text-gray-500 block">Fecha de Recepción</span>
+                  <span className="text-xs text-zinc-500 block">Fecha de Recepción</span>
                   <span className="text-sm font-medium text-green-700">
                     {formatDateTime(order.receivedDate)}
                   </span>
@@ -372,22 +372,22 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
         </div>
 
         {/* Artículos */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+          <h4 className="text-sm font-semibold text-zinc-700 mb-3">
             Artículos ({order.items.length})
           </h4>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {order.items.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between"
+                className="bg-white rounded-lg p-3 border border-zinc-200 flex items-center justify-between"
               >
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-zinc-900">
                     {item.description ?? `Variante #${item.variantId}`}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-zinc-500">
                       {item.qty} × {formatCurrency(item.unitCost)}
                     </span>
                     {hasCosts && item.landedUnitCost > item.unitCost && (
@@ -403,7 +403,7 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">{formatCurrency(item.lineTotal)}</p>
+                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(item.lineTotal)}</p>
                   {hasCosts && item.landedLineTotal > item.lineTotal && (
                     <p className="text-[10px] text-blue-600 font-medium">
                       {formatCurrency(item.landedLineTotal)}
@@ -416,11 +416,11 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
         </div>
 
         {/* ══ RECEPCIONES ══ */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <ClipboardCheck className="w-4 h-4 text-gray-500" />
-              <h4 className="text-sm font-semibold text-gray-700">Recepciones</h4>
+              <ClipboardCheck className="w-4 h-4 text-zinc-500" />
+              <h4 className="text-sm font-semibold text-zinc-700">Recepciones</h4>
             </div>
             {canReceive && !(progress?.isComplete) && (
               <Button
@@ -435,21 +435,21 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
 
           {loadingReceptions ? (
             <div className="flex items-center justify-center py-6">
-              <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+              <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
             </div>
           ) : progress ? (
             <div className="space-y-4">
               {/* Progress summary */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-zinc-500">
                     {progress.totalReceived} de {progress.totalQty} unidades recibidas
                   </span>
-                  <span className={`text-xs font-bold ${progress.isComplete ? 'text-green-600' : 'text-gray-700'}`}>
+                  <span className={`text-xs font-bold ${progress.isComplete ? 'text-green-600' : 'text-zinc-700'}`}>
                     {progress.percentComplete}%
                   </span>
                 </div>
-                <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-zinc-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
                       progress.isComplete
@@ -458,7 +458,7 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                           ? 'bg-yellow-500'
                           : progress.percentComplete > 0
                             ? 'bg-orange-400'
-                            : 'bg-gray-300'
+                            : 'bg-zinc-300'
                     }`}
                     style={{ width: `${Math.min(progress.percentComplete, 100)}%` }}
                   />
@@ -467,9 +467,9 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
 
               {/* Summary cards */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="bg-white rounded-lg p-2.5 border border-gray-200 text-center">
-                  <p className="text-[10px] text-gray-400 mb-0.5">Solicitado</p>
-                  <p className="text-sm font-bold text-gray-900">{progress.totalQty}</p>
+                <div className="bg-white rounded-lg p-2.5 border border-zinc-200 text-center">
+                  <p className="text-[10px] text-zinc-400 mb-0.5">Solicitado</p>
+                  <p className="text-sm font-bold text-zinc-900">{progress.totalQty}</p>
                 </div>
                 <div className="bg-white rounded-lg p-2.5 border border-green-200 text-center">
                   <p className="text-[10px] text-green-500 mb-0.5">Recibido</p>
@@ -486,7 +486,7 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                 <div>
                   <button
                     onClick={() => setShowItemsProgress(!showItemsProgress)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-800 transition-colors"
                   >
                     {showItemsProgress ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     Progreso por artículo
@@ -494,16 +494,16 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                   {showItemsProgress && (
                     <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto">
                       {progress.items.map((pi) => (
-                        <div key={pi.id} className="bg-white rounded p-2 border border-gray-100">
+                        <div key={pi.id} className="bg-white rounded p-2 border border-zinc-100">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-gray-800 truncate flex-1 mr-2">
+                            <span className="text-xs font-medium text-zinc-800 truncate flex-1 mr-2">
                               {pi.productName || pi.variantSku || pi.description || `Variante #${pi.variantId}`}
                             </span>
-                            <span className="text-[10px] text-gray-500 flex-shrink-0">
+                            <span className="text-[10px] text-zinc-500 flex-shrink-0">
                               {pi.qtyReceived}/{pi.qty} ({pi.percentComplete}%)
                             </span>
                           </div>
-                          <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="w-full h-1 bg-zinc-200 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${
                                 pi.qtyPending === 0
@@ -525,7 +525,7 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
               {/* Receipts history */}
               {receptions.length > 0 && (
                 <div>
-                  <h5 className="text-xs font-semibold text-gray-600 mb-2">Historial de Recepciones</h5>
+                  <h5 className="text-xs font-semibold text-zinc-600 mb-2">Historial de Recepciones</h5>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
                     {receptions.map((rec) => {
                       const totalItems = rec.items.reduce((s, i) => s + i.qtyReceived, 0);
@@ -533,19 +533,19 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
                         <button
                           key={rec.id}
                           onClick={() => handleViewReceipt(rec)}
-                          className="w-full bg-white rounded-lg p-2.5 border border-gray-200 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/30 transition-colors text-left"
+                          className="w-full bg-white rounded-lg p-2.5 border border-zinc-200 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/30 transition-colors text-left"
                         >
                           <div>
                             <span className="text-xs font-mono font-semibold text-blue-600">{rec.code}</span>
-                            <span className="text-[10px] text-gray-400 ml-2">
+                            <span className="text-[10px] text-zinc-400 ml-2">
                               {formatDateTime(rec.receivedDate)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-gray-500">
+                            <span className="text-[10px] text-zinc-500">
                               {totalItems} uds · {rec.warehouse?.name || `Almacén #${rec.warehouseId}`}
                             </span>
-                            <Eye className="w-3 h-3 text-gray-400" />
+                            <Eye className="w-3 h-3 text-zinc-400" />
                           </div>
                         </button>
                       );
@@ -555,15 +555,15 @@ export function PurchaseOrderDetailModal({ isOpen, onClose, order, onStatusChang
               )}
             </div>
           ) : (
-            <p className="text-xs text-gray-400 py-2">Sin recepciones registradas.</p>
+            <p className="text-xs text-zinc-400 py-2">Sin recepciones registradas.</p>
           )}
         </div>
 
         {/* Notas */}
         {order.notes && (
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Notas</h4>
-            <p className="text-sm text-gray-600 whitespace-pre-line">{order.notes}</p>
+          <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+            <h4 className="text-sm font-semibold text-zinc-700 mb-2">Notas</h4>
+            <p className="text-sm text-zinc-600 whitespace-pre-line">{order.notes}</p>
           </div>
         )}
       </div>
