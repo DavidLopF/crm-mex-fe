@@ -156,7 +156,7 @@ export function Header({ showMobileMenu = false, onMobileMenuClick }: HeaderProp
       {/* Command palette overlay */}
       {isPaletteOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-zinc-950/20 p-4 pt-16 md:pt-20 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-start justify-center bg-zinc-950/40 p-4 pt-16 md:pt-20 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) closePalette(); }}
         >
           <div className="w-full max-w-xl rounded-lg border border-zinc-200 bg-white shadow-[0_20px_48px_rgba(9,9,11,0.18)]">
