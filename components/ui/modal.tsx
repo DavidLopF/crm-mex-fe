@@ -113,9 +113,10 @@ interface ModalProps {
   children: React.ReactNode;
   size?: keyof typeof sizeMap;
   className?: string;
+  noPadding?: boolean;
 }
 
-export function Modal({ isOpen, onClose, title, children, size = 'lg', className }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, size = 'lg', className, noPadding }: ModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
@@ -130,7 +131,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
         )}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className={cn('flex-1 overflow-y-auto', !noPadding && 'px-6 py-5')}>
           {children}
         </div>
       </DialogContent>

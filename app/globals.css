@@ -2,8 +2,8 @@
 
 /* ─── shadcn/ui Design Tokens — Zinc Theme ─── */
 :root {
-  --background: #f5f6f1;
-  --foreground: #111827;
+  --background: #fafafa;
+  --foreground: #09090b;
   --card: 0 0% 100%;
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
@@ -21,7 +21,7 @@
   --border: 240 5.9% 90%;
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   --chart-1: 221 83% 53%;
   --chart-2: 212 95% 68%;
   --chart-3: 216 92% 60%;
@@ -32,8 +32,7 @@
   --primary-color: #2563eb;
   --accent-color: #3b82f6;
 
-  /* Legacy background for sections that still use it */
-  --bg-page: #f5f6f1;
+  --bg-page: #fafafa;
 }
 
 @theme inline {
@@ -60,20 +59,17 @@
   --border-radius-md: calc(var(--radius) - 2px);
   --border-radius-lg: var(--radius);
   --border-radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), 'Courier New', monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Segoe UI", sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image:
-    radial-gradient(circle at 8% -8%, rgba(37, 99, 235, 0.1), transparent 28%),
-    radial-gradient(circle at 88% 8%, rgba(15, 23, 42, 0.07), transparent 22%);
   min-height: 100vh;
 }
 

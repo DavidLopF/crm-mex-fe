@@ -30,6 +30,12 @@ import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 import { ROUTE_TO_MODULE } from '@/lib/hooks';
 
+/* ─── Section labels for nav groups ─── */
+const SECTION_LABELS: Record<string, string> = {
+  '/pos': 'Ventas',
+  '/reportes': 'Analítica',
+};
+
 /* ─── Nav types ─── */
 
 interface NavChild {
@@ -154,22 +160,9 @@ export function Sidebar({
   const homeHref = isSuperAdmin ? '/super-admin' : '/';
 
   /* ── Helper: nav link styles ── */
-  const linkBase = 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150';
-
-  const activeStyle = {
-    backgroundColor: `${primary}18`,
-    color: primary,
-    boxShadow: `inset 3px 0 0 0 ${primary}`,
-  };
-
-  const inactiveClass = 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900';
-
-  const TonalDot = () => (
-    <span
-      className="ml-auto flex-shrink-0 w-1.5 h-1.5 rounded-full opacity-80"
-      style={{ backgroundColor: primary }}
-    />
-  );
+  const linkBase = 'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100';
+  const activeClass = 'bg-zinc-100 text-zinc-900';
+  const inactiveClass = 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800';
 
   return (
     <>
@@ -257,9 +250,18 @@ export function Sidebar({
             const isGroupOpen = openGroups.has(item.href);
             const isGroupActive = pathname === item.href || item.children?.some((c) => pathname.startsWith(c.href));
 
-            /* Divider */
-            const divider = item.dividerBefore && isExpanded ? (
-              <div key={`div-${item.href}`} className="my-2 mx-3 border-t border-zinc-100" />
+            /* Section label / divider */
+            const sectionLabel = SECTION_LABELS[item.href];
+            const divider = item.dividerBefore ? (
+              isExpanded ? (
+                <div key={`div-${item.href}`} className="pt-4 pb-1 px-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                    {sectionLabel ?? ''}
+                  </span>
+                </div>
+              ) : (
+                <div key={`div-${item.href}`} className="my-2 mx-2 border-t border-zinc-100" />
+              )
             ) : null;
 
             /* Group (with children) */
@@ -280,18 +282,18 @@ export function Sidebar({
                     className={cn(
                       linkBase, 'w-full',
                       !isExpanded && 'justify-center px-0 py-2',
-                      isGroupActive ? '' : inactiveClass
+                      isGroupActive ? activeClass : inactiveClass
                     )}
-                    style={isGroupActive ? activeStyle : undefined}
                   >
-                    <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                    <item.icon
+                      className="w-[18px] h-[18px] flex-shrink-0"
+                      style={isGroupActive ? { color: primary } : undefined}
+                    />
                     {isExpanded && (
                       <>
                         <span className="flex-1 text-left">{item.name}</span>
-                        {isGroupActive && <TonalDot />}
                         <ChevronRight
-                          className={cn('w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200', isGroupOpen && 'rotate-90')}
-                          style={{ opacity: 0.6 }}
+                          className={cn('w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 text-zinc-400', isGroupOpen && 'rotate-90')}
                         />
                       </>
                     )}
@@ -307,12 +309,13 @@ export function Sidebar({
                             key={child.href}
                             href={child.href}
                             onClick={() => isMobile && onMobileClose?.()}
-                            className={cn('flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-all duration-150', isActive ? '' : inactiveClass)}
-                            style={isActive ? activeStyle : undefined}
+                            className={cn('flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors duration-100', isActive ? activeClass : inactiveClass)}
                           >
-                            <child.icon className="w-4 h-4 flex-shrink-0" />
+                            <child.icon
+                              className="w-4 h-4 flex-shrink-0"
+                              style={isActive ? { color: primary } : undefined}
+                            />
                             <span className="flex-1">{child.name}</span>
-                            {isActive && <TonalDot />}
                           </Link>
                         );
                       })}
@@ -333,11 +336,13 @@ export function Sidebar({
                   className={cn(
                     linkBase,
                     !isExpanded && 'justify-center px-0 py-2',
-                    isActive ? '' : inactiveClass
+                    isActive ? activeClass : inactiveClass
                   )}
-                  style={isActive ? activeStyle : undefined}
                 >
-                  <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                  <item.icon
+                    className="w-[18px] h-[18px] flex-shrink-0"
+                    style={isActive ? { color: primary } : undefined}
+                  />
                   {isExpanded && <span>{item.name}</span>}
                 </Link>
               </div>
