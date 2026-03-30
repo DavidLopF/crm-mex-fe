@@ -2,16 +2,21 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Search, Package, Plus } from 'lucide-react';
+import { Search, Package, Plus, WifiOff, DatabaseZap } from 'lucide-react';
 import { getPosProducts, type PosProductDto } from '@/services/pos';
 import { usePosStore } from '@/stores';
 import { useCrossTabSync } from '@/lib/hooks';
 import { QuantitySelector } from './QuantitySelector';
+import { OfflineCacheError } from '@/services/http-client';
 
 export function ProductGrid() {
   const [products, setProducts] = useState<PosProductDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<PosProductDto | null>(null);
+  /** true cuando los datos vienen del caché local (sin internet) */
+  const [fromCache, setFromCache] = useState(false);
+  /** true cuando no hay internet Y tampoco hay caché */
+  const [offlineNoCache, setOfflineNoCache] = useState(false);
 
   const { searchTerm, setSearchTerm, cart } = usePosStore(useShallow((s) => ({
     searchTerm: s.searchTerm,
@@ -22,10 +27,24 @@ export function ProductGrid() {
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
+      setOfflineNoCache(false);
+      // Escuchar si el http-client sirvió desde caché
+      const onCacheHit = () => setFromCache(true);
+      window.addEventListener('offline-cache-hit', onCacheHit, { once: true });
+
       const data = await getPosProducts(searchTerm || undefined);
       setProducts(data);
+      // Si llegamos aquí sin el evento, los datos son frescos del servidor
+      window.removeEventListener('offline-cache-hit', onCacheHit);
     } catch (err) {
-      console.error('Error cargando productos POS:', err);
+      if (err instanceof OfflineCacheError) {
+        // Sin internet y sin caché — estado vacío con mensaje apropiado
+        setProducts([]);
+        setOfflineNoCache(true);
+        setFromCache(false);
+      } else {
+        console.error('Error cargando productos POS:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -74,6 +93,13 @@ export function ProductGrid() {
           onChange={(e) => setSearchTerm(e.target.value)}
           autoComplete="off"
         />
+        {/* Badge: datos desde caché local */}
+        {fromCache && !loading && (
+          <div className="flex items-center gap-1.5 mt-2 px-1 text-amber-600">
+            <DatabaseZap className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="text-xs font-medium">Mostrando productos en caché — sin conexión</span>
+          </div>
+        )}
       </div>
 
       {/* Estado de carga */}
@@ -81,6 +107,24 @@ export function ProductGrid() {
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <div className="w-10 h-10 rounded-full border-3 border-primary border-t-transparent animate-spin" />
           <p className="text-sm text-zinc-400">Cargando productos...</p>
+        </div>
+      ) : offlineNoCache ? (
+        /* Sin internet y sin caché — estado especial */
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-gray-500 px-4 text-center">
+          <WifiOff className="w-14 h-14 opacity-30" />
+          <div>
+            <p className="text-base font-semibold">Sin conexión</p>
+            <p className="text-sm text-gray-400 mt-1">
+              No hay productos en caché todavía.{' '}
+              Conéctate a internet al menos una vez para que los productos queden disponibles offline.
+            </p>
+          </div>
+          <button
+            onClick={() => loadProducts()}
+            className="text-sm text-primary underline"
+          >
+            Reintentar
+          </button>
         </div>
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-zinc-400">

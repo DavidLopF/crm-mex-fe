@@ -1,11 +1,39 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Menu, Search } from 'lucide-react';
+import { ElementType, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ArrowRight,
+  LayoutDashboard,
+  Menu,
+  Package,
+  Search,
+  Settings,
+  ShoppingCart,
+  Store,
+  Truck,
+  Users,
+} from 'lucide-react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 import { NotificationBell } from './NotificationBell';
-import { cn } from '@/lib/utils';
+
+interface CommandAction {
+  label: string;
+  description: string;
+  href: string;
+  icon: ElementType;
+}
+
+const COMMAND_ACTIONS: CommandAction[] = [
+  { label: 'Dashboard', description: 'Panel principal', href: '/', icon: LayoutDashboard },
+  { label: 'Inventario', description: 'Productos y stock', href: '/inventario', icon: Package },
+  { label: 'POS', description: 'Punto de venta', href: '/pos', icon: Store },
+  { label: 'Pedidos', description: 'Pedidos y seguimiento', href: '/pedidos', icon: ShoppingCart },
+  { label: 'Clientes', description: 'Gestión de clientes', href: '/clientes', icon: Users },
+  { label: 'Proveedores', description: 'Compras y proveedores', href: '/proveedores', icon: Truck },
+  { label: 'Configuración', description: 'Usuarios y ajustes', href: '/configuracion', icon: Settings },
+];
 
 interface HeaderProps {
   showMobileMenu?: boolean;
@@ -15,108 +43,171 @@ interface HeaderProps {
 export function Header({ showMobileMenu = false, onMobileMenuClick }: HeaderProps) {
   const { settings } = useCompany();
   const { fullName, roleName } = useAuth();
-  const [searchFocused, setSearchFocused] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [query, setQuery] = useState('');
 
   const initials = fullName
     ? fullName.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
     : 'U';
 
-  /* ⌘K / Ctrl+K opens search */
+  const filteredActions = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return COMMAND_ACTIONS;
+    return COMMAND_ACTIONS.filter(
+      (action) =>
+        action.label.toLowerCase().includes(normalized) ||
+        action.description.toLowerCase().includes(normalized),
+    );
+  }, [query]);
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        searchRef.current?.focus();
+        setIsPaletteOpen((prev) => !prev);
       }
-      if (e.key === 'Escape') searchRef.current?.blur();
+      if (e.key === 'Escape') {
+        setIsPaletteOpen(false);
+      }
+      if (e.key === 'Enter' && isPaletteOpen && filteredActions.length > 0) {
+        e.preventDefault();
+        router.push(filteredActions[0].href);
+        setIsPaletteOpen(false);
+        setQuery('');
+      }
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [filteredActions, isPaletteOpen, router]);
+
+  const openPalette = () => setIsPaletteOpen(true);
+  const closePalette = () => {
+    setIsPaletteOpen(false);
+    setQuery('');
+  };
+  const goToAction = (href: string) => {
+    router.push(href);
+    closePalette();
+  };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-zinc-200/70">
-      <div className="flex items-center h-16 px-4 sm:px-5 gap-4">
+    <>
+      <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/85 backdrop-blur-md">
+        <div className="mx-auto flex h-14 items-center gap-4 px-4 md:px-6">
 
-        {/* Mobile menu */}
-        {showMobileMenu && (
+          {/* Mobile menu */}
+          {showMobileMenu && (
+            <button
+              type="button"
+              onClick={onMobileMenuClick}
+              className="flex-shrink-0 p-1.5 rounded-md text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-colors"
+              aria-label="Abrir menú"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Search / command palette trigger */}
           <button
             type="button"
-            onClick={onMobileMenuClick}
-            className="flex-shrink-0 p-2 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
-            aria-label="Abrir menú"
+            onClick={openPalette}
+            className="flex flex-1 max-w-sm items-center gap-2.5 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-left transition-colors hover:border-zinc-300 hover:bg-zinc-100"
           >
-            <Menu className="w-5 h-5" />
+            <Search className="h-4 w-4 text-zinc-400 flex-shrink-0" />
+            <span className="flex-1 text-sm text-zinc-400 truncate">Buscar...</span>
+            <div className="hidden sm:flex items-center gap-0.5 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400">
+              <span>⌘K</span>
+            </div>
           </button>
-        )}
 
-        {/* ── Command-palette search bar ── */}
-        <div className="flex-1 max-w-xl">
-          <div
-            className={cn(
-              'relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 cursor-text',
-              searchFocused
-                ? 'border-zinc-300 bg-white shadow-sm ring-2 ring-zinc-900/8'
-                : 'border-zinc-200 bg-zinc-50/80 hover:bg-zinc-50 hover:border-zinc-300'
-            )}
-            onClick={() => searchRef.current?.focus()}
-          >
-            <Search className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+          {/* Right section */}
+          <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
+            {/* Live indicator */}
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>En línea</span>
+            </div>
 
-            <div className="flex-1 min-w-0">
+            {/* Notifications */}
+            <NotificationBell />
+
+            <div className="w-px h-4 bg-zinc-200 hidden md:block" />
+
+            {/* User card */}
+            <div className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-2.5 py-1.5">
+              <div
+                className="flex h-7 w-7 items-center justify-center rounded-md text-white text-[11px] font-bold flex-shrink-0"
+                style={{ backgroundColor: settings.primaryColor ?? '#2563eb' }}
+              >
+                {initials}
+              </div>
+              <div className="hidden lg:block leading-tight">
+                <p className="text-[13px] font-semibold text-zinc-900">{fullName || 'Usuario'}</p>
+                <p className="text-[11px] text-zinc-400">{roleName || 'Sin rol'}</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      {/* Command palette overlay */}
+      {isPaletteOpen && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-start justify-center bg-zinc-950/40 p-4 pt-16 md:pt-20 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) closePalette(); }}
+        >
+          <div className="w-full max-w-xl rounded-lg border border-zinc-200 bg-white shadow-[0_20px_48px_rgba(9,9,11,0.18)]">
+            <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3">
+              <Search className="h-4 w-4 text-zinc-400 flex-shrink-0" />
               <input
-                ref={searchRef}
+                autoFocus
                 type="text"
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                className="w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-500 focus:outline-none"
-                placeholder="Buscar módulos, atajos o acciones"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Ir a inventario, pedidos, clientes..."
+                className="w-full bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
               />
-              {!searchFocused && (
-                <p className="text-[11px] text-zinc-400 leading-none mt-0.5 pointer-events-none">
-                  Escribe para abrir la paleta de comandos
+              <button
+                type="button"
+                onClick={closePalette}
+                className="rounded border border-zinc-200 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 hover:bg-zinc-50 flex-shrink-0"
+              >
+                Esc
+              </button>
+            </div>
+
+            <div className="p-2 space-y-0.5">
+              {filteredActions.length === 0 && (
+                <p className="px-4 py-8 text-center text-sm text-zinc-400">
+                  Sin resultados para esta búsqueda
                 </p>
               )}
-            </div>
-
-            <kbd className="hidden sm:inline-flex flex-shrink-0 items-center gap-0.5 rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 text-[11px] font-medium text-zinc-400 shadow-sm">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
-
-        {/* ── Right section ── */}
-        <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
-
-          {/* Online status indicator */}
-          <div className="hidden md:flex items-center gap-1.5 text-xs font-medium text-zinc-500">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-            Sistema en línea
-          </div>
-
-          {/* Divider */}
-          <div className="hidden md:block w-px h-5 bg-zinc-200" />
-
-          {/* Notifications */}
-          <NotificationBell />
-
-          {/* User */}
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ring-2 ring-white shadow-sm"
-              style={{ backgroundColor: settings.primaryColor ?? '#2563eb' }}
-            >
-              {initials}
-            </div>
-            <div className="hidden lg:block leading-tight">
-              <p className="text-sm font-semibold text-zinc-900">{fullName || 'Usuario'}</p>
-              <p className="text-[11px] text-zinc-400">{roleName || 'Sin rol'}</p>
+              {filteredActions.map((action) => (
+                <button
+                  key={action.href}
+                  type="button"
+                  onClick={() => goToAction(action.href)}
+                  className="group flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left transition-colors hover:bg-zinc-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-100 bg-zinc-50 text-zinc-500">
+                      <action.icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-zinc-900">{action.label}</p>
+                      <p className="text-xs text-zinc-400">{action.description}</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-zinc-300 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              ))}
             </div>
           </div>
         </div>
-
-      </div>
-    </header>
+      )}
+    </>
   );
 }

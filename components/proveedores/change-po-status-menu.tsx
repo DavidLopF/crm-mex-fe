@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { MoreVertical, Check, X, ArrowRight } from 'lucide-react';
 import {
   PurchaseOrderStatus,
@@ -28,8 +29,33 @@ const STATUS_ICON_COLORS: Record<PurchaseOrderStatus, string> = {
 export function ChangePOStatusMenu({ currentStatus, onChangeStatus }: ChangePOStatusMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [menuStyle, setMenuStyle] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   const availableTransitions = getAvailablePOTransitions(currentStatus);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleScrollOrResize = () => setIsOpen(false);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [isOpen]);
+
+  const toggleOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuStyle({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setIsOpen(!isOpen);
+  };
 
   const handleStatusChange = async (newStatus: PurchaseOrderStatus) => {
     const validation = canTransitionPO(currentStatus, newStatus);
@@ -59,10 +85,8 @@ export function ChangePOStatusMenu({ currentStatus, onChangeStatus }: ChangePOSt
   return (
     <div className="relative">
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen(!isOpen);
-        }}
+        ref={buttonRef}
+        onClick={toggleOpen}
         className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors text-zinc-400 hover:text-zinc-600"
         title="Cambiar estado"
         disabled={isChanging}
@@ -70,17 +94,20 @@ export function ChangePOStatusMenu({ currentStatus, onChangeStatus }: ChangePOSt
         <MoreVertical className="w-4 h-4" />
       </button>
 
-      {isOpen && (
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <>
-          {/* Overlay para cerrar al hacer clic fuera */}
           <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 z-[100]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+            }}
           />
 
-          {/* Menú desplegable */}
-          <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-zinc-200 py-1 min-w-[220px] z-20">
-            {/* Header */}
+          <div
+            className="fixed bg-white rounded-lg shadow-lg border border-zinc-200 py-1 min-w-[220px] z-[110]"
+            style={{ top: menuStyle.top, right: menuStyle.right }}
+          >
             <div className="px-3 py-2 border-b border-zinc-100">
               <p className="text-xs font-medium text-zinc-500 flex items-center gap-1">
                 Cambiar estado
@@ -93,7 +120,6 @@ export function ChangePOStatusMenu({ currentStatus, onChangeStatus }: ChangePOSt
               </p>
             </div>
 
-            {/* Opciones */}
             {availableTransitions.map((status) => (
               <button
                 key={status}
@@ -112,7 +138,6 @@ export function ChangePOStatusMenu({ currentStatus, onChangeStatus }: ChangePOSt
               </button>
             ))}
 
-            {/* Cerrar */}
             <div className="border-t border-zinc-100 mt-1">
               <button
                 onClick={(e) => {
@@ -126,7 +151,8 @@ export function ChangePOStatusMenu({ currentStatus, onChangeStatus }: ChangePOSt
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

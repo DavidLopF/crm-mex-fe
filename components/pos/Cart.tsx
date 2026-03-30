@@ -8,6 +8,7 @@ import { usePosStore } from '@/stores';
 import { createSale, type PaymentMethod } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
+import { OfflineQueuedError } from '@/services/http-client';
 import { ClientSelector } from './ClientSelector';
 
 /** Ícono Nequi — círculo rosa con "N" blanca (colores de marca) */
@@ -111,6 +112,16 @@ export function Cart({ onClose }: CartProps) {
       clearCart();
       onClose?.();
     } catch (err) {
+      // ── Venta encolada offline: tratar como éxito parcial ──
+      if (err instanceof OfflineQueuedError) {
+        toast.warning('Se guardó localmente y se enviará en cuanto vuelva la conexión.', {
+          title: '📱 Venta guardada offline',
+          duration: 9000,
+        });
+        clearCart();
+        onClose?.();
+        return;
+      }
       toast.error(err instanceof Error ? err.message : 'Error al crear la venta', { title: 'No se pudo crear' });
     } finally {
       setSubmitting(false);

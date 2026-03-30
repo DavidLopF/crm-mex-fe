@@ -10,6 +10,9 @@ import { ToastContainer } from '@/components/ui';
 import { PermissionGuard } from '@/components/layout';
 import { useInventoryStore } from '@/stores';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
+import { OfflineCacheError } from '@/services/http-client';
+import { OfflineBanner } from '@/components/ui/offline-banner';
+import { useState } from 'react';
 
 export default function InventarioPage() {
   // ── Data & UI state (single shallow subscription) ──
@@ -39,19 +42,31 @@ export default function InventarioPage() {
   // Toast notifications
   const toast = useToast();
   const { canCreate, canEdit, canDelete } = usePermissions('INVENTARIO');
+  const [offlineState, setOfflineState] = useState<'none' | 'cache' | 'noCache'>('none');
 
   const debouncedSearch = useDebounce(search, 500);
 
   const load = useCallback(async (p = page, q = search, l = limit) => {
     setLoading(true);
+    let cacheHit = false;
+    const onCacheHit = () => { cacheHit = true; };
+    window.addEventListener('offline-cache-hit', onCacheHit, { once: true });
     try {
       const filters = { page: p, limit: l, search: q };
       const res: PaginatedProductsDto = await getProducts(filters);
+      window.removeEventListener('offline-cache-hit', onCacheHit);
       setProducts(res.items, res.total);
+      setOfflineState(cacheHit ? 'cache' : 'none');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error('Error al cargar productos:', errorMessage);
-      toast.error('Error al cargar los productos. Verifica que el servidor esté en ejecución.');
+      window.removeEventListener('offline-cache-hit', onCacheHit);
+      if (err instanceof OfflineCacheError) {
+        setOfflineState('noCache');
+      } else {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error('Error al cargar productos:', errorMessage);
+        toast.error('Error al cargar los productos. Verifica que el servidor esté en ejecución.');
+        setOfflineState('none');
+      }
     } finally {
       setLoading(false);
     }
@@ -124,6 +139,15 @@ export default function InventarioPage() {
         </div>
         
         <InventoryStats statistics={statistics} />
+
+        {/* Banner offline */}
+        {offlineState === 'cache' && (
+          <OfflineBanner variant="fromCache" onRetry={() => load(page, search, limit)} />
+        )}
+        {offlineState === 'noCache' && (
+          <OfflineBanner variant="noCache" onRetry={() => load(page, search, limit)} />
+        )}
+
         <div>
           {loading ? (
             <InventoryTableSkeleton rows={limit} />
@@ -143,6 +167,11 @@ export default function InventarioPage() {
               totalItems={total}
               canCreate={canCreate}
               canEdit={canEdit}
+              onNeedsRefresh={() => {
+                load(page, debouncedSearch, limit);
+                loadStatistics();
+                broadcastInvalidation('inventory');
+              }}
             />
           )}
         </div>

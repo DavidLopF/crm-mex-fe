@@ -57,58 +57,60 @@ interface TierRowEditorProps {
 
 function TierRowEditor({ tier, index, onChange, onRemove }: TierRowEditorProps) {
   return (
-    <div className="flex items-center gap-2 bg-white border border-zinc-200 rounded-xl px-3 py-2">
-      {/* Cantidad mínima */}
-      <div className="flex-none w-24">
-        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
-          Desde (pzas)
-        </label>
-        <input
-          type="number"
-          min={1}
-          value={tier.minQty}
-          onChange={(e) => onChange(index, 'minQty', e.target.value)}
-          className="w-full text-sm font-semibold border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
-        />
-      </div>
+    <div className="bg-white border border-zinc-200 rounded-xl px-3 py-2">
+      <div className="flex flex-wrap items-end gap-2">
+        {/* Cantidad mínima */}
+        <div className="w-24 flex-none">
+          <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
+            Desde (pzas)
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={tier.minQty}
+            onChange={(e) => onChange(index, 'minQty', e.target.value)}
+            className="w-full text-sm font-semibold border border-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary"
+          />
+        </div>
 
-      {/* Precio */}
-      <div className="flex-none w-28">
-        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
-          Precio unit.
-        </label>
-        <input
-          type="number"
-          min={0}
-          step={0.01}
-          value={tier.price}
-          onChange={(e) => onChange(index, 'price', e.target.value)}
-          className="w-full text-sm font-semibold border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
-        />
-      </div>
+        {/* Precio */}
+        <div className="w-28 flex-none">
+          <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
+            Precio unit.
+          </label>
+          <input
+            type="number"
+            min={0}
+            step={0.01}
+            value={tier.price}
+            onChange={(e) => onChange(index, 'price', e.target.value)}
+            className="w-full text-sm font-semibold border border-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary"
+          />
+        </div>
 
-      {/* Etiqueta */}
-      <div className="flex-1 min-w-0">
-        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
-          Etiqueta
-        </label>
-        <input
-          type="text"
-          placeholder="Ej. Por docena"
-          value={tier.tierLabel}
-          onChange={(e) => onChange(index, 'tierLabel', e.target.value)}
-          className="w-full text-sm border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary"
-        />
-      </div>
+        {/* Etiqueta */}
+        <div className="flex-1 min-w-[140px]">
+          <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide block mb-0.5">
+            Etiqueta
+          </label>
+          <input
+            type="text"
+            placeholder="Ej. Por docena"
+            value={tier.tierLabel}
+            onChange={(e) => onChange(index, 'tierLabel', e.target.value)}
+            className="w-full text-sm border border-zinc-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary"
+          />
+        </div>
 
-      {/* Eliminar */}
-      <button
-        onClick={() => onRemove(index)}
-        className="flex-none mt-4 w-8 h-8 flex items-center justify-center rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-        aria-label="Eliminar tier"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+        {/* Eliminar */}
+        <button
+          onClick={() => onRemove(index)}
+          className="flex-none w-8 h-8 flex items-center justify-center rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+          aria-label="Eliminar tier"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -420,10 +422,10 @@ export default function PreciosPage() {
 
   return (
     <PermissionGuard moduleCode="POS">
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Precios por Volumen</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-zinc-900 tracking-tight">Precios por Volumen</h1>
           <p className="text-sm text-zinc-500">
             Configura tiers de precio para cada producto. A mayor cantidad, menor precio unitario.
           </p>

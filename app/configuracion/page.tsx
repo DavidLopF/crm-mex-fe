@@ -25,7 +25,7 @@ import { useDebounce, useToast, useCrossTabSync } from '@/lib/hooks';
 import { ToastContainer } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/lib/company-context';
-import type { UpdateCompanySettingsDto } from '@/services/company';
+import type { UpdateCompanySettingsDto, CompanySettings } from '@/services/company';
 import { updateCompanySettings } from '@/services/company';
 import { PermissionGuard } from '@/components/layout';
 import { useConfigStore } from '@/stores';
@@ -261,7 +261,16 @@ export default function ConfiguracionPage() {
     setSubmitting(true);
     try {
       const updated = await updateCompanySettings(data);
-      applyCompanySettings(updated);
+      
+      const mergedSettings = { ...companySettings, ...data };
+      if (updated && typeof updated === 'object') {
+        const cleanUpdated = { ...updated } as any;
+        delete cleanUpdated.success;
+        delete cleanUpdated.message;
+        Object.assign(mergedSettings, cleanUpdated);
+      }
+      
+      applyCompanySettings(mergedSettings as CompanySettings);
       toast.success('Configuración de empresa actualizada exitosamente');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

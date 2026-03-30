@@ -9,7 +9,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-800 active:bg-zinc-950',
+          'bg-zinc-900 text-zinc-50 shadow-sm hover:bg-zinc-800 active:bg-zinc-950',
+        brand:
+          'bg-[var(--primary-color,#2563eb)] text-white shadow-sm hover:opacity-90 active:opacity-80',
         secondary:
           'bg-zinc-100 text-zinc-900 shadow-sm hover:bg-zinc-200 active:bg-zinc-300',
         outline:

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import { Providers } from './providers';
 import { AppShell } from '@/components/layout/app-shell';
 import "./globals.css";
@@ -10,17 +10,24 @@ const inter = Inter({
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const geistMono = Geist_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "CRM  - Sistema de Gestión",
+  title: "CRM - Sistema de Gestión",
   description: "Sistema de gestión de inventarios, ventas y clientes",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CRM",
+  },
   icons: {
     icon: '/favicon.ico',
+    apple: "/icons/icon-192x192.png",
   },
 };
 
@@ -28,6 +35,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  themeColor: '#111827',
 };
 
 export default function RootLayout({
@@ -38,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased font-sans`}
+        className={`${inter.variable} ${geistMono.variable} antialiased font-sans`}
       >
         <Providers>
           <AppShell>

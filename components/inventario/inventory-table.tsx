@@ -31,6 +31,7 @@ interface InventoryTableProps {
   // Permission flags
   canCreate?: boolean;
   canEdit?: boolean;
+  onNeedsRefresh?: () => void;
 }
 
 export function InventoryTable({ 
@@ -48,6 +49,7 @@ export function InventoryTable({
   totalItems,
   canCreate = true,
   canEdit = true,
+  onNeedsRefresh,
 }: InventoryTableProps) {
   const [internalSearch, setInternalSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -443,6 +445,7 @@ export function InventoryTable({
           const result = await bulkPriceUpdate(rows);
           if (result.updated > 0) {
             onSuccess?.(`${result.updated} precio(s) actualizados correctamente`);
+            onNeedsRefresh?.();
           }
           return result;
         }}
@@ -454,7 +457,8 @@ export function InventoryTable({
         onConfirm={async (rows: BulkImportRow[]) => {
           const result = await bulkImportProducts(rows);
           if (result.created > 0) {
-            onSuccess?.(`${result.created} producto(s) importados. Recarga la página para verlos.`);
+            onSuccess?.(`${result.created} producto(s) importados correctamente.`);
+            onNeedsRefresh?.();
           }
           return result;
         }}
@@ -469,6 +473,7 @@ export function InventoryTable({
             onSuccess?.(
               `${result.updatedSkus} SKU(s) actualizados con ${result.tiersCreated} tier(s) de mayoreo.`,
             );
+            onNeedsRefresh?.();
           }
           return result;
         }}

@@ -28,6 +28,10 @@ export interface LoginResponse {
   fullName: string;
   roleName?: string;
   permissions: ModulePermission[];
+  /** ID de la empresa del usuario. null = Super Admin del sistema (sin empresa). */
+  companyId: number | null;
+  /** true si el usuario tiene el rol SUPER_ADMIN (gestión de tenants). */
+  isSuperAdmin: boolean;
 }
 
 export interface RefreshDto {

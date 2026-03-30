@@ -22,6 +22,8 @@ export { Separator } from './separator';
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip';
 export { Toast, ToastContainer } from './toast';
 export type { ToastType } from './toast';
+export { ConnectivityBanner } from './connectivity-banner';
+export { OfflineBanner } from './offline-banner';
 export { Switch } from './switch';
 export { Stepper, StepperContent, StepperActions } from './stepper';
 export type { Step } from './stepper';

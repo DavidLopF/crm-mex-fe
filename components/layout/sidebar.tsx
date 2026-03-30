@@ -22,11 +22,19 @@ import {
   BarChart2,
   ClipboardList,
   Warehouse,
+  ShieldCheck,
+  Building2,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 import { ROUTE_TO_MODULE } from '@/lib/hooks';
+
+/* ─── Section labels for nav groups ─── */
+const SECTION_LABELS: Record<string, string> = {
+  '/pos': 'Ventas',
+  '/reportes': 'Analítica',
+};
 
 /* ─── Nav types ─── */
 
@@ -43,6 +51,12 @@ interface NavItem {
   children?: NavChild[];
   dividerBefore?: boolean;
 }
+
+/* ─── Navigation tree Super Admin ─── */
+
+const superAdminNavigation: NavItem[] = [
+  { name: 'Empresas', href: '/super-admin', icon: Building2 },
+];
 
 /* ─── Navigation tree ─── */
 
@@ -91,11 +105,14 @@ export function Sidebar({
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const { settings } = useCompany();
-  const { logout, can, permissions } = useAuth();
+  const { logout, can, permissions, isSuperAdmin } = useAuth();
+
+  // Active nav tree based on user type
+  const activeNav = isSuperAdmin ? superAdminNavigation : navigation;
 
   const getInitialOpen = () => {
     const s = new Set<string>();
-    for (const item of navigation) {
+    for (const item of activeNav) {
       if (item.children?.some((c) => pathname.startsWith(c.href))) s.add(item.href);
     }
     return s;
@@ -107,7 +124,7 @@ export function Sidebar({
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    for (const item of navigation) {
+    for (const item of activeNav) {
       if (item.children?.some((c) => pathname.startsWith(c.href))) {
         setOpenGroups((prev) => {
           if (prev.has(item.href)) return prev;
@@ -115,47 +132,37 @@ export function Sidebar({
         });
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  const toggleGroup = (href: string) => {
+  function toggleGroup(href: string) {
     setOpenGroups((prev) => {
       const next = new Set(prev);
       next.has(href) ? next.delete(href) : next.add(href);
       return next;
     });
-  };
+  }
 
-  const visibleNav = navigation.filter((item) => {
-    if (!mounted) return true;
-    const code = ROUTE_TO_MODULE[item.href];
-    if (!code) return true;
-    const p = permissions.find((p) => p.moduleCode === code);
-    if (!p) return true;
-    return can(code, 'canView');
-  });
+  // Permission filtering (only for company users, not Super Admin)
+  const visibleNav = isSuperAdmin
+    ? superAdminNavigation
+    : activeNav.filter((item) => {
+        if (!mounted) return true;
+        const code = ROUTE_TO_MODULE[item.href];
+        if (!code) return true;
+        const p = permissions.find((p) => p.moduleCode === code);
+        if (!p) return true;
+        return can(code, 'canView');
+      });
 
-  const primary = settings.primaryColor ?? '#2563eb';
+  const primary = isSuperAdmin ? '#2563EB' : (settings.primaryColor ?? '#2563eb');
   const isExpanded = isMobile || !collapsed;
+  const homeHref = isSuperAdmin ? '/super-admin' : '/';
 
   /* ── Helper: nav link styles ── */
-  const linkBase = 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150';
-
-  /** Tonal active treatment: semi-transparent background + left accent border */
-  const activeStyle = {
-    backgroundColor: `${primary}18`,
-    color: primary,
-    boxShadow: `inset 3px 0 0 0 ${primary}`,
-  };
-
-  const inactiveClass = 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900';
-
-  /** Small tonal dot shown next to the active module name */
-  const TonalDot = () => (
-    <span
-      className="ml-auto flex-shrink-0 w-1.5 h-1.5 rounded-full opacity-80"
-      style={{ backgroundColor: primary }}
-    />
-  );
+  const linkBase = 'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100';
+  const activeClass = 'bg-zinc-100 text-zinc-900';
+  const inactiveClass = 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800';
 
   return (
     <>
@@ -182,13 +189,14 @@ export function Sidebar({
           isExpanded ? 'justify-between gap-2' : 'justify-center'
         )}>
           {isExpanded ? (
-            <Link href="/" className="flex items-center gap-2.5 min-w-0">
-              {/* Brand icon — square with rounded corners using primary color */}
+            <Link href={homeHref} className="flex items-center gap-2.5 min-w-0">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
                 style={{ backgroundColor: primary }}
               >
-                {settings.logoUrl ? (
+                {isSuperAdmin ? (
+                  <ShieldCheck className="w-5 h-5 text-white" />
+                ) : settings.logoUrl ? (
                   <img src={settings.logoUrl} alt={settings.companyName} className="w-full h-full object-contain rounded-lg" />
                 ) : (
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -200,16 +208,18 @@ export function Sidebar({
                 )}
               </div>
               <span className="text-sm font-bold text-zinc-900 tracking-tight truncate">
-                {settings.companyName || 'CRM'}
+                {isSuperAdmin ? 'Super Admin' : (settings.companyName || 'CRM')}
               </span>
             </Link>
           ) : (
-            <Link href="/" className="flex items-center justify-center">
+            <Link href={homeHref} className="flex items-center justify-center">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm"
                 style={{ backgroundColor: primary }}
               >
-                {settings.logoUrl ? (
+                {isSuperAdmin ? (
+                  <ShieldCheck className="w-5 h-5 text-white" />
+                ) : settings.logoUrl ? (
                   <img src={settings.logoUrl} alt={settings.companyName} className="w-full h-full object-contain rounded-lg" />
                 ) : (
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -240,9 +250,18 @@ export function Sidebar({
             const isGroupOpen = openGroups.has(item.href);
             const isGroupActive = pathname === item.href || item.children?.some((c) => pathname.startsWith(c.href));
 
-            /* Divider */
-            const divider = item.dividerBefore && isExpanded ? (
-              <div key={`div-${item.href}`} className="my-2 mx-3 border-t border-zinc-100" />
+            /* Section label / divider */
+            const sectionLabel = SECTION_LABELS[item.href];
+            const divider = item.dividerBefore ? (
+              isExpanded ? (
+                <div key={`div-${item.href}`} className="pt-4 pb-1 px-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                    {sectionLabel ?? ''}
+                  </span>
+                </div>
+              ) : (
+                <div key={`div-${item.href}`} className="my-2 mx-2 border-t border-zinc-100" />
+              )
             ) : null;
 
             /* Group (with children) */
@@ -263,18 +282,18 @@ export function Sidebar({
                     className={cn(
                       linkBase, 'w-full',
                       !isExpanded && 'justify-center px-0 py-2',
-                      isGroupActive ? '' : inactiveClass
+                      isGroupActive ? activeClass : inactiveClass
                     )}
-                    style={isGroupActive ? activeStyle : undefined}
                   >
-                    <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                    <item.icon
+                      className="w-[18px] h-[18px] flex-shrink-0"
+                      style={isGroupActive ? { color: primary } : undefined}
+                    />
                     {isExpanded && (
                       <>
                         <span className="flex-1 text-left">{item.name}</span>
-                        {isGroupActive && <TonalDot />}
                         <ChevronRight
-                          className={cn('w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200', isGroupOpen && 'rotate-90')}
-                          style={{ opacity: 0.6 }}
+                          className={cn('w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 text-zinc-400', isGroupOpen && 'rotate-90')}
                         />
                       </>
                     )}
@@ -290,12 +309,13 @@ export function Sidebar({
                             key={child.href}
                             href={child.href}
                             onClick={() => isMobile && onMobileClose?.()}
-                            className={cn('flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-all duration-150', isActive ? '' : inactiveClass)}
-                            style={isActive ? activeStyle : undefined}
+                            className={cn('flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors duration-100', isActive ? activeClass : inactiveClass)}
                           >
-                            <child.icon className="w-4 h-4 flex-shrink-0" />
+                            <child.icon
+                              className="w-4 h-4 flex-shrink-0"
+                              style={isActive ? { color: primary } : undefined}
+                            />
                             <span className="flex-1">{child.name}</span>
-                            {isActive && <TonalDot />}
                           </Link>
                         );
                       })}
@@ -316,11 +336,13 @@ export function Sidebar({
                   className={cn(
                     linkBase,
                     !isExpanded && 'justify-center px-0 py-2',
-                    isActive ? '' : inactiveClass
+                    isActive ? activeClass : inactiveClass
                   )}
-                  style={isActive ? activeStyle : undefined}
                 >
-                  <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+                  <item.icon
+                    className="w-[18px] h-[18px] flex-shrink-0"
+                    style={isActive ? { color: primary } : undefined}
+                  />
                   {isExpanded && <span>{item.name}</span>}
                 </Link>
               </div>

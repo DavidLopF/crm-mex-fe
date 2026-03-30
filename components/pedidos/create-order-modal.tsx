@@ -144,11 +144,11 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
 
   // Recargar productos cuando cambia la búsqueda (debounced)
   useEffect(() => {
-    if (isOpen && clienteId) {
+    if (isOpen) {
       setCurrentPage(1);
       loadProductos(1, debouncedSearch);
     }
-  }, [debouncedSearch, isOpen, clienteId, loadProductos]);
+  }, [debouncedSearch, isOpen, loadProductos]);
 
   // ── Cargar historial de precios para un producto ──────────────────
   const toggleHistorial = async (variantId: number) => {
@@ -369,7 +369,6 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                   onChange={(e) => {
                     const val = e.target.value;
                     setClienteId(val ? Number(val) : '');
-                    setCarrito([]);
                     setExpandedHistorial(null);
                     setHistorialPrecios([]);
                   }}
@@ -400,7 +399,6 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                   style={{ '--tw-ring-color': primary } as React.CSSProperties}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={!clienteId}
                 />
               </div>
             </div>
