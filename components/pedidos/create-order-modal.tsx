@@ -144,11 +144,11 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
 
   // Recargar productos cuando cambia la búsqueda (debounced)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && clienteId) {
       setCurrentPage(1);
       loadProductos(1, debouncedSearch);
     }
-  }, [debouncedSearch, isOpen, loadProductos]);
+  }, [debouncedSearch, isOpen, clienteId, loadProductos]);
 
   // ── Cargar historial de precios para un producto ──────────────────
   const toggleHistorial = async (variantId: number) => {
@@ -320,7 +320,7 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
       case 'out_of_stock':
         return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Sin stock</span>;
       default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700">{status}</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{status}</span>;
     }
   };
 
@@ -337,13 +337,13 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
       {/* Fullscreen Panel */}
       <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in slide-in-from-bottom-4 fade-in duration-300">
         {/* ── Header ─────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-200 bg-white flex-shrink-0">
-          <h2 className="text-base font-semibold text-zinc-900">Crear Nuevo Pedido</h2>
+        <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+          <h2 className="text-lg font-semibold text-gray-900">Crear Nuevo Pedido</h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-zinc-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-zinc-500" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
@@ -351,17 +351,17 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
         <div className="flex-1 flex min-h-0">
 
           {/* ═══ Columna 1: Cliente + Búsqueda ═══ */}
-          <div className="w-80 flex-shrink-0 border-r border-zinc-200 flex flex-col bg-zinc-50/50">
+          <div className="w-80 flex-shrink-0 border-r border-gray-200 flex flex-col bg-gray-50/50">
             {/* Cliente */}
-            <div className="p-4 border-b border-zinc-200">
+            <div className="p-4 border-b border-gray-200">
               <div className="flex items-center gap-2 mb-3">
-                <User className="w-4 h-4 text-zinc-500" />
-                <h3 className="text-sm font-semibold text-zinc-900">Cliente</h3>
+                <User className="w-4 h-4 text-gray-500" />
+                <h3 className="text-sm font-semibold text-gray-900">Cliente</h3>
               </div>
               {loadingClientes ? (
                 <div className="flex items-center gap-2 py-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: primary }} />
-                  <span className="text-sm text-zinc-500">Cargando...</span>
+                  <span className="text-sm text-gray-500">Cargando...</span>
                 </div>
               ) : (
                 <select
@@ -369,10 +369,11 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                   onChange={(e) => {
                     const val = e.target.value;
                     setClienteId(val ? Number(val) : '');
+                    setCarrito([]);
                     setExpandedHistorial(null);
                     setHistorialPrecios([]);
                   }}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
                   style={{ '--tw-ring-color': primary } as React.CSSProperties}
                 >
                   <option value="">Seleccione un cliente...</option>
@@ -389,16 +390,17 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
             </div>
 
             {/* Buscador */}
-            <div className="p-4 border-b border-zinc-200">
+            <div className="p-4 border-b border-gray-200">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Buscar producto, SKU..."
-                  className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
                   style={{ '--tw-ring-color': primary } as React.CSSProperties}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={!clienteId}
                 />
               </div>
             </div>
@@ -406,52 +408,52 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
             {/* Lista de Productos */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {!clienteId ? (
-                <div className="text-center py-12 text-zinc-400 text-sm">
-                  <Package className="w-10 h-10 mx-auto mb-2 text-zinc-300" />
+                <div className="text-center py-12 text-gray-400 text-sm">
+                  <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
                   Selecciona un cliente
                 </div>
               ) : loadingProductos ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primary }} />
-                  <p className="text-xs text-zinc-500 mt-2">Cargando...</p>
+                  <p className="text-xs text-gray-500 mt-2">Cargando...</p>
                 </div>
               ) : productos.length === 0 ? (
-                <div className="text-center py-12 text-zinc-400 text-sm">
+                <div className="text-center py-12 text-gray-400 text-sm">
                   Sin resultados
                 </div>
               ) : (
                 productos.map((producto) => (
                   <div
                     key={producto.id}
-                    className="p-3 bg-white rounded-lg border border-zinc-100 hover:shadow-md transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
+                    className="p-3 bg-white rounded-lg border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
                     style={{ ['--hover-border' as string]: primary }}
                     onMouseEnter={e => (e.currentTarget.style.borderColor = primary)}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = '')}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 flex-shrink-0 bg-zinc-100 rounded flex items-center justify-center">
-                        <Package className="w-5 h-5 text-zinc-400" />
+                      <div className="w-10 h-10 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
+                        <Package className="w-5 h-5 text-gray-400" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium text-zinc-900 truncate">{producto.name}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{producto.name}</p>
                           {getStockBadge(producto.stockStatus)}
                         </div>
                         {producto.variantName && (
                           <p className="text-xs font-medium" style={{ color: primary }}>{producto.variantName}</p>
                         )}
-                        <p className="text-xs text-zinc-400 truncate">
+                        <p className="text-xs text-gray-400 truncate">
                           {producto.sku}{producto.category ? ` • ${producto.category}` : ''}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm font-bold text-zinc-900">{formatCurrency(producto.price)}</span>
-                          <span className="text-xs text-zinc-400">Stock: {producto.stock}</span>
+                          <span className="text-sm font-bold text-gray-900">{formatCurrency(producto.price)}</span>
+                          <span className="text-xs text-gray-400">Stock: {producto.stock}</span>
                         </div>
                         {/* Almacenes inline */}
                         {producto.warehouses && producto.warehouses.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {producto.warehouses.map((wh, idx) => (
-                              <span key={idx} className="inline-flex items-center gap-0.5 text-[10px] text-zinc-500">
+                              <span key={idx} className="inline-flex items-center gap-0.5 text-[10px] text-gray-500">
                                 <Warehouse className="w-2.5 h-2.5" />
                                 {wh.warehouseName}: {wh.qtyOnHand}
                                 {wh.qtyReserved > 0 && (
@@ -498,8 +500,8 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = '')}
                                 >
                                   <div className="text-left">
-                                    <span className="text-zinc-600">{new Date(h.orderDate).toLocaleDateString('es-MX')}</span>
-                                    <span className="text-zinc-400 ml-1">• {h.orderCode}</span>
+                                    <span className="text-gray-600">{new Date(h.orderDate).toLocaleDateString('es-MX')}</span>
+                                    <span className="text-gray-400 ml-1">• {h.orderCode}</span>
                                   </div>
                                   <span className="font-semibold" style={{ color: primary }}>{formatCurrency(h.unitPrice)}</span>
                                 </button>
@@ -516,23 +518,23 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
 
             {/* Paginación */}
             {clienteId && totalProducts > 0 && (
-              <div className="px-4 py-2 border-t border-zinc-200 flex items-center justify-between flex-shrink-0 bg-white">
-                <span className="text-xs text-zinc-500">
+              <div className="px-4 py-2 border-t border-gray-200 flex items-center justify-between flex-shrink-0 bg-white">
+                <span className="text-xs text-gray-500">
                   {totalProducts} resultado{totalProducts !== 1 ? 's' : ''}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={handlePrevPage}
                     disabled={currentPage <= 1}
-                    className="p-1 rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
+                    className="p-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-xs text-zinc-600">{currentPage}/{totalPages}</span>
+                  <span className="text-xs text-gray-600">{currentPage}/{totalPages}</span>
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage >= totalPages}
-                    className="p-1 rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
+                    className="p-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -544,10 +546,10 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
           {/* ═══ Columna 2: Carrito ═══ */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Header Carrito */}
-            <div className="px-6 py-3 border-b border-zinc-200 flex-shrink-0" style={{ background: `linear-gradient(to right, ${primaryBg}, ${primaryBgMid})` }}>
+            <div className="px-6 py-3 border-b border-gray-200 flex-shrink-0" style={{ background: `linear-gradient(to right, ${primaryBg}, ${primaryBgMid})` }}>
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5" style={{ color: primary }} />
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-gray-900">
                   Carrito ({carrito.length} {carrito.length === 1 ? 'item' : 'items'})
                 </h3>
               </div>
@@ -557,22 +559,22 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
             <div className="flex-1 overflow-y-auto p-4">
               {carrito.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                  <ShoppingCart className="w-12 h-12 text-zinc-200 mb-3" />
-                  <p className="text-sm text-zinc-400">El carrito está vacío</p>
-                  <p className="text-xs text-zinc-300 mt-1">Agrega productos desde el panel izquierdo</p>
+                  <ShoppingCart className="w-12 h-12 text-gray-200 mb-3" />
+                  <p className="text-sm text-gray-400">El carrito está vacío</p>
+                  <p className="text-xs text-gray-300 mt-1">Agrega productos desde el panel izquierdo</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {carrito.map((linea) => (
                     <Card key={linea.id} className="p-3 animate-in slide-in-from-right-4 fade-in duration-300 hover:shadow-md transition-shadow">
                       <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 flex-shrink-0 bg-zinc-100 rounded flex items-center justify-center">
-                          <Package className="w-4 h-4 text-zinc-400" />
+                        <div className="w-9 h-9 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
+                          <Package className="w-4 h-4 text-gray-400" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 truncate">{linea.producto.name}</p>
+                              <p className="text-sm font-medium text-gray-900 truncate">{linea.producto.name}</p>
                               {linea.producto.variantName && (
                                 <p className="text-xs" style={{ color: primary }}>{linea.producto.variantName}</p>
                               )}
@@ -588,34 +590,34 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                           </div>
                           <div className="grid grid-cols-3 gap-2 mt-2">
                             <div>
-                              <label className="text-[10px] text-zinc-500 block">Cant.</label>
+                              <label className="text-[10px] text-gray-500 block">Cant.</label>
                               <input
                                 type="number"
                                 min="1"
                                 value={linea.cantidad}
                                 onChange={(e) => actualizarCantidad(linea.id, parseInt(e.target.value))}
-                                className="w-full px-2 py-1 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
+                                className="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
                                 style={{ '--tw-ring-color': primary } as React.CSSProperties}
                               />
                             </div>
                             <div>
-                              <label className="text-[10px] text-zinc-500 block">P. Unit.</label>
+                              <label className="text-[10px] text-gray-500 block">P. Unit.</label>
                               <div className="relative">
-                                <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400">$</span>
+                                <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-gray-400">$</span>
                                 <input
                                   type="number"
                                   min="0"
                                   step="0.01"
                                   value={linea.precioUnitario}
                                   onChange={(e) => actualizarPrecio(linea.id, parseFloat(e.target.value))}
-                                  className="w-full pl-4 pr-1 py-1 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
+                                  className="w-full pl-4 pr-1 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
                                   style={{ '--tw-ring-color': primary } as React.CSSProperties}
                                 />
                               </div>
                             </div>
                             <div>
-                              <label className="text-[10px] text-zinc-500 block">Subtotal</label>
-                              <p className="py-1 text-sm font-bold text-zinc-900">
+                              <label className="text-[10px] text-gray-500 block">Subtotal</label>
+                              <p className="py-1 text-sm font-bold text-gray-900">
                                 {formatCurrency(linea.subtotal)}
                               </p>
                             </div>
@@ -629,12 +631,12 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
             </div>
 
             {/* Notas */}
-            <div className="px-4 py-3 border-t border-zinc-200 flex-shrink-0">
+            <div className="px-4 py-3 border-t border-gray-200 flex-shrink-0">
               <textarea
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
                 placeholder="Notas del pedido (opcional)..."
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2"
                 style={{ '--tw-ring-color': primary } as React.CSSProperties}
                 rows={2}
               />
@@ -642,43 +644,43 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
           </div>
 
           {/* ═══ Columna 3: Resumen / Acciones ═══ */}
-          <div className="w-72 flex-shrink-0 border-l border-zinc-200 flex flex-col bg-zinc-50/50">
+          <div className="w-72 flex-shrink-0 border-l border-gray-200 flex flex-col bg-gray-50/50">
             {/* Totales */}
             <div className="p-5 flex-1 flex flex-col justify-center">
-              <h3 className="text-sm font-semibold text-zinc-700 mb-4">Resumen del Pedido</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">Resumen del Pedido</h3>
 
               {clienteSeleccionado && (
                 <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: primaryBg }}>
-                  <p className="text-xs text-zinc-500">Cliente</p>
+                  <p className="text-xs text-gray-500">Cliente</p>
                   <p className="text-sm font-medium" style={{ color: primary }}>{clienteSeleccionado.name}</p>
                 </div>
               )}
 
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Productos</span>
-                  <span className="font-medium text-zinc-900">{carrito.length}</span>
+                  <span className="text-gray-500">Productos</span>
+                  <span className="font-medium text-gray-900">{carrito.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Unidades</span>
-                  <span className="font-medium text-zinc-900">{carrito.reduce((s, l) => s + l.cantidad, 0)}</span>
+                  <span className="text-gray-500">Unidades</span>
+                  <span className="font-medium text-gray-900">{carrito.reduce((s, l) => s + l.cantidad, 0)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Subtotal</span>
-                  <span className="font-semibold text-zinc-900">{formatCurrency(subtotal)}</span>
+                  <span className="text-gray-500">Subtotal</span>
+                  <span className="font-semibold text-gray-900">{formatCurrency(subtotal)}</span>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-zinc-200">
+              <div className="pt-3 border-t border-gray-200">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-bold text-zinc-900">Total</span>
+                  <span className="text-sm font-bold text-gray-900">Total</span>
                   <span className="text-2xl font-bold" style={{ color: primary }}>{formatCurrency(total)}</span>
                 </div>
               </div>
             </div>
 
             {/* Acciones */}
-            <div className="p-4 border-t border-zinc-200 space-y-2 flex-shrink-0">
+            <div className="p-4 border-t border-gray-200 space-y-2 flex-shrink-0">
               <div className="flex gap-2">
                 <Button
                   variant="outline"

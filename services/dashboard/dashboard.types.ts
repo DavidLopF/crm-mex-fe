@@ -87,32 +87,3 @@ export interface DashboardSummary {
   recentOrders: DashboardRecentOrder[];
   lowStock: DashboardLowStockProduct[];
 }
-
-/** Shape de GET /api/dashboard/compras */
-export interface ComprasDashboardSummary {
-  supplierStats: {
-    totalSuppliers: number;
-    activeSuppliers: number;
-    inactiveSuppliers: number;
-    newSuppliersLastMonth: number;
-    totalPurchases: number;
-  };
-  poStats: {
-    totalOrders: number;
-    draftOrders: number;
-    sentOrders: number;
-    confirmedOrders: number;
-    receivedOrders: number;
-    cancelledOrders: number;
-    totalSpent: number;
-  };
-  recentOrders: {
-    id: number;
-    code: string;
-    supplierName: string;
-    status: string;
-    total: number;
-    currency: string | null;
-    createdAt: string;
-  }[];
-}

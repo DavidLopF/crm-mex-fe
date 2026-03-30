@@ -20,8 +20,8 @@ export function LowStockAlert({ productos }: LowStockAlertProps) {
             className="flex items-center justify-between p-3 bg-white rounded-lg border border-amber-200"
           >
             <div>
-              <p className="text-sm font-medium text-zinc-900">{producto.nombre}</p>
-              <p className="text-xs text-zinc-500">{producto.sku}</p>
+              <p className="text-sm font-medium text-gray-900">{producto.nombre}</p>
+              <p className="text-xs text-gray-500">{producto.sku}</p>
             </div>
             <Badge variant="danger">{producto.stockTotal} unidades</Badge>
           </div>

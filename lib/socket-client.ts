@@ -3,7 +3,7 @@
 //
 // Usa la API nativa EventSource del navegador (sin paquetes npm).
 // Se conecta a /api/sse del backend, que emite eventos "invalidate"
-// cuando cambia el inventario, órdenes, etc.
+// cuando cambian órdenes, inventario, etc.
 //
 // Al recibir un evento "invalidate", llama a broadcastInvalidation()
 // del sistema existente de cross-tab-sync, que dispara re-fetch en
@@ -21,39 +21,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 const TOKEN_KEY = "crm-auth-access-token";
 
 let eventSource: EventSource | null = null;
-
-// ── Registro de listeners para eventos "notification" ────────────────
-
-export type NotificationEventType = "sale-returned" | "sale-approved";
-
-export interface SseNotificationPayload {
-  notificationId: number;
-  type: NotificationEventType;
-  message: string;
-  saleId: number;
-  saleCode: string;
-  metadata: {
-    saleCode: string;
-    returnNotes: string | null;
-    cashierName: string | null;
-  } | null;
-}
-
-type NotificationCallback = (payload: SseNotificationPayload) => void;
-const notificationListeners = new Set<NotificationCallback>();
-
-/**
- * Suscribe un callback que se invoca en tiempo real cuando el servidor
- * emite un evento de notificación dirigido al usuario conectado.
- * Devuelve cleanup para useEffect.
- *
- * @example
- * useEffect(() => onNotification((p) => toast(p.message)), []);
- */
-export function onNotification(cb: NotificationCallback): () => void {
-  notificationListeners.add(cb);
-  return () => notificationListeners.delete(cb);
-}
 
 /**
  * Conecta el cliente SSE al backend.
@@ -84,7 +51,7 @@ export function connectSocket(): void {
   const url = `${API_URL}/sse?token=${encodeURIComponent(token)}`;
   eventSource = new EventSource(url);
 
-  // ── Evento: invalidación de módulo (broadcast a todos) ──────────
+  // ── Escuchar eventos de invalidación del servidor ─────────────
   eventSource.addEventListener(
     "invalidate",
     (e: MessageEvent) => {
@@ -93,6 +60,8 @@ export function connectSocket(): void {
           module: InvalidationModule;
           ts: number;
         };
+        // Reutilizar el sistema existente de cross-tab-sync
+        // Notifica la pestaña actual + otras del mismo navegador
         broadcastInvalidation(payload.module);
       } catch {
         // Ignorar mensajes malformados
@@ -100,37 +69,15 @@ export function connectSocket(): void {
     },
   );
 
-  // ── Evento: notificación dirigida a este usuario ─────────────────
-  eventSource.addEventListener(
-    "notification",
-    (e: MessageEvent) => {
-      try {
-        const { type, payload } = JSON.parse(e.data) as {
-          type: NotificationEventType;
-          payload: SseNotificationPayload;
-          ts: number;
-        };
-        const normalized: SseNotificationPayload = { ...payload, type };
-        for (const cb of notificationListeners) {
-          try { cb(normalized); } catch { /* no romper el loop */ }
-        }
-      } catch {
-        // Ignorar mensajes malformados
-      }
-    },
-  );
-
-  // ── Logging (solo dev) ────────────────────────────────────────────
+  // ── Logging (solo dev) ────────────────────────────────────────
   eventSource.onopen = () => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[SSE] Conectado al servidor");
-    }
+    console.log("[SSE] Conectado al servidor");
   };
 
   eventSource.onerror = () => {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[SSE] Reconectando...");
-    }
+    // EventSource reconecta automáticamente, solo logueamos
+    // No cerramos manualmente — el navegador reintenta solo
+    console.warn("[SSE] Reconectando...");
   };
 }
 

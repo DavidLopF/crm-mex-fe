@@ -364,19 +364,19 @@ export default function ProveedoresPage() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Proveedores</h1>
-              <p className="text-zinc-500">Gestión de proveedores y órdenes de compra</p>
+              <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
+              <p className="text-gray-500">Gestión de proveedores y órdenes de compra</p>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-zinc-100 rounded-lg p-1 w-fit">
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
             <button
               onClick={() => setActiveTab('suppliers')}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 activeTab === 'suppliers'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <Truck className="w-4 h-4" />
@@ -386,8 +386,8 @@ export default function ProveedoresPage() {
               onClick={() => setActiveTab('purchase-orders')}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 activeTab === 'purchase-orders'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <ClipboardList className="w-4 h-4" />

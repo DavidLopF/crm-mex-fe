@@ -31,8 +31,6 @@ export interface Producto {
   variaciones: ProductoVariacion[];
   stockTotal: number;
   activo: boolean;
-  /** true = el producto siempre debe venderse con IVA (16%) en POS; el toggle se bloquea ON */
-  requiresIva: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

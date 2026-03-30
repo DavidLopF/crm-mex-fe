@@ -33,14 +33,6 @@ export interface ClientDetail {
   totalOrders: number;
   totalSpent: number;
   hystoricalPrices?: PriceHistoryItem[];
-  // Campos de Facturación Electrónica DIAN
-  phone?: string | null;
-  address?: string | null;
-  cityCode?: string | null;
-  cityName?: string | null;
-  departmentCode?: string | null;
-  departmentName?: string | null;
-  nitDv?: string | null;
 }
 
 // ── Filtros para GET /api/clients (paginado) ───────────────────────

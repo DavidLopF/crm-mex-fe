@@ -48,7 +48,7 @@ export function CreateClientModal({ isOpen, onClose, onSave, submitting }: Creat
       <div className="space-y-5">
         {/* Nombre */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Nombre <span className="text-red-500">*</span>
           </label>
           <input
@@ -56,14 +56,14 @@ export function CreateClientModal({ isOpen, onClose, onSave, submitting }: Creat
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Juan Pérez / Empresa SA de CV"
-            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoFocus
           />
         </div>
 
         {/* Documento (RFC / CURP / ID) */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Documento (RFC / CURP / ID)
           </label>
           <input
@@ -71,9 +71,9 @@ export function CreateClientModal({ isOpen, onClose, onSave, submitting }: Creat
             value={document}
             onChange={(e) => setDocument(e.target.value)}
             placeholder="Ej: XAXX010101000"
-            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-gray-500">
             Opcional. Puede ser RFC, CURP o cualquier documento de identidad.
           </p>
         </div>

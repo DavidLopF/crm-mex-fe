@@ -79,7 +79,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
       <div className="space-y-5">
         {/* Nombre */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Nombre completo <span className="text-red-500">*</span>
           </label>
           <input
@@ -87,14 +87,14 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Juan Pérez"
-            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoFocus
           />
         </div>
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Correo electrónico <span className="text-red-500">*</span>
           </label>
           <input
@@ -102,7 +102,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Ej: juan@empresa.com"
-            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {email && !isValidEmail(email) && (
             <p className="mt-1 text-xs text-red-500">Ingresa un correo electrónico válido</p>
@@ -111,11 +111,11 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
 
         {/* Rol */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Rol <span className="text-red-500">*</span>
           </label>
           {loadingRoles ? (
-            <div className="w-full px-3 py-2 border border-zinc-200 rounded-lg bg-zinc-50 text-sm text-zinc-400">
+            <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-400">
               Cargando roles...
             </div>
           ) : rolesError ? (
@@ -135,7 +135,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
             <select
               value={roleId}
               onChange={(e) => setRoleId(e.target.value ? Number(e.target.value) : '')}
-              className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               <option value="">Seleccionar rol...</option>
               {roles.map((role) => (
@@ -149,7 +149,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
 
         {/* Contraseña */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Contraseña <span className="text-red-500">*</span>
           </label>
           <input
@@ -157,7 +157,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Mínimo 6 caracteres"
-            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {password && password.length < 6 && (
             <p className="mt-1 text-xs text-red-500">La contraseña debe tener al menos 6 caracteres</p>
@@ -166,7 +166,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
 
         {/* Confirmar contraseña */}
         <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Confirmar contraseña <span className="text-red-500">*</span>
           </label>
           <input
@@ -174,7 +174,7 @@ export function CreateUserModal({ isOpen, onClose, onSave, submitting }: CreateU
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Repetir contraseña"
-            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {confirmPassword && !passwordsMatch && (
             <p className="mt-1 text-xs text-red-500">Las contraseñas no coinciden</p>

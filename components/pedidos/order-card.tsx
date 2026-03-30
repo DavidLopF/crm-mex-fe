@@ -53,13 +53,13 @@ export function OrderCard({ pedido, onClick, onStatusChange }: OrderCardProps) {
       <div className="flex items-start justify-between mb-3 flex-shrink-0">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <p className="font-mono text-sm font-semibold text-zinc-900">{pedido.numero}</p>
+            <p className="font-mono text-sm font-semibold text-gray-900">{pedido.numero}</p>
             <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors.text} ${colors.bg} border ${colors.border}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
               {colors.label}
             </span>
           </div>
-          <p className="text-xs text-zinc-500 flex items-center gap-1">
+          <p className="text-xs text-gray-500 flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             {formatDateTime(pedido.createdAt)}
           </p>
@@ -82,19 +82,19 @@ export function OrderCard({ pedido, onClick, onStatusChange }: OrderCardProps) {
       </div>
 
       {/* Cliente */}
-      <div className="mb-3 pb-3 border-b border-zinc-200 flex-shrink-0">
+      <div className="mb-3 pb-3 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-2 mb-1">
-          <User className="w-3 h-3 text-zinc-500" />
-          <p className="text-sm font-medium text-zinc-900 truncate">{pedido.clienteNombre}</p>
+          <User className="w-3 h-3 text-gray-500" />
+          <p className="text-sm font-medium text-gray-900 truncate">{pedido.clienteNombre}</p>
         </div>
         {pedido.clienteEmail && (
-          <p className="text-xs text-zinc-500 ml-5 truncate">{pedido.clienteEmail}</p>
+          <p className="text-xs text-gray-500 ml-5 truncate">{pedido.clienteEmail}</p>
         )}
       </div>
 
       {/* Productos */}
       <div className="mb-3">
-        <div className="flex items-center justify-between text-xs text-zinc-600 mb-1">
+        <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
           <span className="flex items-center gap-1">
             <Package className="w-3 h-3" />
             {pedido.lineas.length} {pedido.lineas.length === 1 ? 'producto' : 'productos'}
@@ -104,12 +104,12 @@ export function OrderCard({ pedido, onClick, onStatusChange }: OrderCardProps) {
         
         <div className="space-y-1">
           {pedido.lineas.slice(0, 2).map((linea) => (
-            <div key={linea.id} className="text-xs text-zinc-700">
+            <div key={linea.id} className="text-xs text-gray-700">
               <span className="font-medium">{linea.cantidad}x</span> {linea.productoNombre}
             </div>
           ))}
           {pedido.lineas.length > 2 && (
-            <p className="text-xs text-zinc-500 italic">
+            <p className="text-xs text-gray-500 italic">
               +{pedido.lineas.length - 2} más...
             </p>
           )}
@@ -117,8 +117,8 @@ export function OrderCard({ pedido, onClick, onStatusChange }: OrderCardProps) {
       </div>
 
       {/* Total */}
-      <div className={`flex items-center justify-between pt-3 border-t border-zinc-200 flex-shrink-0`}>
-        <span className="text-xs font-medium text-zinc-600">Total:</span>
+      <div className={`flex items-center justify-between pt-3 border-t border-gray-200 flex-shrink-0`}>
+        <span className="text-xs font-medium text-gray-600">Total:</span>
         <span className={`text-base font-bold ${colors.text}`}>
           {formatCurrency(pedido.total)}
         </span>
@@ -126,10 +126,10 @@ export function OrderCard({ pedido, onClick, onStatusChange }: OrderCardProps) {
 
       {/* Notas */}
       {pedido.notas && (
-        <div className="mt-2 pt-2 border-t border-zinc-200 flex-shrink-0">
+        <div className="mt-2 pt-2 border-t border-gray-200 flex-shrink-0">
           <div className="flex items-start gap-1">
-            <FileText className="w-3 h-3 text-zinc-400 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-zinc-600 line-clamp-2">{pedido.notas}</p>
+            <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-gray-600 line-clamp-2">{pedido.notas}</p>
           </div>
         </div>
       )}

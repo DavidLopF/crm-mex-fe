@@ -2,22 +2,21 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Search, Plus, Edit, Eye, Package, ChevronLeft, ChevronRight, FileSpreadsheet, DollarSign, Layers } from 'lucide-react';
+import { Search, Plus, Edit, Eye, Trash2, Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
 import { CreateProductModal } from './create-product-modal';
-import { BulkPriceUpdateModal } from './bulk-price-update-modal';
-import { BulkImportModal } from './bulk-import-modal';
-import { BulkPriceTiersModal } from './bulk-price-tiers-modal';
+import { DeleteConfirmModal } from './delete-confirm-modal';
 import { Producto } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { getProductById, bulkPriceUpdate, bulkImportProducts, bulkPriceTiers } from '@/services/products';
-import type { ApiProductDetail, BulkPriceUpdateRow, BulkImportRow, BulkPriceTierRow } from '@/services/products';
+import { getProductById } from '@/services/products';
+import type { ApiProductDetail } from '@/services/products';
 
 interface InventoryTableProps {
   productos: Producto[];
   onProductUpdate?: (producto: Producto) => void;
   onProductCreate?: (producto: Omit<Producto, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onProductDelete?: (productoId: string) => void;
   onError?: (message: string) => void;
   onSuccess?: (message: string) => void;
   // optional controlled props for server-driven mode
@@ -31,13 +30,14 @@ interface InventoryTableProps {
   // Permission flags
   canCreate?: boolean;
   canEdit?: boolean;
-  onNeedsRefresh?: () => void;
+  canDelete?: boolean;
 }
 
 export function InventoryTable({ 
   productos, 
   onProductUpdate,
   onProductCreate,
+  onProductDelete,
   onError,
   onSuccess,
   externalSearch,
@@ -49,7 +49,7 @@ export function InventoryTable({
   totalItems,
   canCreate = true,
   canEdit = true,
-  onNeedsRefresh,
+  canDelete = true,
 }: InventoryTableProps) {
   const [internalSearch, setInternalSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -58,9 +58,8 @@ export function InventoryTable({
   const [selectedProductRaw, setSelectedProductRaw] = useState<ApiProductDetail | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isBulkPriceModalOpen, setIsBulkPriceModalOpen] = useState(false);
-  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
-  const [isBulkPriceTiersModalOpen, setIsBulkPriceTiersModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Producto | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const itemsPerPage = 10;
 
@@ -153,16 +152,34 @@ export function InventoryTable({
     setIsCreateModalOpen(false);
   };
 
+  const handleDeleteClick = (producto: Producto) => {
+    setProductToDelete(producto);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (productToDelete && onProductDelete) {
+      onProductDelete(productToDelete.id);
+    }
+    setIsDeleteModalOpen(false);
+    setProductToDelete(null);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setProductToDelete(null);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Buscar productos por nombre o SKU..."
-              className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => {
                 if (isControlledSearch && onSearchChange) {
@@ -174,15 +191,15 @@ export function InventoryTable({
             />
           </div>
           
-          <div className="flex gap-1 bg-zinc-100 rounded-lg p-1">
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
             {categories.slice(0, 6).map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category === 'Todas' ? '' : category)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
                   (selectedCategory === '' && category === 'Todas') || selectedCategory === category
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {category}
@@ -191,82 +208,51 @@ export function InventoryTable({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {canCreate && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5 whitespace-nowrap"
-                onClick={() => setIsBulkPriceModalOpen(true)}
-              >
-                <DollarSign className="w-4 h-4" />
-                Cambio de Precios
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5 whitespace-nowrap"
-                onClick={() => setIsBulkPriceTiersModalOpen(true)}
-              >
-                <Layers className="w-4 h-4" />
-                Precios Mayoreo
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5 whitespace-nowrap"
-                onClick={() => setIsBulkImportModalOpen(true)}
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                Importar Excel
-              </Button>
-              <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="w-4 h-4" />
-                Nuevo Producto
-              </Button>
-            </>
-          )}
-        </div>
+        {canCreate && (
+        <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="w-4 h-4" />
+          Nuevo Producto
+        </Button>
+        )}
       </div>
 
       <Card>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-100">
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+              <tr className="border-b border-gray-100">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Producto
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   SKU
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Categoría
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Stock
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Precio
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Estado
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-4">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-gray-100">
               {currentProducts.map((producto) => {
                 const stockStatus = getStockStatus(producto.stockTotal);
                 
                 return (
-                  <tr key={producto.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={producto.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                           {producto.imageUrl ? (
                             <Image
                               src={producto.imageUrl}
@@ -282,20 +268,20 @@ export function InventoryTable({
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-zinc-900">{producto.nombre}</p>
-                          <p className="text-xs text-zinc-500 line-clamp-1">{producto.descripcion}</p>
+                          <p className="text-sm font-medium text-gray-900">{producto.nombre}</p>
+                          <p className="text-xs text-gray-500 line-clamp-1">{producto.descripcion}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-zinc-600 font-mono">{producto.sku}</span>
+                      <span className="text-sm text-gray-600 font-mono">{producto.sku}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-zinc-900">{producto.categoria}</span>
+                      <span className="text-sm text-gray-900">{producto.categoria}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-zinc-900">
+                        <span className="text-sm font-medium text-gray-900">
                           {producto.stockTotal}
                         </span>
                         <Badge variant={stockStatus.variant} className="text-xs">
@@ -304,7 +290,7 @@ export function InventoryTable({
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-zinc-900">
+                      <span className="text-sm font-medium text-gray-900">
                         {formatCurrency(producto.precio)}
                       </span>
                     </td>
@@ -317,20 +303,29 @@ export function InventoryTable({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewProduct(producto)}
-                          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors disabled:opacity-50"
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                           title="Ver detalle"
                           disabled={loadingDetail}
                         >
-                          <Eye className="w-4 h-4 text-zinc-500" />
+                          <Eye className="w-4 h-4 text-gray-500" />
                         </button>
                         {canEdit && (
                         <button
                           onClick={() => handleEditProduct(producto)}
-                          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors disabled:opacity-50"
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                           title="Editar producto"
                           disabled={loadingDetail}
                         >
-                          <Edit className="w-4 h-4 text-zinc-500" />
+                          <Edit className="w-4 h-4 text-gray-500" />
+                        </button>
+                        )}
+                        {canDelete && (
+                        <button
+                          onClick={() => handleDeleteClick(producto)}
+                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Eliminar producto"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
                         )}
                       </div>
@@ -342,8 +337,8 @@ export function InventoryTable({
           </table>
         </div>
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100">
-          <p className="text-sm text-zinc-500">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+          <p className="text-sm text-gray-500">
             Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
             {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredProducts.length)} de{' '}
             {totalItems ?? filteredProducts.length} productos
@@ -351,7 +346,7 @@ export function InventoryTable({
           <div className="flex items-center gap-2">
             {/* Items per page */}
             <select
-              className="text-sm border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={effectiveItemsPerPage}
               onChange={(e) => {
                 const newLimit = Number(e.target.value);
@@ -372,7 +367,7 @@ export function InventoryTable({
                 else setInternalPage(next);
               }}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -398,7 +393,7 @@ export function InventoryTable({
                   className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === pageNum
                       ? 'bg-primary text-white'
-                      : 'hover:bg-zinc-50 text-zinc-600'
+                      : 'hover:bg-gray-50 text-gray-600'
                   }`}
                 >
                   {pageNum}
@@ -413,7 +408,7 @@ export function InventoryTable({
                 else setInternalPage(next);
               }}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -438,45 +433,11 @@ export function InventoryTable({
         onError={onError}
       />
 
-      <BulkPriceUpdateModal
-        isOpen={isBulkPriceModalOpen}
-        onClose={() => setIsBulkPriceModalOpen(false)}
-        onConfirm={async (rows: BulkPriceUpdateRow[]) => {
-          const result = await bulkPriceUpdate(rows);
-          if (result.updated > 0) {
-            onSuccess?.(`${result.updated} precio(s) actualizados correctamente`);
-            onNeedsRefresh?.();
-          }
-          return result;
-        }}
-      />
-
-      <BulkImportModal
-        isOpen={isBulkImportModalOpen}
-        onClose={() => setIsBulkImportModalOpen(false)}
-        onConfirm={async (rows: BulkImportRow[]) => {
-          const result = await bulkImportProducts(rows);
-          if (result.created > 0) {
-            onSuccess?.(`${result.created} producto(s) importados correctamente.`);
-            onNeedsRefresh?.();
-          }
-          return result;
-        }}
-      />
-
-      <BulkPriceTiersModal
-        isOpen={isBulkPriceTiersModalOpen}
-        onClose={() => setIsBulkPriceTiersModalOpen(false)}
-        onConfirm={async (rows: BulkPriceTierRow[]) => {
-          const result = await bulkPriceTiers(rows);
-          if (result.updatedSkus > 0) {
-            onSuccess?.(
-              `${result.updatedSkus} SKU(s) actualizados con ${result.tiersCreated} tier(s) de mayoreo.`,
-            );
-            onNeedsRefresh?.();
-          }
-          return result;
-        }}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        producto={productToDelete}
       />
     </div>
   );

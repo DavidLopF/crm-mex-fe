@@ -26,31 +26,31 @@ export function DeletePurchaseOrderModal({ isOpen, onClose, onConfirm, order, su
         </div>
 
         <div className="text-center">
-          <h3 className="text-base font-semibold text-zinc-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
             ¿Está seguro de cancelar esta orden?
           </h3>
-          <p className="text-zinc-600 mb-4">
+          <p className="text-gray-600 mb-4">
             La orden de compra será cancelada y no se podrá revertir.
           </p>
         </div>
 
-        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-700">Código:</span>
-              <span className="text-sm text-zinc-900 font-semibold font-mono">{order.code}</span>
+              <span className="text-sm font-medium text-gray-700">Código:</span>
+              <span className="text-sm text-gray-900 font-semibold font-mono">{order.code}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-700">Proveedor:</span>
-              <span className="text-sm text-zinc-900 font-semibold">{order.supplierName}</span>
+              <span className="text-sm font-medium text-gray-700">Proveedor:</span>
+              <span className="text-sm text-gray-900 font-semibold">{order.supplierName}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-700">Estado:</span>
-              <span className="text-sm text-zinc-900">{PURCHASE_ORDER_STATUS_LABELS[order.status]}</span>
+              <span className="text-sm font-medium text-gray-700">Estado:</span>
+              <span className="text-sm text-gray-900">{PURCHASE_ORDER_STATUS_LABELS[order.status]}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-700">Total:</span>
-              <span className="text-sm text-zinc-900 font-semibold">{formatCurrency(order.total)}</span>
+              <span className="text-sm font-medium text-gray-700">Total:</span>
+              <span className="text-sm text-gray-900 font-semibold">{formatCurrency(order.total)}</span>
             </div>
           </div>
         </div>

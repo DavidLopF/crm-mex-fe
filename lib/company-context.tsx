@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import type { CompanySettings } from '@/services/company';
 import { DEFAULT_COMPANY_SETTINGS, getCompanySettings } from '@/services/company';
-import { useAuth } from '@/lib/auth-context';
 
 const STORAGE_KEY = 'crm-configurations';
 
@@ -51,21 +50,14 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<CompanySettings>(() => loadFromStorage());
   const [isLoading, setIsLoading] = useState(true);
   const fetchedRef = useRef(false);
-  const { isSuperAdmin, isAuthenticated } = useAuth();
 
   // Apply CSS custom properties whenever settings change
   useEffect(() => {
     applyThemeVars(settings);
   }, [settings]);
 
-  // Fetch settings from API on mount (only once).
-  // Super Admins no tienen empresa asociada — omitir la llamada para evitar el 403.
+  // Fetch settings from API on mount (only once)
   useEffect(() => {
-    if (!isAuthenticated) return;
-    if (isSuperAdmin) {
-      setIsLoading(false);
-      return;
-    }
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
@@ -78,7 +70,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         // API failed — keep localStorage / default values (already loaded)
       })
       .finally(() => setIsLoading(false));
-  }, [isAuthenticated, isSuperAdmin]);
+  }, []);
 
   const updateSettings = useCallback((newSettings: CompanySettings) => {
     setSettings(newSettings);

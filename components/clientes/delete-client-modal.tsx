@@ -36,30 +36,30 @@ export function DeleteClientModal({ isOpen, onClose, onConfirm, client, submitti
 
         {/* Mensaje */}
         <div className="text-center">
-          <h3 className="text-base font-semibold text-zinc-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
             ¿Está seguro de eliminar este cliente?
           </h3>
-          <p className="text-zinc-600 mb-4">
+          <p className="text-gray-600 mb-4">
             El cliente será desactivado y no podrá asignarse a nuevos pedidos.
           </p>
         </div>
 
         {/* Información del cliente */}
-        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-700">Nombre:</span>
-              <span className="text-sm text-zinc-900 font-semibold">{client.name}</span>
+              <span className="text-sm font-medium text-gray-700">Nombre:</span>
+              <span className="text-sm text-gray-900 font-semibold">{client.name}</span>
             </div>
             {client.document && (
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-zinc-700">Documento:</span>
-                <span className="text-sm text-zinc-900 font-mono">{client.document}</span>
+                <span className="text-sm font-medium text-gray-700">Documento:</span>
+                <span className="text-sm text-gray-900 font-mono">{client.document}</span>
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-zinc-700">Total Pedidos:</span>
-              <span className="text-sm text-zinc-900 font-semibold">{client.totalOrders}</span>
+              <span className="text-sm font-medium text-gray-700">Total Pedidos:</span>
+              <span className="text-sm text-gray-900 font-semibold">{client.totalOrders}</span>
             </div>
           </div>
         </div>

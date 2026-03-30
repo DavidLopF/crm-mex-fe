@@ -329,7 +329,7 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
       en_curso: 'ring-amber-500',
       enviado: 'ring-cyan-500',
     };
-    return colors[paso] || 'ring-zinc-500';
+    return colors[paso] || 'ring-gray-500';
   };
 
   return (
@@ -362,7 +362,7 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
         </div>
 
         {!isCancelled && (
-          <div className="px-8 py-5 bg-zinc-50 border-b border-zinc-200">
+          <div className="px-8 py-5 bg-gray-50 border-b border-gray-200">
             <div className="flex items-center">
               {pasos.map((paso, index) => {
                 const pasoConfig = estadoConfig[paso];
@@ -374,7 +374,7 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
                   ? pasoConfig.color + ' text-white ring-4 ring-offset-2 ring-opacity-30 ' + getRingColor(paso)
                   : isActive 
                     ? pasoConfig.color + ' text-white'
-                    : 'bg-zinc-200 text-zinc-400';
+                    : 'bg-gray-200 text-gray-400';
                 
                 return (
                   <div key={paso} className="flex items-center flex-1 last:flex-none">
@@ -386,13 +386,13 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
                           <PasoIcon className="w-5 h-5" />
                         )}
                       </div>
-                      <span className={'text-xs mt-2 font-medium ' + (isCurrent ? pasoConfig.textColor : isActive ? 'text-zinc-700' : 'text-zinc-400')}>
+                      <span className={'text-xs mt-2 font-medium ' + (isCurrent ? pasoConfig.textColor : isActive ? 'text-gray-700' : 'text-gray-400')}>
                         {pasoConfig.label}
                       </span>
                     </div>
                     
                     {index < pasos.length - 1 && (
-                      <div className={'flex-1 h-1 rounded ' + (estadoConfig[pasos[index + 1]].step <= config.step ? 'bg-green-400' : 'bg-zinc-200')} />
+                      <div className={'flex-1 h-1 rounded ' + (estadoConfig[pasos[index + 1]].step <= config.step ? 'bg-green-400' : 'bg-gray-200')} />
                     )}
                   </div>
                 );
@@ -412,13 +412,13 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
 
         {/* Tabs — only show recibo tab when enviado */}
         {isEnviado && (
-          <div className="flex border-b border-zinc-200 bg-white">
+          <div className="flex border-b border-gray-200 bg-white">
             <button
               onClick={() => setActiveTab('detalle')}
               className={`px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === 'detalle'
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -429,7 +429,7 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
               className={`px-6 py-3 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === 'recibo'
                   ? 'border-cyan-600 text-cyan-600'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
               <TicketCheck className="w-4 h-4" />
@@ -440,9 +440,9 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
 
         {/* RECIBO TAB */}
         {isEnviado && activeTab === 'recibo' ? (
-          <div className="flex-1 overflow-y-auto p-6 bg-zinc-100">
+          <div className="flex-1 overflow-y-auto p-6 bg-gray-100">
             {/* Receipt card */}
-            <div ref={receiptRef} className="max-w-lg mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-zinc-200">
+            <div ref={receiptRef} className="max-w-lg mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
               {/* Header stripe */}
               <div className="bg-gradient-to-r from-cyan-500 to-teal-500 px-6 py-5 text-white">
                 <div className="flex items-center justify-between mb-1">
@@ -458,28 +458,28 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
 
               {/* Dashed separator */}
               <div className="relative">
-                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-zinc-100 rounded-full border border-zinc-200" />
-                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-zinc-100 rounded-full border border-zinc-200" />
-                <div className="mx-4 border-t-2 border-dashed border-zinc-200 my-0" />
+                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-100 rounded-full border border-gray-200" />
+                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-100 rounded-full border border-gray-200" />
+                <div className="mx-4 border-t-2 border-dashed border-gray-200 my-0" />
               </div>
 
               {/* Client info */}
-              <div className="px-6 py-4 border-b border-dashed border-zinc-200">
-                <p className="text-xs text-zinc-400 uppercase font-semibold tracking-wide mb-2">Cliente</p>
+              <div className="px-6 py-4 border-b border-dashed border-gray-200">
+                <p className="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-2">Cliente</p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center text-white font-bold text-base flex-shrink-0">
                     {pedido.clienteNombre.charAt(0)}
                   </div>
                   <div>
-                    <p className="font-semibold text-zinc-900">{pedido.clienteNombre}</p>
+                    <p className="font-semibold text-gray-900">{pedido.clienteNombre}</p>
                     <div className="flex flex-wrap gap-x-3 mt-0.5">
                       {pedido.clienteEmail && (
-                        <span className="flex items-center gap-1 text-xs text-zinc-500">
+                        <span className="flex items-center gap-1 text-xs text-gray-500">
                           <Mail className="w-3 h-3" />{pedido.clienteEmail}
                         </span>
                       )}
                       {pedido.clienteTelefono && (
-                        <span className="flex items-center gap-1 text-xs text-zinc-500">
+                        <span className="flex items-center gap-1 text-xs text-gray-500">
                           <Phone className="w-3 h-3" />{pedido.clienteTelefono}
                         </span>
                       )}
@@ -489,35 +489,35 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
               </div>
 
               {/* Line items */}
-              <div className="px-6 py-4 border-b border-dashed border-zinc-200 space-y-2">
-                <p className="text-xs text-zinc-400 uppercase font-semibold tracking-wide mb-3">Productos</p>
+              <div className="px-6 py-4 border-b border-dashed border-gray-200 space-y-2">
+                <p className="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-3">Productos</p>
                 {pedido.lineas.map((linea) => (
                   <div key={linea.id} className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-zinc-900 truncate">{linea.productoNombre}</p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{linea.productoNombre}</p>
                       {linea.variacionNombre && (
-                        <p className="text-xs text-zinc-400">{linea.variacionNombre}</p>
+                        <p className="text-xs text-gray-400">{linea.variacionNombre}</p>
                       )}
-                      <p className="text-xs text-zinc-400">{linea.cantidad} × {formatCurrency(linea.precioUnitario)}</p>
+                      <p className="text-xs text-gray-400">{linea.cantidad} × {formatCurrency(linea.precioUnitario)}</p>
                     </div>
-                    <p className="text-sm font-semibold text-zinc-900 flex-shrink-0">{formatCurrency(linea.subtotal)}</p>
+                    <p className="text-sm font-semibold text-gray-900 flex-shrink-0">{formatCurrency(linea.subtotal)}</p>
                   </div>
                 ))}
               </div>
 
               {/* Totals */}
-              <div className="px-6 py-4 border-b border-dashed border-zinc-200 space-y-1.5">
-                <div className="flex justify-between text-sm text-zinc-600">
+              <div className="px-6 py-4 border-b border-dashed border-gray-200 space-y-1.5">
+                <div className="flex justify-between text-sm text-gray-600">
                   <span>Subtotal ({cantidadTotal} unidades)</span>
                   <span>{formatCurrency(pedido.subtotal)}</span>
                 </div>
                 {pedido.impuestos > 0 && (
-                  <div className="flex justify-between text-sm text-zinc-600">
+                  <div className="flex justify-between text-sm text-gray-600">
                     <span>Impuestos</span>
                     <span>{formatCurrency(pedido.impuestos)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-base font-bold text-zinc-900 pt-1 border-t border-zinc-200 mt-1">
+                <div className="flex justify-between text-base font-bold text-gray-900 pt-1 border-t border-gray-200 mt-1">
                   <span>Total</span>
                   <span>{formatCurrency(pedido.total)}</span>
                 </div>
@@ -525,15 +525,15 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
 
               {/* Notes */}
               {pedido.notas && (
-                <div className="px-6 py-4 border-b border-dashed border-zinc-200">
-                  <p className="text-xs text-zinc-400 uppercase font-semibold tracking-wide mb-1">Notas</p>
-                  <p className="text-sm text-zinc-600 whitespace-pre-wrap">{pedido.notas}</p>
+                <div className="px-6 py-4 border-b border-dashed border-gray-200">
+                  <p className="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-1">Notas</p>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{pedido.notas}</p>
                 </div>
               )}
 
               {/* Footer */}
-              <div className="px-6 py-4 bg-zinc-50 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+              <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
                   <MapPin className="w-3 h-3" />
                   <span>Recibo generado el {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                 </div>
@@ -572,19 +572,19 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <button 
               onClick={() => setIsClientOpen(!isClientOpen)}
-              className="w-full px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between hover:bg-zinc-100 transition-colors"
+              className="w-full px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors"
             >
-              <h3 className="font-semibold text-zinc-900 flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-600" />
                 Cliente
               </h3>
               {isClientOpen ? (
-                <ChevronUp className="w-5 h-5 text-zinc-500" />
+                <ChevronUp className="w-5 h-5 text-gray-500" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-zinc-500" />
+                <ChevronDown className="w-5 h-5 text-gray-500" />
               )}
             </button>
             {isClientOpen && (
@@ -594,20 +594,20 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
                     {pedido.clienteNombre.charAt(0)}
                   </div>
                   <div>
-                    <p className="font-semibold text-zinc-900">{pedido.clienteNombre}</p>
-                    <p className="text-sm text-zinc-500">Cliente registrado</p>
+                    <p className="font-semibold text-gray-900">{pedido.clienteNombre}</p>
+                    <p className="text-sm text-gray-500">Cliente registrado</p>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <button 
               onClick={() => setIsProductsOpen(!isProductsOpen)}
-              className="w-full px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between hover:bg-zinc-100 transition-colors"
+              className="w-full px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors"
             >
-              <h3 className="font-semibold text-zinc-900 flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Package className="w-5 h-5 text-orange-600" />
                 Detalle de Productos
               </h3>
@@ -616,39 +616,39 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
                   {pedido.lineas.length} {pedido.lineas.length === 1 ? 'item' : 'items'}
                 </Badge>
                 {isProductsOpen ? (
-                  <ChevronUp className="w-5 h-5 text-zinc-500" />
+                  <ChevronUp className="w-5 h-5 text-gray-500" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-zinc-500" />
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
                 )}
               </div>
             </button>
             
             {isProductsOpen && (
               <>
-                <div className="divide-y divide-zinc-100">
+                <div className="divide-y divide-gray-100">
                   {pedido.lineas.map((linea, index) => (
-                <div key={linea.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                <div key={linea.id} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-sm font-medium text-zinc-500 flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500 flex-shrink-0">
                       {index + 1}
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-zinc-900 truncate">{linea.productoNombre}</p>
+                      <p className="font-medium text-gray-900 truncate">{linea.productoNombre}</p>
                       {linea.variacionNombre && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-zinc-100 text-xs text-zinc-600 mt-1">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-xs text-gray-600 mt-1">
                           {linea.variacionNombre}
                         </span>
                       )}
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      <div className="flex items-center gap-2 text-sm text-zinc-600">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
                         <span className="font-medium">{formatCurrency(linea.precioUnitario)}</span>
                         <span>x</span>
                         <span className="font-medium">{linea.cantidad}</span>
                       </div>
-                      <p className="text-lg font-bold text-zinc-900 mt-1">
+                      <p className="text-lg font-bold text-gray-900 mt-1">
                         {formatCurrency(linea.subtotal)}
                       </p>
                     </div>
@@ -659,9 +659,9 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
             
             <div className="px-4 py-4 bg-gradient-to-r from-gray-800 to-gray-900">
               <div className="flex items-center justify-between">
-                <div className="text-zinc-300">
+                <div className="text-gray-300">
                   <p className="text-sm">Subtotal</p>
-                  <p className="text-xs text-zinc-400 mt-0.5">{cantidadTotal} unidades</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{cantidadTotal} unidades</p>
                 </div>
                 <p className="text-2xl font-bold text-white">{formatCurrency(pedido.total)}</p>
               </div>
@@ -680,33 +680,33 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
             </div>
           )}
 
-          <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <button 
               onClick={() => setIsInfoOpen(!isInfoOpen)}
-              className="w-full px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between hover:bg-zinc-100 transition-colors"
+              className="w-full px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-colors"
             >
-              <h3 className="font-semibold text-zinc-900 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-zinc-500" />
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-gray-500" />
                 Información del Pedido
               </h3>
               {isInfoOpen ? (
-                <ChevronUp className="w-5 h-5 text-zinc-500" />
+                <ChevronUp className="w-5 h-5 text-gray-500" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-zinc-500" />
+                <ChevronDown className="w-5 h-5 text-gray-500" />
               )}
             </button>
             {isInfoOpen && (
               <div className="grid grid-cols-2 gap-4 p-4">
-                <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-200">
-                  <div className="flex items-center gap-2 text-zinc-500 mb-2">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-center gap-2 text-gray-500 mb-2">
                     <Clock className="w-4 h-4" />
                     <span className="text-xs font-medium uppercase">Ultima actualizacion</span>
                   </div>
-                  <p className="text-sm font-medium text-zinc-900">{formatDateTime(pedido.updatedAt)}</p>
+                  <p className="text-sm font-medium text-gray-900">{formatDateTime(pedido.updatedAt)}</p>
                 </div>
                 
-                <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-200">
-                  <div className="flex items-center gap-2 text-zinc-500 mb-2">
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-center gap-2 text-gray-500 mb-2">
                     <Truck className="w-4 h-4" />
                     <span className="text-xs font-medium uppercase">Transmision</span>
                   </div>
@@ -718,8 +718,8 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
                       </>
                     ) : (
                       <>
-                        <div className="w-2 h-2 bg-zinc-400 rounded-full"></div>
-                        <span className="text-sm font-medium text-zinc-600">Pendiente</span>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                        <span className="text-sm font-medium text-gray-600">Pendiente</span>
                       </>
                     )}
                   </div>
@@ -730,7 +730,7 @@ export function OrderDetailModal({ pedido, isOpen, onClose, onEdit }: OrderDetai
           </div>
         )}
 
-        <div className="flex items-center justify-between p-4 border-t border-zinc-200 bg-zinc-50">
+        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center gap-2">
             {isEnviado && activeTab === 'recibo' ? (
               <>

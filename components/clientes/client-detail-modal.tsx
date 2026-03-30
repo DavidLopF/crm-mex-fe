@@ -28,13 +28,13 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
             <User className="w-8 h-8 text-primary" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-semibold text-zinc-900 tracking-tight">{client.name}</h3>
+            <h3 className="text-xl font-bold text-gray-900">{client.name}</h3>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant={client.isActive ? 'success' : 'danger'}>
                 {client.isActive ? 'Activo' : 'Inactivo'}
               </Badge>
               {client.document && (
-                <span className="text-sm text-zinc-500 font-mono">{client.document}</span>
+                <span className="text-sm text-gray-500 font-mono">{client.document}</span>
               )}
             </div>
           </div>
@@ -59,39 +59,39 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
         </div>
 
         {/* Información detallada */}
-        <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
-          <h4 className="text-sm font-semibold text-zinc-700 mb-3">Información</h4>
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">Información</h4>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <User className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+              <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <div className="flex-1">
-                <span className="text-xs text-zinc-500 block">Nombre</span>
-                <span className="text-sm font-medium text-zinc-900">{client.name}</span>
+                <span className="text-xs text-gray-500 block">Nombre</span>
+                <span className="text-sm font-medium text-gray-900">{client.name}</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <FileText className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+              <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <div className="flex-1">
-                <span className="text-xs text-zinc-500 block">Documento</span>
-                <span className="text-sm font-medium text-zinc-900">
+                <span className="text-xs text-gray-500 block">Documento</span>
+                <span className="text-sm font-medium text-gray-900">
                   {client.document || 'No especificado'}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+              <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <div className="flex-1">
-                <span className="text-xs text-zinc-500 block">Fecha de Registro</span>
-                <span className="text-sm font-medium text-zinc-900">
+                <span className="text-xs text-gray-500 block">Fecha de Registro</span>
+                <span className="text-sm font-medium text-gray-900">
                   {formatDateTime(client.createdAt)}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+              <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <div className="flex-1">
-                <span className="text-xs text-zinc-500 block">Última Actualización</span>
-                <span className="text-sm font-medium text-zinc-900">
+                <span className="text-xs text-gray-500 block">Última Actualización</span>
+                <span className="text-sm font-medium text-gray-900">
                   {formatDateTime(client.updatedAt)}
                 </span>
               </div>
@@ -101,33 +101,33 @@ export function ClientDetailModal({ isOpen, onClose, client }: ClientDetailModal
 
         {/* Historial de precios */}
         {client.hystoricalPrices && client.hystoricalPrices.length > 0 && (
-          <div className="bg-zinc-50 rounded-lg p-4 border border-zinc-200">
-            <h4 className="text-sm font-semibold text-zinc-700 mb-3">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
               Historial de Precios
             </h4>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {client.hystoricalPrices.map((price) => (
                 <div
                   key={price.orderId}
-                  className="bg-white rounded-lg p-3 border border-zinc-200 flex items-center justify-between"
+                  className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-zinc-900">{price.variantName}</p>
+                    <p className="text-sm font-medium text-gray-900">{price.variantName}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs text-gray-500">
                         Pedido #{price.orderCode}
                       </span>
-                      <span className="text-xs text-zinc-400">•</span>
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-xs text-gray-500">
                         {formatDateTime(price.orderDate)}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-zinc-900">
+                    <p className="text-sm font-bold text-gray-900">
                       {formatCurrency(price.unitPrice)}
                     </p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-gray-500">
                       Cant: {price.quantity}
                     </p>
                   </div>
