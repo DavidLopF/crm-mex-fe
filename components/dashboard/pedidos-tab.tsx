@@ -53,27 +53,27 @@ export function PedidosTab({ data, loading }: PedidosTabProps) {
             <CardTitle>Resumen Comercial</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-purple-600" />
-                <span className="text-sm text-zinc-700">Clientes nuevos (mes)</span>
+                <span className="text-sm text-gray-700">Clientes nuevos (mes)</span>
               </div>
-              <span className="text-sm font-semibold text-zinc-900">
+              <span className="text-sm font-semibold text-gray-900">
                 {loading ? '...' : data.newClientsMonth}
               </span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-zinc-700">Total clientes</span>
+                <span className="text-sm text-gray-700">Total clientes</span>
               </div>
-              <span className="text-sm font-semibold text-zinc-900">
+              <span className="text-sm font-semibold text-gray-900">
                 {loading ? '...' : data.totalClients.value}
               </span>
             </div>
             {data.totalClients.changePercent != null && (
-              <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg">
-                <span className="text-sm text-zinc-700">Crecimiento clientes</span>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-700">Crecimiento clientes</span>
                 <span
                   className={`text-sm font-semibold ${
                     data.totalClients.changePercent >= 0 ? 'text-green-600' : 'text-red-600'

@@ -158,8 +158,8 @@ export default function ClientesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Clientes</h1>
-            <p className="text-zinc-500">Gestión de clientes y relaciones</p>
+            <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
+            <p className="text-gray-500">Gestión de clientes y relaciones</p>
           </div>
         </div>
 

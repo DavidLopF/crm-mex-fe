@@ -58,7 +58,7 @@ export function OrdersKanban({ pedidos, onOrderClick, onOrderUpdate, onStatusCha
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-zinc-600">Total:</span>
+                      <span className="text-gray-600">Total:</span>
                       <span className={`font-bold ${colorClass.text}`}>
                         ${(totalVentas / 1000).toFixed(1)}K
                       </span>

@@ -16,7 +16,7 @@ interface OrdersBoardProps {
 type StatusTab = 'todos' | EstadoPedido;
 
 const STATUS_TABS: { key: StatusTab; label: string; color: string; dot: string }[] = [
-  { key: 'todos', label: 'Todos', color: 'text-zinc-700 border-zinc-800', dot: 'bg-zinc-500' },
+  { key: 'todos', label: 'Todos', color: 'text-gray-700 border-gray-800', dot: 'bg-gray-500' },
   { key: 'cotizado', label: 'Cotizado', color: 'text-blue-700 border-blue-600', dot: 'bg-blue-500' },
   { key: 'transmitido', label: 'Transmitido', color: 'text-purple-700 border-purple-600', dot: 'bg-purple-500' },
   { key: 'en_curso', label: 'En Curso', color: 'text-orange-700 border-orange-600', dot: 'bg-orange-500' },
@@ -78,17 +78,17 @@ export function OrdersBoard({ pedidos, onOrderClick, onStatusChange }: OrdersBoa
               onClick={() => handleTabChange(tab.key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                 isActive
-                  ? `bg-white shadow-sm border border-zinc-200 ${tab.color.split(' ')[0]}`
-                  : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'
+                  ? `bg-white shadow-sm border border-gray-200 ${tab.color.split(' ')[0]}`
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${isActive ? tab.dot : 'bg-zinc-300'}`}
+                className={`w-2 h-2 rounded-full ${isActive ? tab.dot : 'bg-gray-300'}`}
               />
               {tab.label}
               <span
                 className={`text-xs px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-zinc-100 text-zinc-700' : 'bg-zinc-100 text-zinc-400'
+                  isActive ? 'bg-gray-100 text-gray-700' : 'bg-gray-100 text-gray-400'
                 }`}
               >
                 {count}
@@ -100,7 +100,7 @@ export function OrdersBoard({ pedidos, onOrderClick, onStatusChange }: OrdersBoa
 
       {/* Cards Grid */}
       {paginatedPedidos.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-zinc-400">
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <Inbox className="w-12 h-12 mb-3" />
           <p className="text-sm font-medium">No hay pedidos en este estado</p>
         </div>
@@ -120,7 +120,7 @@ export function OrdersBoard({ pedidos, onOrderClick, onStatusChange }: OrdersBoa
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-2">
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-gray-500">
             Mostrando {((safePage - 1) * ITEMS_PER_PAGE) + 1}–
             {Math.min(safePage * ITEMS_PER_PAGE, filteredPedidos.length)} de {filteredPedidos.length} pedidos
           </p>
@@ -128,7 +128,7 @@ export function OrdersBoard({ pedidos, onOrderClick, onStatusChange }: OrdersBoa
             <button
               onClick={() => handlePageChange(safePage - 1)}
               disabled={safePage <= 1}
-              className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -143,7 +143,7 @@ export function OrdersBoard({ pedidos, onOrderClick, onStatusChange }: OrdersBoa
               }, [])
               .map((p, i) =>
                 p === '...' ? (
-                  <span key={`e-${i}`} className="px-1.5 text-xs text-zinc-400">
+                  <span key={`e-${i}`} className="px-1.5 text-xs text-gray-400">
                     …
                   </span>
                 ) : (
@@ -153,7 +153,7 @@ export function OrdersBoard({ pedidos, onOrderClick, onStatusChange }: OrdersBoa
                     className={`min-w-[32px] h-8 rounded-lg border text-sm transition-colors ${
                       p === safePage
                         ? 'bg-primary border-primary text-white font-medium'
-                        : 'border-zinc-200 hover:bg-white text-zinc-700'
+                        : 'border-gray-200 hover:bg-white text-gray-700'
                     }`}
                   >
                     {p}
@@ -163,7 +163,7 @@ export function OrdersBoard({ pedidos, onOrderClick, onStatusChange }: OrdersBoa
             <button
               onClick={() => handlePageChange(safePage + 1)}
               disabled={safePage >= totalPages}
-              className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

@@ -121,12 +121,12 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* ═══ Panel Derecho – Formulario ═══ */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-zinc-50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md animate-slideUp">
           {/* Back link */}
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 transition-colors mb-8"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
             Volver al inicio de sesión
@@ -134,10 +134,10 @@ export default function ForgotPasswordPage() {
 
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-zinc-900 tracking-tight mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
               ¿Olvidaste tu contraseña?
             </h2>
-            <p className="text-zinc-500">
+            <p className="text-gray-500">
               Ingresa tu correo electrónico y te enviaremos un código para restablecer tu contraseña.
             </p>
           </div>
@@ -153,11 +153,11 @@ export default function ForgotPasswordPage() {
 
             {/* Email */}
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-zinc-700 block">
+              <label htmlFor="email" className="text-sm font-medium text-gray-700 block">
                 Correo electrónico
               </label>
               <div className="relative group">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-400 transition-colors group-focus-within:text-blue-600" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400 transition-colors group-focus-within:text-blue-600" />
                 <input
                   id="email"
                   type="email"
@@ -166,7 +166,7 @@ export default function ForgotPasswordPage() {
                   placeholder="tu@email.com"
                   autoComplete="email"
                   autoFocus
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-zinc-300"
+                  className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-gray-300"
                 />
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function ForgotPasswordPage() {
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-gray-400">
               © {new Date().getFullYear()} {settings.companyName}. Todos los derechos reservados.
             </p>
           </div>

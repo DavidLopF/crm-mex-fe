@@ -57,7 +57,7 @@ export function ChangeStatusMenu({ currentStatusCode, onChangeStatus }: ChangeSt
       case OrderStatusCode.CANCELADO:
         return 'text-red-700 hover:bg-red-50';
       default:
-        return 'text-zinc-700 hover:bg-zinc-50';
+        return 'text-gray-700 hover:bg-gray-50';
     }
   };
 
@@ -73,11 +73,11 @@ export function ChangeStatusMenu({ currentStatusCode, onChangeStatus }: ChangeSt
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors"
+        className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
         title="Cambiar estado"
         disabled={isChanging}
       >
-        <MoreVertical className="w-4 h-4 text-zinc-500" />
+        <MoreVertical className="w-4 h-4 text-gray-500" />
       </button>
 
       {isOpen && (
@@ -89,9 +89,9 @@ export function ChangeStatusMenu({ currentStatusCode, onChangeStatus }: ChangeSt
           />
 
           {/* Menú desplegable */}
-          <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-zinc-200 py-1 min-w-[200px] z-20">
-            <div className="px-3 py-2 border-b border-zinc-100">
-              <p className="text-xs font-medium text-zinc-500">Cambiar estado a:</p>
+          <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[200px] z-20">
+            <div className="px-3 py-2 border-b border-gray-100">
+              <p className="text-xs font-medium text-gray-500">Cambiar estado a:</p>
             </div>
 
             {availableTransitions.map((statusCode) => (
@@ -111,13 +111,13 @@ export function ChangeStatusMenu({ currentStatusCode, onChangeStatus }: ChangeSt
               </button>
             ))}
 
-            <div className="border-t border-zinc-100 mt-1">
+            <div className="border-t border-gray-100 mt-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left text-sm text-zinc-500 hover:bg-zinc-50 transition-colors flex items-center gap-2"
+                className="w-full px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
                 Cancelar

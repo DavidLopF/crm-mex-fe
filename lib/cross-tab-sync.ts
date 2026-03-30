@@ -10,7 +10,7 @@
 //  • MISMA pestaña  → window.CustomEvent ('crm-local-invalidation')
 //
 // Esto resuelve el caso donde la acción y el componente que escucha
-// (ej. ProductGrid) están en la misma pestaña del navegador.
+// están en la misma pestaña del navegador (ej. SSE invalidation).
 //
 // Uso en pages:
 //   1. En el handler que muta: llamar `broadcastInvalidation('inventory')`
@@ -25,9 +25,7 @@ export type InvalidationModule =
   | 'suppliers'
   | 'purchase-orders'
   | 'config-users'
-  | 'config-roles'
-  | 'pos-sales'
-  | 'pos-dashboard';
+  | 'config-roles';
 
 interface InvalidationMessage {
   module: InvalidationModule;

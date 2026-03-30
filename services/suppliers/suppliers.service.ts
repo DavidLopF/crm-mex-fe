@@ -51,36 +51,11 @@ function parseSupplierStatistics(raw: RawSupplierStatistics): SupplierStatistics
   };
 }
 
-// ── Mapeo status ↔ código ─────────────────────────────────────────────
-const STATUS_CODE_TO_STATUS: Record<string, PurchaseOrderStatus> = {
-  draft: 'draft',
-  borrador: 'draft',
-  bor: 'draft',
-  drf: 'draft',
-  sent: 'sent',
-  snt: 'sent',
-  enviada: 'sent',
-  confirmed: 'confirmed',
-  cnf: 'confirmed',
-  partial: 'partial',
-  parc: 'partial',
-  par: 'partial',
-  received: 'received',
-  rec: 'received',
-  cancelled: 'cancelled',
-  canceled: 'cancelled',
-  can: 'cancelled',
-};
-
-// Fallback por ID. Incluye IDs nuevos (1–6) con el orden real de BD y los IDs antiguos (7–12) por compatibilidad
+// ── Mapeo statusId → PurchaseOrderStatus code ────────────────────────
+// El backend retorna statusId (FK a PurchaseOrderStatus table).
+// Este mapa se construye dinámicamente según lo que retorna el API,
+// pero como fallback usamos el mapeo conocido de los datos de seed.
 const STATUS_ID_TO_CODE: Record<number, PurchaseOrderStatus> = {
-  // Nuevos IDs (tabla PurchaseOrderStatus en BD)
-  1: 'draft',        // DRAFT
-  2: 'confirmed',    // CONFIRMED
-  3: 'partial',      // PARTIAL
-  4: 'sent',         // SENT
-  5: 'received',     // RECEIVED
-  6: 'cancelled',    // CANCELLED
   7: 'sent',
   8: 'draft',
   9: 'partial',
@@ -91,9 +66,10 @@ const STATUS_ID_TO_CODE: Record<number, PurchaseOrderStatus> = {
 
 function resolveStatus(statusId: number, statusCode?: string): PurchaseOrderStatus {
   if (statusCode) {
-    const key = statusCode.trim().toLowerCase();
-    const mapped = STATUS_CODE_TO_STATUS[key];
-    if (mapped) return mapped;
+    const lower = statusCode.toLowerCase() as PurchaseOrderStatus;
+    if (['draft','sent','confirmed','partial','received','cancelled'].includes(lower)) {
+      return lower;
+    }
   }
   return STATUS_ID_TO_CODE[statusId] ?? 'draft';
 }
@@ -112,20 +88,12 @@ interface RawPurchaseOrderItem {
   description?: string;
 }
 
-interface RawPurchaseOrderStatus {
-  id: number;
-  code: string;
-  label?: string;
-  order?: number;
-}
-
 interface RawPurchaseOrder {
   id: number;
   code: string;
   supplierId: number;
   statusId: number;
   statusCode?: string;
-  status?: RawPurchaseOrderStatus;
   currency: string;
   subtotal: string | number;
   tax: string | number;
@@ -164,9 +132,6 @@ interface RawPurchaseOrder {
 function parsePurchaseOrder(raw: RawPurchaseOrder): PurchaseOrder {
   const subtotal = parseFloat(String(raw.subtotal)) || 0;
 
-  const statusId = raw.statusId ?? raw.status?.id ?? 0;
-  const statusCode = raw.statusCode ?? raw.status?.code;
-
   // Parse landed cost percentages
   const freightPct = parseFloat(String(raw.freightPct ?? 0)) || 0;
   const customsPct = parseFloat(String(raw.customsPct ?? 0)) || 0;
@@ -191,8 +156,8 @@ function parsePurchaseOrder(raw: RawPurchaseOrder): PurchaseOrder {
     supplierId: raw.supplierId,
     supplierName: raw.supplier?.name ?? '',
     supplier: raw.supplier,
-  statusId,
-  status: resolveStatus(statusId, statusCode),
+    statusId: raw.statusId,
+    status: resolveStatus(raw.statusId, raw.statusCode),
     subtotal,
     tax: parseFloat(String(raw.tax)) || 0,
     total: parseFloat(String(raw.total)) || 0,

@@ -86,21 +86,3 @@ Status enums: `EstadoPedido` (`cotizado | transmitido | en_curso | enviado | can
 | lucide-react | Icons |
 | jspdf | PDF generation |
 | tailwindcss 4 | Styling (via `@tailwindcss/postcss`) |
-
-
-## UI/UX & Design Patterns
-
-### Component Strategy (Shadcn/ui)
-- **Installation:** Use the `shadcn` MCP server to explore and install components. If a component is missing, ask to install it before coding.
-- **Location:** Base components go in `components/ui/`. Feature-specific compositions go in `components/[feature]/`.
-- **Customization:** Always use Tailwind CSS 4 variables and follow the brand colors defined in `lib/company-context.tsx`.
-
-### Animations (Framer Motion)
-- **Philosophy:** Use "subtle & purposeful" animations. Avoid excessive movement in data-heavy CRM screens.
-- **Defaults:** Use `layout` prop for smooth transitions in lists. Use `AnimatePresence` for modal/toast entries and exits.
-- **Accessibility:** Respect `prefers-reduced-motion`. All animations should have a duration between 0.2s and 0.4s.
-
-### Design Standards
-- **Form Design:** Use `lucide-react` icons for visual cues. Group related fields. Always include validation states.
-- **Data Tables:** Ensure high contrast and clear typography for financial data (MXN). Use `formatCurrency` from `lib/utils.ts`.
-- **Localization:** All UI text, placeholders, and ARIA labels must be in **Spanish (Mexico)**.

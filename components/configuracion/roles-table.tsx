@@ -95,11 +95,11 @@ export function RolesTable({
       {/* Barra de búsqueda y acciones */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Buscar roles..."
-            className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={searchTerm}
             onChange={(e) => {
               if (isControlledSearch && onSearchChange) {
@@ -118,51 +118,51 @@ export function RolesTable({
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-zinc-50 border-b border-zinc-200">
-                <th className="text-left px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Rol
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Descripción
                 </th>
-                <th className="text-center px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Usuarios
                 </th>
-                <th className="text-center px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                <th className="text-center px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200">
+            <tbody className="divide-y divide-gray-200">
               {roles.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <Shield className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
-                    <p className="text-zinc-500 text-sm">No se encontraron roles</p>
+                    <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">No se encontraron roles</p>
                   </td>
                 </tr>
               ) : (
                 roles.map((role) => (
-                  <tr key={role.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={role.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                           <Shield className="w-4 h-4 text-purple-600" />
                         </div>
-                        <span className="text-sm font-medium text-zinc-900">{role.name}</span>
+                        <span className="text-sm font-medium text-gray-900">{role.name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-zinc-600">
+                      <span className="text-sm text-gray-600">
                         {role.description || '—'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="text-sm font-medium text-zinc-900">
+                      <span className="text-sm font-medium text-gray-900">
                         {role.usersCount ?? 0}
                       </span>
                     </td>
@@ -175,14 +175,14 @@ export function RolesTable({
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleEditRole(role)}
-                          className="p-2 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                           title="Editar"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(role)}
-                          className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -215,15 +215,15 @@ export function RolesTable({
           };
 
           return (
-            <div className="flex items-center justify-between px-6 py-3 border-t border-zinc-200 bg-zinc-50">
-              <p className="text-sm text-zinc-500">
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
+              <p className="text-sm text-gray-500">
                 {total === 0 ? 'Sin resultados' : `Mostrando ${start}–${end} de ${total} roles`}
               </p>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handlePageChange(1)}
                   disabled={currentPage <= 1}
-                  className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs px-2"
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs px-2"
                   title="Primera página"
                 >
                   «
@@ -231,13 +231,13 @@ export function RolesTable({
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 {getPageNumbers().map((page, idx) =>
                   page === '...' ? (
-                    <span key={`ellipsis-${idx}`} className="px-2 text-zinc-400 text-sm">…</span>
+                    <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm">…</span>
                   ) : (
                     <button
                       key={page}
@@ -245,7 +245,7 @@ export function RolesTable({
                       className={`min-w-[32px] h-8 rounded-lg border text-sm transition-colors ${
                         page === currentPage
                           ? 'bg-primary border-primary text-white font-medium'
-                          : 'border-zinc-200 hover:bg-white text-zinc-700'
+                          : 'border-gray-200 hover:bg-white text-gray-700'
                       }`}
                     >
                       {page}
@@ -255,14 +255,14 @@ export function RolesTable({
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handlePageChange(totalPages)}
                   disabled={currentPage >= totalPages}
-                  className="p-1.5 rounded-lg border border-zinc-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs px-2"
+                  className="p-1.5 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs px-2"
                   title="Última página"
                 >
                   »

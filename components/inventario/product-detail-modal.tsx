@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp, Truck, Star, ClipboardList, ArrowUpDown, Upload } from 'lucide-react';
+import { Edit2, Package, DollarSign, Tag, Calendar, Plus, Minus, User, TrendingUp, Truck, Star, ClipboardList, ArrowUpDown } from 'lucide-react';
 import { Modal, Button, Badge, Card, CardContent, Select } from '@/components/ui';
 import { Producto } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
@@ -29,10 +29,8 @@ export function ProductDetailModal({
   onError,
   onSuccess,
 }: ProductDetailModalProps) {
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Producto | null>(null);
-  const [priceInput, setPriceInput] = useState<string>('');
   const [selectedClienteId, setSelectedClienteId] = useState<string>('');
   const [clientes, setClientes] = useState<ClientListItem[]>([]);
   const [historialPrecios, setHistorialPrecios] = useState<PriceHistoryItem[]>([]);
@@ -105,10 +103,8 @@ export function ProductDetailModal({
   const handleEditToggle = () => {
     if (isEditing) {
       setEditedProduct(null);
-      setPriceInput('');
     } else {
       setEditedProduct({ ...producto });
-      setPriceInput(producto.precio != null ? producto.precio.toString() : '');
     }
     setIsEditing(!isEditing);
   };
@@ -121,22 +117,14 @@ export function ProductDetailModal({
       // Buscar categoryId a partir del nombre de la categoría
       const categoriaEncontrada = categorias.find(c => c.name === editedProduct.categoria);
       
-      const priceNumber = parseFloat(priceInput);
-      if (!Number.isFinite(priceNumber) || priceNumber < 0) {
-        if (onError) onError('El precio debe ser un número válido');
-        setSaving(false);
-        return;
-      }
-
       // Preparar el DTO para el backend
       const updateDto: UpdateProductDto = {
         name: editedProduct.nombre,
         description: editedProduct.descripcion,
         categoryId: categoriaEncontrada?.id,
-        price: priceNumber,
+        price: editedProduct.precio,
         image: editedProduct.imageUrl,
         isActive: editedProduct.activo,
-        requiresIva: editedProduct.requiresIva,
         variants: editedProduct.variaciones.map(v => ({
           id: isNaN(Number(v.id)) ? undefined : Number(v.id),
           variantName: v.nombre ? `${v.nombre}: ${v.valor}` : v.valor,
@@ -151,7 +139,6 @@ export function ProductDetailModal({
       if (onEdit) {
         onEdit({
           ...editedProduct,
-          precio: priceNumber,
           updatedAt: new Date(),
         });
       }
@@ -163,7 +150,6 @@ export function ProductDetailModal({
       
       setIsEditing(false);
       setEditedProduct(null);
-      setPriceInput('');
     } catch (error) {
       console.error('Error al actualizar producto:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -191,40 +177,6 @@ export function ProductDetailModal({
     });
   };
 
-  const handleOpenImageChooser = () => {
-    imageInputRef.current?.click();
-  };
-
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      if (onError) onError('Selecciona un archivo de imagen válido.');
-      e.target.value = '';
-      return;
-    }
-
-    const maxSizeMb = 5;
-    if (file.size > maxSizeMb * 1024 * 1024) {
-      if (onError) onError(`La imagen no debe superar ${maxSizeMb}MB.`);
-      e.target.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === 'string' ? reader.result : '';
-      setEditedProduct((prev) => (prev ? { ...prev, imageUrl: result } : prev));
-    };
-    reader.onerror = () => {
-      if (onError) onError('No se pudo leer la imagen seleccionada.');
-    };
-
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
   // Filtrar historial de precios - ya viene filtrado del backend por cliente y producto
   const historialFiltrado = historialPrecios.sort(
     (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
@@ -246,14 +198,7 @@ export function ProductDetailModal({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Imagen del producto */}
           <div className="lg:col-span-1">
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageFileChange}
-            />
-            <div className="aspect-square rounded-lg overflow-hidden bg-zinc-100 mb-4">
+            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4">
               {currentProduct.imageUrl ? (
                 <Image
                   src={currentProduct.imageUrl}
@@ -263,56 +208,24 @@ export function ProductDetailModal({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-zinc-200 flex items-center justify-center">
-                  <Package className="w-16 h-16 text-zinc-400" />
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <Package className="w-16 h-16 text-gray-400" />
                 </div>
               )}
             </div>
-
-            {isEditing && (
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleOpenImageChooser}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Subir imagen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditedProduct((prev) => (prev ? { ...prev, imageUrl: undefined } : prev))}
-                    className="px-3 py-2 text-sm border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
-                  >
-                    Limpiar
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  value={editedProduct?.imageUrl || ''}
-                  onChange={(e) => setEditedProduct((prev) => (prev ? { ...prev, imageUrl: e.target.value } : prev))}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/20"
-                />
-                <p className="text-xs text-zinc-500">
-                  Puedes subir una imagen desde tu equipo o pegar una URL.
-                </p>
-              </div>
-            )}
             
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">SKU</span>
-                <span className="text-sm font-mono text-zinc-900">{currentProduct.sku}</span>
+                <span className="text-sm text-gray-500">SKU</span>
+                <span className="text-sm font-mono text-gray-900">{currentProduct.sku}</span>
               </div>
-              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-sm text-zinc-500">Categoría</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Categoría</span>
                 {isEditing ? (
                   <Select
                     value={editedProduct?.categoria || ''}
                     onChange={(e) => setEditedProduct(editedProduct ? { ...editedProduct, categoria: e.target.value } : null)}
-                    className="w-full sm:w-56 sm:max-w-[65%] text-sm"
+                    className="w-32 text-sm"
                     disabled={loadingCategorias}
                   >
                     <option value="">{loadingCategorias ? 'Cargando...' : 'Seleccione'}</option>
@@ -323,40 +236,14 @@ export function ProductDetailModal({
                     ))}
                   </Select>
                 ) : (
-                  <span className="text-sm text-zinc-900">{currentProduct.categoria}</span>
+                  <span className="text-sm text-gray-900">{currentProduct.categoria}</span>
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Estado</span>
+                <span className="text-sm text-gray-500">Estado</span>
                 <Badge variant={currentProduct.activo ? 'success' : 'default'}>
                   {currentProduct.activo ? 'Activo' : 'Inactivo'}
                 </Badge>
-              </div>
-              {/* Toggle IVA obligatorio */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-sm text-zinc-500">IVA Obligatorio</span>
-                {isEditing ? (
-                  <button
-                    type="button"
-                    onClick={() => setEditedProduct(prev => prev ? { ...prev, requiresIva: !prev.requiresIva } : null)}
-                    className={`
-                      flex items-center gap-1.5 px-2 py-1 rounded-lg border text-xs font-medium transition-all
-                      ${editedProduct?.requiresIva
-                        ? 'border-amber-400 bg-amber-50 text-amber-700'
-                        : 'border-zinc-200 bg-white text-zinc-400 hover:border-zinc-300'
-                      }
-                    `}
-                  >
-                    <span className={`w-7 h-4 flex items-center rounded-full transition-colors ${editedProduct?.requiresIva ? 'bg-amber-500' : 'bg-zinc-300'}`}>
-                      <span className={`w-3 h-3 bg-white rounded-full shadow transition-transform mx-0.5 ${editedProduct?.requiresIva ? 'translate-x-3' : 'translate-x-0'}`} />
-                    </span>
-                    {editedProduct?.requiresIva ? 'Sí' : 'No'}
-                  </button>
-                ) : (
-                  <Badge variant={currentProduct.requiresIva ? 'warning' : 'default'}>
-                    {currentProduct.requiresIva ? 'Sí (Forzado)' : 'No (Opcional)'}
-                  </Badge>
-                )}
               </div>
             </div>
           </div>
@@ -369,10 +256,10 @@ export function ProductDetailModal({
                   type="text"
                   value={editedProduct?.nombre || ''}
                   onChange={(e) => setEditedProduct(prev => prev ? { ...prev, nombre: e.target.value } : null)}
-                  className="text-2xl font-bold text-zinc-900 tracking-tight w-full border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="text-2xl font-bold text-gray-900 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
-                <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">{currentProduct.nombre}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{currentProduct.nombre}</h2>
               )}
               
               {isEditing ? (
@@ -380,10 +267,10 @@ export function ProductDetailModal({
                   value={editedProduct?.descripcion || ''}
                   onChange={(e) => setEditedProduct(prev => prev ? { ...prev, descripcion: e.target.value } : null)}
                   rows={3}
-                  className="mt-2 w-full border border-zinc-200 rounded-lg px-3 py-2 text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
-                <p className="mt-2 text-zinc-600">{currentProduct.descripcion}</p>
+                <p className="mt-2 text-gray-600">{currentProduct.descripcion}</p>
               )}
             </div>
 
@@ -393,14 +280,14 @@ export function ProductDetailModal({
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="w-5 h-5 text-green-600" />
-                    <span className="text-sm font-medium text-zinc-700">Precio de Venta</span>
+                    <span className="text-sm font-medium text-gray-700">Precio de Venta</span>
                   </div>
                   {isEditing ? (
                     <input
                       type="number"
-                      value={priceInput}
-                      onChange={(e) => setPriceInput(e.target.value)}
-                      className="text-2xl font-bold text-green-600 w-full border border-zinc-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={editedProduct?.precio || 0}
+                      onChange={(e) => setEditedProduct(prev => prev ? { ...prev, precio: parseFloat(e.target.value) || 0 } : null)}
+                      className="text-2xl font-bold text-green-600 w-full border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       step="0.01"
                     />
                   ) : (
@@ -413,14 +300,14 @@ export function ProductDetailModal({
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Tag className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-medium text-zinc-700">Costo Promedio</span>
+                    <span className="text-sm font-medium text-gray-700">Costo Promedio</span>
                   </div>
                   <p className="text-2xl font-bold text-blue-600">
                     {rawDetail?.cost != null
                       ? formatCurrency(rawDetail.cost)
                       : formatCurrency(currentProduct.costo)}
                   </p>
-                  <p className="text-xs text-zinc-400 mt-1">Calculado desde órdenes de compra</p>
+                  <p className="text-xs text-gray-400 mt-1">Calculado desde órdenes de compra</p>
                 </CardContent>
               </Card>
             </div>
@@ -431,13 +318,13 @@ export function ProductDetailModal({
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Package className="w-5 h-5 text-purple-600" />
-                    <span className="font-medium text-zinc-700">Stock Total</span>
+                    <span className="font-medium text-gray-700">Stock Total</span>
                   </div>
                   <span className="text-2xl font-bold text-purple-600">
                     {currentProduct.stockTotal} unidades
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-zinc-100 text-xs text-zinc-500">
+                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-3 h-3" />
                     <span>Creado: {formatDateTime(currentProduct.createdAt)}</span>
@@ -455,14 +342,14 @@ export function ProductDetailModal({
         {/* Costos Reales desde Órdenes de Compra */}
         {rawDetail && (rawDetail.lastPurchaseCost !== null || (rawDetail.suppliers && rawDetail.suppliers.length > 0)) && (
           <div className="space-y-4">
-            <h3 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-              <ClipboardList className="w-4 h-4 text-zinc-600" />
+            <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-gray-600" />
               Costos Reales (Landed Cost)
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Card>
                 <CardContent className="p-3 text-center">
-                  <p className="text-xs text-zinc-500 mb-1">Costo Promedio</p>
+                  <p className="text-xs text-gray-500 mb-1">Costo Promedio</p>
                   <p className="text-lg font-bold text-blue-600">
                     {rawDetail.cost != null ? formatCurrency(rawDetail.cost) : '—'}
                   </p>
@@ -470,15 +357,15 @@ export function ProductDetailModal({
               </Card>
               <Card>
                 <CardContent className="p-3 text-center">
-                  <p className="text-xs text-zinc-500 mb-1">Última Compra</p>
-                  <p className="text-lg font-bold text-zinc-900">
+                  <p className="text-xs text-gray-500 mb-1">Última Compra</p>
+                  <p className="text-lg font-bold text-gray-900">
                     {rawDetail.lastPurchaseCost != null ? formatCurrency(rawDetail.lastPurchaseCost) : '—'}
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-3 text-center">
-                  <p className="text-xs text-zinc-500 mb-1">Costo Más Bajo</p>
+                  <p className="text-xs text-gray-500 mb-1">Costo Más Bajo</p>
                   <p className="text-lg font-bold text-green-600">
                     {rawDetail.lowestPurchaseCost != null ? formatCurrency(rawDetail.lowestPurchaseCost) : '—'}
                   </p>
@@ -486,7 +373,7 @@ export function ProductDetailModal({
               </Card>
               <Card>
                 <CardContent className="p-3 text-center">
-                  <p className="text-xs text-zinc-500 mb-1">Costo Más Alto</p>
+                  <p className="text-xs text-gray-500 mb-1">Costo Más Alto</p>
                   <p className="text-lg font-bold text-red-600">
                     {rawDetail.highestPurchaseCost != null ? formatCurrency(rawDetail.highestPurchaseCost) : '—'}
                   </p>
@@ -496,9 +383,9 @@ export function ProductDetailModal({
 
             {/* Margen */}
             {rawDetail.margin != null && (
-              <div className="flex items-center gap-3 px-4 py-2 bg-zinc-50 rounded-lg border border-zinc-200">
-                <ArrowUpDown className="w-4 h-4 text-zinc-500" />
-                <span className="text-sm text-zinc-600">Margen estimado:</span>
+              <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <ArrowUpDown className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Margen estimado:</span>
                 <Badge variant={rawDetail.margin >= 30 ? 'success' : rawDetail.margin >= 15 ? 'warning' : 'danger'}>
                   {rawDetail.margin.toFixed(1)}%
                 </Badge>
@@ -506,7 +393,7 @@ export function ProductDetailModal({
             )}
 
             {rawDetail.lastPurchaseCost == null && (
-              <div className="text-center py-3 text-zinc-400 bg-zinc-50 rounded-lg border border-dashed border-zinc-200">
+              <div className="text-center py-3 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                 <p className="text-xs">Sin historial de compras — los costos se calcularán al registrar órdenes de compra</p>
               </div>
             )}
@@ -516,40 +403,40 @@ export function ProductDetailModal({
         {/* Proveedores asociados */}
         {rawDetail && rawDetail.suppliers && rawDetail.suppliers.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-              <Truck className="w-4 h-4 text-zinc-600" />
+            <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <Truck className="w-4 h-4 text-gray-600" />
               Proveedores ({rawDetail.suppliers.length})
             </h3>
-            <div className="overflow-x-auto border border-zinc-200 rounded-lg">
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
               <table className="w-full text-sm">
-                <thead className="bg-zinc-50 border-b border-zinc-200">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-3 py-2 font-medium text-zinc-600">Proveedor</th>
-                    <th className="text-left px-3 py-2 font-medium text-zinc-600">SKU Prov.</th>
-                    <th className="text-right px-3 py-2 font-medium text-zinc-600">Costo FOB</th>
-                    <th className="text-right px-3 py-2 font-medium text-zinc-600">Último Landed</th>
-                    <th className="text-center px-3 py-2 font-medium text-zinc-600">Lead Time</th>
-                    <th className="text-center px-3 py-2 font-medium text-zinc-600">Min. Pedido</th>
-                    <th className="text-center px-3 py-2 font-medium text-zinc-600">Pref.</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">Proveedor</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">SKU Prov.</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Costo FOB</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Último Landed</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Lead Time</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Min. Pedido</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Pref.</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-gray-100">
                   {rawDetail.suppliers.map((sup: ApiProductSupplier, idx: number) => (
-                    <tr key={`${sup.supplierId}-${idx}`} className="hover:bg-zinc-50">
-                      <td className="px-3 py-2 font-medium text-zinc-900">{sup.supplierName}</td>
-                      <td className="px-3 py-2 text-zinc-500 font-mono text-xs">{sup.supplierSku || '—'}</td>
-                      <td className="px-3 py-2 text-right text-zinc-900">
+                    <tr key={`${sup.supplierId}-${idx}`} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 font-medium text-gray-900">{sup.supplierName}</td>
+                      <td className="px-3 py-2 text-gray-500 font-mono text-xs">{sup.supplierSku || '—'}</td>
+                      <td className="px-3 py-2 text-right text-gray-900">
                         {formatCurrency(sup.supplierCost)} {sup.currency && sup.currency !== 'MXN' && (
-                          <span className="text-xs text-zinc-400 ml-1">{sup.currency}</span>
+                          <span className="text-xs text-gray-400 ml-1">{sup.currency}</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-right text-zinc-700">
+                      <td className="px-3 py-2 text-right text-gray-700">
                         {sup.lastLandedCost != null ? formatCurrency(sup.lastLandedCost) : '—'}
                       </td>
-                      <td className="px-3 py-2 text-center text-zinc-600">
+                      <td className="px-3 py-2 text-center text-gray-600">
                         {sup.leadTimeDays != null ? `${sup.leadTimeDays}d` : '—'}
                       </td>
-                      <td className="px-3 py-2 text-center text-zinc-600">
+                      <td className="px-3 py-2 text-center text-gray-600">
                         {sup.minOrderQty != null ? sup.minOrderQty : '—'}
                       </td>
                       <td className="px-3 py-2 text-center">
@@ -568,40 +455,40 @@ export function ProductDetailModal({
         {/* Historial de Compras (Purchase Orders) */}
         {rawDetail && rawDetail.purchaseHistory && rawDetail.purchaseHistory.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-              <ClipboardList className="w-4 h-4 text-zinc-600" />
+            <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-gray-600" />
               Historial de Compras ({rawDetail.purchaseHistory.length})
             </h3>
-            <div className="overflow-x-auto border border-zinc-200 rounded-lg">
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
               <table className="w-full text-sm">
-                <thead className="bg-zinc-50 border-b border-zinc-200">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left px-3 py-2 font-medium text-zinc-600">Fecha</th>
-                    <th className="text-left px-3 py-2 font-medium text-zinc-600">OC</th>
-                    <th className="text-left px-3 py-2 font-medium text-zinc-600">Proveedor</th>
-                    <th className="text-right px-3 py-2 font-medium text-zinc-600">Qty</th>
-                    <th className="text-right px-3 py-2 font-medium text-zinc-600">Costo FOB</th>
-                    <th className="text-right px-3 py-2 font-medium text-zinc-600">Costo Landed</th>
-                    <th className="text-center px-3 py-2 font-medium text-zinc-600">Estado</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">Fecha</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">OC</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-600">Proveedor</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Qty</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Costo FOB</th>
+                    <th className="text-right px-3 py-2 font-medium text-gray-600">Costo Landed</th>
+                    <th className="text-center px-3 py-2 font-medium text-gray-600">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-gray-100">
                   {rawDetail.purchaseHistory.map((ph: ApiProductPurchaseHistory, idx: number) => (
-                    <tr key={`${ph.purchaseOrderId}-${idx}`} className="hover:bg-zinc-50">
-                      <td className="px-3 py-2 text-zinc-600 text-xs">
+                    <tr key={`${ph.purchaseOrderId}-${idx}`} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-gray-600 text-xs">
                         {formatDateTime(new Date(ph.date))}
                       </td>
                       <td className="px-3 py-2 font-mono text-xs text-blue-600 font-medium">
                         {ph.purchaseOrderCode}
                       </td>
-                      <td className="px-3 py-2 text-zinc-900">{ph.supplierName}</td>
-                      <td className="px-3 py-2 text-right text-zinc-900 font-medium">{ph.qty}</td>
-                      <td className="px-3 py-2 text-right text-zinc-700">
+                      <td className="px-3 py-2 text-gray-900">{ph.supplierName}</td>
+                      <td className="px-3 py-2 text-right text-gray-900 font-medium">{ph.qty}</td>
+                      <td className="px-3 py-2 text-right text-gray-700">
                         {formatCurrency(ph.unitCost)} {ph.currency && ph.currency !== 'MXN' && (
-                          <span className="text-xs text-zinc-400 ml-1">{ph.currency}</span>
+                          <span className="text-xs text-gray-400 ml-1">{ph.currency}</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-right text-zinc-900 font-medium">
+                      <td className="px-3 py-2 text-right text-gray-900 font-medium">
                         {ph.landedUnitCost != null ? formatCurrency(ph.landedUnitCost) : '—'}
                       </td>
                       <td className="px-3 py-2 text-center">
@@ -625,8 +512,8 @@ export function ProductDetailModal({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Columna izquierda: Variaciones */}
           <div>
-            <h3 className="text-base font-semibold text-zinc-900 mb-3 flex items-center gap-2">
-              <Package className="w-4 h-4 text-zinc-600" />
+            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4 text-gray-600" />
               Variaciones y Stock
             </h3>
             <div className="space-y-2">
@@ -636,7 +523,7 @@ export function ProductDetailModal({
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="font-medium text-zinc-900 text-sm">
+                        <span className="font-medium text-gray-900 text-sm">
                           {variacion.nombre}: {variacion.valor}
                         </span>
                       </div>
@@ -646,26 +533,26 @@ export function ProductDetailModal({
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleVariationStockChange(variacion.id, variacion.stock - 1)}
-                              className="p-1 hover:bg-zinc-100 rounded"
+                              className="p-1 hover:bg-gray-100 rounded"
                             >
-                              <Minus className="w-3 h-3 text-zinc-600" />
+                              <Minus className="w-3 h-3 text-gray-600" />
                             </button>
                             <input
                               type="number"
                               value={variacion.stock}
                               onChange={(e) => handleVariationStockChange(variacion.id, parseInt(e.target.value) || 0)}
-                              className="w-14 text-center border border-zinc-200 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-14 text-center border border-gray-200 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                               min="0"
                             />
                             <button
                               onClick={() => handleVariationStockChange(variacion.id, variacion.stock + 1)}
-                              className="p-1 hover:bg-zinc-100 rounded"
+                              className="p-1 hover:bg-gray-100 rounded"
                             >
-                              <Plus className="w-3 h-3 text-zinc-600" />
+                              <Plus className="w-3 h-3 text-gray-600" />
                             </button>
                           </div>
                         ) : (
-                          <span className="text-sm font-semibold text-zinc-900">
+                          <span className="text-sm font-semibold text-gray-900">
                             {variacion.stock} uds
                           </span>
                         )}
@@ -689,8 +576,8 @@ export function ProductDetailModal({
 
           {/* Columna derecha: Historial de Precios por Cliente */}
           <div>
-            <h3 className="text-base font-semibold text-zinc-900 mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-zinc-600" />
+            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-gray-600" />
               Historial de Precios
             </h3>
             
@@ -710,7 +597,7 @@ export function ProductDetailModal({
             </div>
 
             {loadingHistorial && (
-              <div className="text-center text-sm text-zinc-500 py-4">
+              <div className="text-center text-sm text-gray-500 py-4">
                 Cargando historial...
               </div>
             )}
@@ -722,7 +609,7 @@ export function ProductDetailModal({
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-zinc-900 text-sm truncate">
+                    <p className="font-medium text-gray-900 text-sm truncate">
                       {clienteSeleccionado.name}
                     </p>
                   </div>
@@ -731,31 +618,31 @@ export function ProductDetailModal({
                 {historialFiltrado.length > 0 ? (
                   <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                     {historialFiltrado.map((item) => (
-                      <div key={item.orderId} className="border border-zinc-200 rounded-lg p-3 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
+                      <div key={item.orderId} className="border border-gray-200 rounded-lg p-3 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <p className="text-xs text-zinc-500 mb-0.5">
+                            <p className="text-xs text-gray-500 mb-0.5">
                               {formatDateTime(new Date(item.orderDate))}
                             </p>
                             <p className="text-xs font-mono text-blue-600 font-medium">
                               {item.orderCode}
                             </p>
-                            <p className="text-xs text-zinc-400 mt-0.5">
+                            <p className="text-xs text-gray-400 mt-0.5">
                               {item.orderStatus}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold text-zinc-900">
+                            <p className="text-sm font-bold text-gray-900">
                               {formatCurrency(item.unitPrice)}
                             </p>
-                            <p className="text-xs text-zinc-500 mt-0.5">
+                            <p className="text-xs text-gray-500 mt-0.5">
                               × {item.quantity} uds
                             </p>
                           </div>
                         </div>
-                        <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
-                          <span className="text-xs font-medium text-zinc-600">Total</span>
-                          <span className="text-sm font-bold text-zinc-900">
+                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-600">Total</span>
+                          <span className="text-sm font-bold text-gray-900">
                             {formatCurrency(item.lineTotal)}
                           </span>
                         </div>
@@ -766,13 +653,13 @@ export function ProductDetailModal({
                     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-3 sticky bottom-0">
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium text-zinc-700">Total Unidades:</span>
-                          <span className="font-bold text-zinc-900">
+                          <span className="font-medium text-gray-700">Total Unidades:</span>
+                          <span className="font-bold text-gray-900">
                             {historialFiltrado.reduce((sum, item) => sum + item.quantity, 0)} uds
                           </span>
                         </div>
                         <div className="flex items-center justify-between pt-1.5 border-t border-blue-200">
-                          <span className="font-semibold text-zinc-800">Total Vendido:</span>
+                          <span className="font-semibold text-gray-800">Total Vendido:</span>
                           <span className="text-lg font-bold text-blue-600">
                             {formatCurrency(
                               historialFiltrado.reduce((sum, item) => sum + item.lineTotal, 0)
@@ -783,15 +670,15 @@ export function ProductDetailModal({
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-zinc-400 bg-zinc-50 rounded-lg border border-dashed border-zinc-200">
-                    <Package className="w-10 h-10 mx-auto mb-2 text-zinc-300" />
+                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
                     <p className="text-sm">Sin historial para este cliente</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-center py-10 text-zinc-400 bg-zinc-50 rounded-lg border border-dashed border-zinc-200">
-                <TrendingUp className="w-10 h-10 mx-auto mb-2 text-zinc-300" />
+              <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <TrendingUp className="w-10 h-10 mx-auto mb-2 text-gray-300" />
                 <p className="text-sm">Seleccione un cliente para ver el historial</p>
               </div>
             )}
@@ -799,7 +686,7 @@ export function ProductDetailModal({
         </div>
 
         {/* Botones de acción */}
-        <div className="flex items-center gap-3 pt-4 border-t border-zinc-200">
+        <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
           {isEditing ? (
             <>
               <Button onClick={handleSave} disabled={saving}>
