@@ -47,9 +47,9 @@ export default function EditarEmpresaPage() {
   const handleSubmit = async (data: CompanyFormValues) => {
     setSubmitting(true);
     try {
-      const updated = await updateCompany(companyId, data);
-      setCompany(prev => prev ? { ...prev, ...updated, stats: updated.stats || prev.stats } : updated);
+      await updateCompany(companyId, data);
       toast.success('Empresa actualizada exitosamente');
+      router.push('/super-admin');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`Error al actualizar: ${msg}`);
