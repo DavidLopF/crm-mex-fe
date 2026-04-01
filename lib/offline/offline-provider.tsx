@@ -6,15 +6,22 @@
  * Responsabilidades:
  *  - Llama initSyncManager() una sola vez al cargar el cliente
  *  - Ejecuta warmCriticalCaches() al arrancar (si hay internet) y al recuperar conexión
+ *    SOLO cuando el usuario está autenticado y no está en una página pública.
+ *    Esto evita que peticiones a endpoints protegidos disparen 'auth-session-expired'
+ *    desde páginas como /forgot-password o /login.
  *  - Limpia los listeners al desmontar
  *  - Muestra toasts de feedback cuando la cola offline se sincroniza
  */
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { initSyncManager, destroySyncManager } from './sync-manager';
 import { warmCriticalCaches } from './cache-warmer';
 import { useGlobalToast } from '@/lib/toast-context';
+import { useAuth } from '@/lib/auth-context';
 import type { SyncSuccessDetail, SyncErrorDetail } from './sync-manager';
+
+const OFFLINE_PUBLIC_PAGES = ['/login', '/forgot-password', '/reset-password'];
 
 const MODULE_LABELS: Record<string, string> = {
   pos: 'POS',
@@ -27,20 +34,31 @@ const MODULE_LABELS: Record<string, string> = {
 
 export function OfflineProvider({ children }: { children: React.ReactNode }) {
   const toast = useGlobalToast();
+  const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
+  const isPublicPage = OFFLINE_PUBLIC_PAGES.includes(pathname);
 
+  // ── Inicializar SyncManager una sola vez ──────────────────────────────────
   useEffect(() => {
-    // ── 1. Inicializar SyncManager ──
     initSyncManager();
+    return () => { destroySyncManager(); };
+  }, []);
 
-    // ── 2. Pre-caché proactivo al arrancar ──
+  // ── Pre-caché proactivo: SOLO cuando autenticado y en página privada ───────
+  // Evita llamar a endpoints protegidos desde /login, /forgot-password, etc.,
+  // lo que dispararía 'auth-session-expired' incluso sin token.
+  useEffect(() => {
+    if (!isAuthenticated || isPublicPage) return;
+
     void warmCriticalCaches();
 
-    // ── 3. Pre-caché al recuperar internet ──
-    const handleOnline = () => {
-      void warmCriticalCaches();
-    };
+    const handleOnline = () => { void warmCriticalCaches(); };
+    window.addEventListener('online', handleOnline);
+    return () => { window.removeEventListener('online', handleOnline); };
+  }, [isAuthenticated, isPublicPage]);
 
-    // ── 4. Toasts de feedback de sincronización ──
+  // ── Toasts de feedback de sincronización ─────────────────────────────────
+  useEffect(() => {
     const handleSuccess = (e: Event) => {
       const { operation } = (e as CustomEvent<SyncSuccessDetail>).detail;
       const label = MODULE_LABELS[operation.module] ?? 'Operación';
@@ -70,13 +88,10 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    window.addEventListener('online', handleOnline);
     window.addEventListener('offline-sync-success', handleSuccess);
     window.addEventListener('offline-sync-error', handleError);
 
     return () => {
-      destroySyncManager();
-      window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline-sync-success', handleSuccess);
       window.removeEventListener('offline-sync-error', handleError);
     };
