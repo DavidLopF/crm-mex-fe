@@ -144,7 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPermissions([]);
       setCompanyId(null);
       setIsSuperAdmin(false);
-      router.replace('/login');
+      // No redirigir si el usuario ya está en una página pública (ej. /forgot-password).
+      // Peticiones en vuelo de páginas anteriores pueden disparar este evento después
+      // de una navegación — redirigir desde una página pública sería incorrecto.
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      if (!PUBLIC_PAGES.includes(currentPath)) {
+        router.replace('/login');
+      }
     };
 
     window.addEventListener('auth-tokens-updated', handleTokensUpdated);
