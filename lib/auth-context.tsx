@@ -61,6 +61,23 @@ function loadIsSuperAdmin(): boolean {
 const PUBLIC_PAGES      = ['/login', '/forgot-password', '/reset-password'];
 const SUPER_ADMIN_ROOT  = '/super-admin';
 
+// ─── Token expiry check ────────────────────────────────────────────────────────
+
+/**
+ * Verifica si un JWT está expirado sin verificar la firma.
+ * Agrega un buffer de 10s para evitar race conditions en el borde de expiración.
+ */
+function isTokenExpired(token: string | null): boolean {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (!payload.exp) return false;
+    return payload.exp * 1000 < Date.now() + 10_000;
+  } catch {
+    return true;
+  }
+}
+
 // ─── Contexto ─────────────────────────────────────────────────────────────────
 
 interface AuthContextValue {
@@ -151,9 +168,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Autenticado + página pública → redirigir al home correcto
+    // Autenticado + página pública → redirigir al home correcto.
+    // EXCEPCIÓN: si el token está expirado, dejar al usuario en la página pública
+    // (ej. /forgot-password) para que pueda recuperar su acceso sin ser redirigido.
     if (isPublicPage) {
-      router.replace(isSuperAdmin ? SUPER_ADMIN_ROOT : '/');
+      if (!isTokenExpired(accessToken)) {
+        router.replace(isSuperAdmin ? SUPER_ADMIN_ROOT : '/');
+      }
       return;
     }
 

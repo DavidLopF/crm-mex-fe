@@ -1,9 +1,12 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import type { CompanySettings } from '@/services/company';
 import { DEFAULT_COMPANY_SETTINGS, getCompanySettings } from '@/services/company';
 import { useAuth } from '@/lib/auth-context';
+
+const COMPANY_PUBLIC_PAGES = ['/login', '/forgot-password', '/reset-password'];
 
 const STORAGE_KEY = 'crm-configurations';
 
@@ -52,6 +55,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const fetchedRef = useRef(false);
   const { isSuperAdmin, isAuthenticated } = useAuth();
+  const pathname = usePathname();
+  const isPublicPage = COMPANY_PUBLIC_PAGES.includes(pathname);
 
   // Apply CSS custom properties whenever settings change
   useEffect(() => {
@@ -60,8 +65,13 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 
   // Fetch settings from API on mount (only once).
   // Super Admins no tienen empresa asociada — omitir la llamada para evitar el 403.
+  // En páginas públicas (login, forgot-password, reset-password) no hacer fetch:
+  // evita disparar 'auth-session-expired' cuando hay tokens expirados en localStorage.
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || isPublicPage) {
+      setIsLoading(false);
+      return;
+    }
     if (isSuperAdmin) {
       setIsLoading(false);
       return;
@@ -78,7 +88,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         // API failed — keep localStorage / default values (already loaded)
       })
       .finally(() => setIsLoading(false));
-  }, [isAuthenticated, isSuperAdmin]);
+  }, [isAuthenticated, isSuperAdmin, isPublicPage]);
 
   const updateSettings = useCallback((newSettings: CompanySettings) => {
     setSettings(newSettings);
