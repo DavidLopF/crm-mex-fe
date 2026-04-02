@@ -158,11 +158,11 @@ export function InventoryTable({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
             <input
               type="text"
               placeholder="Buscar productos por nombre o SKU..."
-              className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-10 pr-4 text-sm text-zinc-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               value={searchTerm}
               onChange={(e) => {
                 if (isControlledSearch && onSearchChange) {
@@ -174,15 +174,15 @@ export function InventoryTable({
             />
           </div>
           
-          <div className="flex gap-1 bg-zinc-100 rounded-lg p-1">
+          <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800">
             {categories.slice(0, 6).map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category === 'Todas' ? '' : category)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
                   (selectedCategory === '' && category === 'Todas') || selectedCategory === category
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700'
+                    ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-100'
                 }`}
               >
                 {category}
@@ -234,8 +234,8 @@ export function InventoryTable({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-100">
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
+              <tr className="border-b border-zinc-100 dark:border-zinc-800">
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Producto
                 </th>
                 <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
@@ -258,15 +258,15 @@ export function InventoryTable({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {currentProducts.map((producto) => {
                 const stockStatus = getStockStatus(producto.stockTotal);
                 
                 return (
-                  <tr key={producto.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={producto.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0 dark:bg-zinc-800">
                           {producto.imageUrl ? (
                             <Image
                               src={producto.imageUrl}
@@ -276,26 +276,26 @@ export function InventoryTable({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                              <Package className="w-5 h-5 text-blue-400" />
+                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/40">
+                              <Package className="w-5 h-5 text-blue-400 dark:text-blue-300" />
                             </div>
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-zinc-900">{producto.nombre}</p>
-                          <p className="text-xs text-zinc-500 line-clamp-1">{producto.descripcion}</p>
+                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{producto.nombre}</p>
+                          <p className="line-clamp-1 text-xs text-zinc-500 dark:text-zinc-400">{producto.descripcion}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-zinc-600 font-mono">{producto.sku}</span>
+                      <span className="font-mono text-sm text-zinc-600 dark:text-zinc-300">{producto.sku}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-zinc-900">{producto.categoria}</span>
+                      <span className="text-sm text-zinc-900 dark:text-zinc-100">{producto.categoria}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-zinc-900">
+                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                           {producto.stockTotal}
                         </span>
                         <Badge variant={stockStatus.variant} className="text-xs">
@@ -304,7 +304,7 @@ export function InventoryTable({
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-zinc-900">
+                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {formatCurrency(producto.precio)}
                       </span>
                     </td>
@@ -317,20 +317,20 @@ export function InventoryTable({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewProduct(producto)}
-                          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors disabled:opacity-50"
+                          className="rounded-lg p-2 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800"
                           title="Ver detalle"
                           disabled={loadingDetail}
                         >
-                          <Eye className="w-4 h-4 text-zinc-500" />
+                          <Eye className="h-4 w-4 text-zinc-500 dark:text-zinc-300" />
                         </button>
                         {canEdit && (
                         <button
                           onClick={() => handleEditProduct(producto)}
-                          className="p-2 hover:bg-zinc-100 rounded-lg transition-colors disabled:opacity-50"
+                          className="rounded-lg p-2 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-zinc-800"
                           title="Editar producto"
                           disabled={loadingDetail}
                         >
-                          <Edit className="w-4 h-4 text-zinc-500" />
+                          <Edit className="h-4 w-4 text-zinc-500 dark:text-zinc-300" />
                         </button>
                         )}
                       </div>
@@ -342,8 +342,8 @@ export function InventoryTable({
           </table>
         </div>
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100">
-          <p className="text-sm text-zinc-500">
+        <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
             {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredProducts.length)} de{' '}
             {totalItems ?? filteredProducts.length} productos
@@ -351,7 +351,7 @@ export function InventoryTable({
           <div className="flex items-center gap-2">
             {/* Items per page */}
             <select
-              className="text-sm border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
               value={effectiveItemsPerPage}
               onChange={(e) => {
                 const newLimit = Number(e.target.value);
@@ -372,7 +372,7 @@ export function InventoryTable({
                 else setInternalPage(next);
               }}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg border border-zinc-200 p-2 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -398,7 +398,7 @@ export function InventoryTable({
                   className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === pageNum
                       ? 'bg-primary text-white'
-                      : 'hover:bg-zinc-50 text-zinc-600'
+                      : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
                   }`}
                 >
                   {pageNum}
@@ -413,7 +413,7 @@ export function InventoryTable({
                 else setInternalPage(next);
               }}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg border border-zinc-200 p-2 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

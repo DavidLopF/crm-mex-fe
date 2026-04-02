@@ -119,7 +119,7 @@ export function WarehouseTable({
     <>
       <Card className="overflow-hidden">
         {/* ── Toolbar ─────────────────────────────────────────────── */}
-        <div className="p-4 border-b border-zinc-200">
+        <div className="border-b border-zinc-200 p-4 dark:border-zinc-800">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             {/* Búsqueda */}
             <div className="relative w-full sm:w-64">
@@ -129,13 +129,13 @@ export function WarehouseTable({
                 placeholder="Buscar almacén..."
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
+                className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm text-zinc-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               {/* Filtro estado */}
-              <div className="flex rounded-lg border border-zinc-200 overflow-hidden text-sm">
+              <div className="flex overflow-hidden rounded-lg border border-zinc-200 text-sm dark:border-zinc-700">
                 {(['all', 'active', 'inactive'] as const).map((f) => (
                   <button
                     key={f}
@@ -143,7 +143,7 @@ export function WarehouseTable({
                     className={`px-3 py-1.5 font-medium transition-colors ${
                       statusFilter === f
                         ? 'bg-primary text-white'
-                        : 'bg-white text-zinc-600 hover:bg-zinc-50'
+                        : 'bg-white text-zinc-600 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800'
                     }`}
                   >
                     {f === 'all' ? 'Todos' : f === 'active' ? 'Activos' : 'Inactivos'}
@@ -170,16 +170,16 @@ export function WarehouseTable({
         {/* ── Tabla ───────────────────────────────────────────────── */}
         <div className="overflow-x-auto">
           {safeWarehouses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
+            <div className="flex flex-col items-center justify-center py-16 text-zinc-400 dark:text-zinc-500">
               <Warehouse className="w-12 h-12 mb-3 opacity-40" />
-              <p className="text-sm font-medium">No se encontraron almacenes</p>
+              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-300">No se encontraron almacenes</p>
               {searchTerm && (
                 <p className="text-xs mt-1">Intenta con otro término de búsqueda</p>
               )}
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-zinc-50 border-b border-zinc-200">
+              <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Nombre
@@ -197,15 +197,15 @@ export function WarehouseTable({
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 bg-white">
+              <tbody className="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900">
                 {safeWarehouses.map((w) => (
-                  <tr key={w.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={w.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                           <Warehouse className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="font-medium text-zinc-900">{w.name}</span>
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">{w.name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -213,7 +213,7 @@ export function WarehouseTable({
                         {w.isActive ? 'Activo' : 'Inactivo'}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-zinc-500">{formatDate(w.createdAt)}</td>
+                    <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">{formatDate(w.createdAt)}</td>
                     {(canEdit || canDelete) && (
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
@@ -229,7 +229,7 @@ export function WarehouseTable({
                           {canDelete && w.isActive && (
                             <button
                               onClick={() => handleDelete(w)}
-                              className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30"
                               title="Desactivar"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -247,7 +247,7 @@ export function WarehouseTable({
 
         {/* ── Paginación ───────────────────────────────────────────── */}
         {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-zinc-200 flex items-center justify-between text-sm text-zinc-600">
+          <div className="flex items-center justify-between border-t border-zinc-200 px-4 py-3 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
             <span>
               {totalCount} almacén{totalCount !== 1 ? 'es' : ''} en total
             </span>
@@ -255,7 +255,7 @@ export function WarehouseTable({
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="p-1.5 rounded-lg hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="rounded-lg p-1.5 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -265,7 +265,7 @@ export function WarehouseTable({
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="p-1.5 rounded-lg hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="rounded-lg p-1.5 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-zinc-800"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

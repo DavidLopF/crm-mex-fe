@@ -64,13 +64,13 @@ export default function DashboardPage() {
           {/* ── Header ── */}
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-zinc-900 tracking-tight">{getGreeting(firstName)}</h1>
-              <p className="mt-0.5 text-sm text-zinc-400 capitalize">{todayLabel()}</p>
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{getGreeting(firstName)}</h1>
+              <p className="mt-0.5 text-sm capitalize text-zinc-400 dark:text-zinc-500">{todayLabel()}</p>
             </div>
           </div>
 
           {/* ── Pill Tabs ── */}
-          <div className="inline-flex items-center gap-1 rounded-md bg-zinc-100 p-1">
+          <div className="inline-flex items-center gap-1 rounded-md bg-zinc-100 p-1 dark:bg-zinc-800">
             {TABS.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -78,8 +78,8 @@ export default function DashboardPage() {
                 className={cn(
                   'flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium transition-all duration-150',
                   activeTab === id
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700',
+                    ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-300 dark:hover:text-zinc-100',
                 )}
               >
                 <Icon className="w-3.5 h-3.5" />

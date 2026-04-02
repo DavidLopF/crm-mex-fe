@@ -9,21 +9,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-zinc-900 text-zinc-50 shadow-sm hover:bg-zinc-800 active:bg-zinc-950',
+          'bg-zinc-900 text-zinc-50 shadow-sm hover:bg-zinc-800 active:bg-zinc-950 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:active:bg-zinc-300',
         brand:
           'bg-[var(--primary-color,#2563eb)] text-white shadow-sm hover:opacity-90 active:opacity-80',
         secondary:
-          'bg-zinc-100 text-zinc-900 shadow-sm hover:bg-zinc-200 active:bg-zinc-300',
+          'bg-zinc-100 text-zinc-900 shadow-sm hover:bg-zinc-200 active:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 dark:active:bg-zinc-600',
         outline:
-          'border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:bg-zinc-50 hover:text-zinc-900 active:bg-zinc-100',
+          'border border-zinc-200 bg-white text-zinc-700 shadow-sm hover:bg-zinc-50 hover:text-zinc-900 active:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:active:bg-zinc-700',
         ghost:
-          'text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900',
+          'text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
         danger:
           'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800',
         'danger-outline':
-          'border border-red-200 text-red-600 bg-white hover:bg-red-50 hover:border-red-300',
+          'border border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50 dark:border-red-900/50 dark:bg-zinc-900 dark:text-red-400 dark:hover:border-red-800 dark:hover:bg-red-950/20',
         link:
-          'text-blue-600 underline-offset-4 hover:underline',
+          'text-blue-600 underline-offset-4 hover:underline dark:text-blue-400',
       },
       size: {
         sm: 'h-8 px-3 text-xs rounded-md',

@@ -61,6 +61,19 @@ function loadIsSuperAdmin(): boolean {
 const PUBLIC_PAGES      = ['/login', '/forgot-password', '/reset-password'];
 const SUPER_ADMIN_ROOT  = '/super-admin';
 
+/**
+ * Normaliza el pathname para comparación: elimina trailing slash y pasa a minúsculas.
+ * Algunos reverse proxies (Nginx) añaden "/" al final, lo que haría que
+ * PUBLIC_PAGES.includes('/forgot-password/') retorne false incorrectamente.
+ */
+function normalizePath(p: string): string {
+  return p.replace(/\/$/, '').toLowerCase() || '/';
+}
+
+function isPublicPath(p: string): boolean {
+  return PUBLIC_PAGES.includes(normalizePath(p));
+}
+
 // ─── Token expiry check ────────────────────────────────────────────────────────
 
 /**
@@ -135,7 +148,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Escuchar eventos del http-client (refresh automático) ─────────────────
   useEffect(() => {
-    const handleTokensUpdated = () => setAccessToken(loadString(ACCESS_TOKEN_KEY));
+    const handleTokensUpdated = () => {
+      // Si el usuario está en /forgot-password o /reset-password, no actualizar el
+      // token — un refresh de fondo no debería redirigirlo fuera de esas páginas.
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      const normalizedPath = normalizePath(currentPath);
+      if (normalizedPath === '/forgot-password' || normalizedPath === '/reset-password') return;
+      setAccessToken(loadString(ACCESS_TOKEN_KEY));
+    };
 
     const handleSessionExpired = () => {
       setAccessToken(null);
@@ -148,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Peticiones en vuelo de páginas anteriores pueden disparar este evento después
       // de una navegación — redirigir desde una página pública sería incorrecto.
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-      if (!PUBLIC_PAGES.includes(currentPath)) {
+      if (!isPublicPath(currentPath)) {
         router.replace('/login');
       }
     };
@@ -165,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const isPublicPage      = PUBLIC_PAGES.includes(pathname);
+    const isPublicPage      = isPublicPath(pathname);
     const isSuperAdminRoute = pathname.startsWith(SUPER_ADMIN_ROOT);
 
     if (!accessToken) {

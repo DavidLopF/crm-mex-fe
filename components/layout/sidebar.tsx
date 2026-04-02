@@ -161,8 +161,8 @@ export function Sidebar({
 
   /* ── Helper: nav link styles ── */
   const linkBase = 'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100';
-  const activeClass = 'bg-zinc-100 text-zinc-900';
-  const inactiveClass = 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800';
+  const activeClass = 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100';
+  const inactiveClass = 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100';
 
   return (
     <>
@@ -176,7 +176,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          'fixed left-0 top-0 h-screen bg-white border-r border-zinc-200/80 flex flex-col transition-all duration-300 ease-in-out',
+          'fixed left-0 top-0 flex h-screen flex-col border-r border-zinc-200/80 bg-white transition-all duration-300 ease-in-out dark:border-zinc-800 dark:bg-zinc-900',
           isMobile
             ? cn('z-[80] w-72 shadow-2xl', mobileOpen ? 'translate-x-0' : '-translate-x-full')
             : cn('z-40', collapsed ? 'w-[72px]' : 'w-64')
@@ -185,7 +185,7 @@ export function Sidebar({
 
         {/* ── Logo / Header ── */}
         <div className={cn(
-          'flex items-center h-16 border-b border-zinc-100 flex-shrink-0 px-3',
+          'flex h-16 flex-shrink-0 items-center border-b border-zinc-100 px-3 dark:border-zinc-800',
           isExpanded ? 'justify-between gap-2' : 'justify-center'
         )}>
           {isExpanded ? (
@@ -207,7 +207,7 @@ export function Sidebar({
                   </svg>
                 )}
               </div>
-              <span className="text-sm font-bold text-zinc-900 tracking-tight truncate">
+              <span className="truncate text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                 {isSuperAdmin ? 'Super Admin' : (settings.companyName || 'CRM')}
               </span>
             </Link>
@@ -236,7 +236,7 @@ export function Sidebar({
           {/* Collapse toggle */}
           <button
             onClick={() => isMobile ? onMobileClose?.() : onCollapsedChange(!collapsed)}
-            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
             aria-label={isMobile ? 'Cerrar menú' : collapsed ? 'Expandir menú' : 'Colapsar menú'}
           >
             {isMobile ? <X className="w-4 h-4" /> : collapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -254,13 +254,13 @@ export function Sidebar({
             const sectionLabel = SECTION_LABELS[item.href];
             const divider = item.dividerBefore ? (
               isExpanded ? (
-                <div key={`div-${item.href}`} className="pt-4 pb-1 px-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                <div key={`div-${item.href}`} className="px-3 pb-1 pt-4">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
                     {sectionLabel ?? ''}
                   </span>
                 </div>
               ) : (
-                <div key={`div-${item.href}`} className="my-2 mx-2 border-t border-zinc-100" />
+                <div key={`div-${item.href}`} className="mx-2 my-2 border-t border-zinc-100 dark:border-zinc-800" />
               )
             ) : null;
 
@@ -293,7 +293,7 @@ export function Sidebar({
                       <>
                         <span className="flex-1 text-left">{item.name}</span>
                         <ChevronRight
-                          className={cn('w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 text-zinc-400', isGroupOpen && 'rotate-90')}
+                          className={cn('h-3.5 w-3.5 flex-shrink-0 text-zinc-400 transition-transform duration-200 dark:text-zinc-500', isGroupOpen && 'rotate-90')}
                         />
                       </>
                     )}
@@ -301,7 +301,7 @@ export function Sidebar({
 
                   {/* Children */}
                   {isExpanded && isGroupOpen && (
-                    <div className="mt-0.5 ml-3 pl-3 border-l border-zinc-200 space-y-0.5">
+                    <div className="mt-0.5 ml-3 space-y-0.5 border-l border-zinc-200 pl-3 dark:border-zinc-700">
                       {item.children!.map((child) => {
                         const isActive = pathname === child.href;
                         return (
@@ -351,7 +351,7 @@ export function Sidebar({
         </nav>
 
         {/* ── Logout ── */}
-        <div className="flex-shrink-0 p-2 border-t border-zinc-100">
+        <div className="flex-shrink-0 border-t border-zinc-100 p-2 dark:border-zinc-800">
           <button
             onClick={() => { if (isMobile) onMobileClose?.(); logout(); }}
             className={cn(

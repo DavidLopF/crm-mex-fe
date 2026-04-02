@@ -162,11 +162,11 @@ export function SupplierTable({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
             <input
               type="text"
               placeholder="Buscar proveedores por nombre o RFC..."
-              className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-10 pr-4 text-sm text-zinc-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               value={searchTerm}
               onChange={(e) => {
                 if (isControlledSearch && onSearchChange) {
@@ -178,7 +178,7 @@ export function SupplierTable({
             />
           </div>
 
-          <div className="flex gap-1 bg-zinc-100 rounded-lg p-1">
+          <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800">
             {(['all', 'active', 'inactive'] as const).map((status) => (
               <button
                 key={status}
@@ -191,8 +191,8 @@ export function SupplierTable({
                 }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   statusFilter === status
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-600 hover:text-zinc-900'
+                    ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100'
                 }`}
               >
                 {status === 'all' ? 'Todos' : status === 'active' ? 'Activos' : 'Inactivos'}
@@ -214,7 +214,7 @@ export function SupplierTable({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-100">
+              <tr className="border-b border-zinc-100 dark:border-zinc-800">
                 <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Proveedor
                 </th>
@@ -235,52 +235,52 @@ export function SupplierTable({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {currentSuppliers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <Truck className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
-                    <p className="text-zinc-500 font-medium">No se encontraron proveedores</p>
-                    <p className="text-zinc-400 text-sm mt-1">Intenta cambiar los filtros de búsqueda</p>
+                    <Truck className="mx-auto mb-3 h-12 w-12 text-zinc-300 dark:text-zinc-600" />
+                    <p className="font-medium text-zinc-500 dark:text-zinc-300">No se encontraron proveedores</p>
+                    <p className="mt-1 text-sm text-zinc-400 dark:text-zinc-500">Intenta cambiar los filtros de búsqueda</p>
                   </td>
                 </tr>
               ) : (
                 currentSuppliers.map((supplier) => (
-                  <tr key={supplier.id} className="hover:bg-zinc-50 transition-colors">
+                  <tr key={supplier.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-orange-600">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/40">
+                          <span className="text-sm font-bold text-orange-600 dark:text-orange-300">
                             {getInitials(supplier.name)}
                           </span>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-zinc-900">{supplier.name}</p>
+                          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{supplier.name}</p>
                           {supplier.email && (
-                            <p className="text-xs text-zinc-500">{supplier.email}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{supplier.email}</p>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-zinc-600 font-mono">
+                      <span className="font-mono text-sm text-zinc-600 dark:text-zinc-300">
                         {supplier.rfc || '—'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       {supplier.contactName ? (
                         <div>
-                          <p className="text-sm text-zinc-900">{supplier.contactName}</p>
+                          <p className="text-sm text-zinc-900 dark:text-zinc-100">{supplier.contactName}</p>
                           {supplier.contactPhone && (
-                            <p className="text-xs text-zinc-500">{supplier.contactPhone}</p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{supplier.contactPhone}</p>
                           )}
                         </div>
                       ) : (
-                        <span className="text-sm text-zinc-400">—</span>
+                        <span className="text-sm text-zinc-400 dark:text-zinc-500">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-zinc-900">
+                      <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {formatCurrency(supplier.totalPurchases)}
                       </span>
                     </td>
@@ -293,7 +293,7 @@ export function SupplierTable({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewSupplier(supplier)}
-                          className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:text-zinc-500 dark:hover:bg-blue-950/30"
                           title="Ver detalle"
                           disabled={loadingDetail}
                         >
@@ -302,7 +302,7 @@ export function SupplierTable({
                         {canEdit && (
                           <button
                             onClick={() => handleEditSupplier(supplier)}
-                            className="p-2 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                            className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-amber-50 hover:text-amber-600 dark:text-zinc-500 dark:hover:bg-amber-950/30"
                             title="Editar"
                           >
                             <Edit className="w-4 h-4" />
@@ -311,7 +311,7 @@ export function SupplierTable({
                         {canDelete && (
                           <button
                             onClick={() => handleDeleteClick(supplier)}
-                            className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-zinc-500 dark:hover:bg-red-950/30"
                             title="Eliminar"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -327,8 +327,8 @@ export function SupplierTable({
         </div>
 
         {/* Paginación */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-100">
-          <p className="text-sm text-zinc-500">
+        <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Mostrando {((currentPage - 1) * effectiveItemsPerPage) + 1} a{' '}
             {Math.min(currentPage * effectiveItemsPerPage, totalItems ?? filteredSuppliers.length)} de{' '}
             {totalItems ?? filteredSuppliers.length} proveedores
@@ -336,7 +336,7 @@ export function SupplierTable({
           <div className="flex items-center gap-2">
             {/* Items por página */}
             <select
-              className="text-sm border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
               value={effectiveItemsPerPage}
               onChange={(e) => {
                 const newLimit = Number(e.target.value);
@@ -351,7 +351,7 @@ export function SupplierTable({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg border border-zinc-200 p-2 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -374,7 +374,7 @@ export function SupplierTable({
                   className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === pageNum
                       ? 'bg-primary text-white'
-                      : 'hover:bg-zinc-50 text-zinc-600'
+                      : 'text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800'
                   }`}
                 >
                   {pageNum}
@@ -385,7 +385,7 @@ export function SupplierTable({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg border border-zinc-200 p-2 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

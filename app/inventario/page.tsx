@@ -133,8 +133,8 @@ export default function InventarioPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight tracking-tight">Inventario</h1>
-            <p className="text-sm text-zinc-500">Gestión de productos y control de stock</p>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Inventario</h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Gestión de productos y control de stock</p>
           </div>
         </div>
         
