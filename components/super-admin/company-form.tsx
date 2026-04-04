@@ -75,10 +75,8 @@ export function CompanyForm({ initialData, onSubmit, submitting, submitLabel = '
 
   // ── Búsqueda de municipio DANE ─────────────────────────────────────────────
   const searchCities = useCallback((q: string) => {
-    if (!q || q.length < 2) {
-      setCityResults([]);
-      return;
-    }
+    // Sin texto: mostrar las primeras 10 ciudades como sugerencia
+    // Con menos de 2 chars: igual muestra resultados parciales
     setCityResults(searchDaneCities(q, 10));
   }, []);
 
@@ -268,7 +266,11 @@ export function CompanyForm({ initialData, onSubmit, submitting, submitLabel = '
                     set('departmentName', '');
                   }
                 }}
-                onFocus={() => setShowCityDropdown(true)}
+                onFocus={() => {
+                  setShowCityDropdown(true);
+                  searchCities(citySearch);
+                }}
+                onBlur={() => setTimeout(() => setShowCityDropdown(false), 150)}
                 placeholder="Buscar municipio..."
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

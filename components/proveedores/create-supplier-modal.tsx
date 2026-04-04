@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, Button } from '@/components/ui';
+import { Building2, User, MapPin, Mail, Phone, Notebook, FileText, Globe } from 'lucide-react';
+import { Modal, Button, Input } from '@/components/ui';
 import { CreateSupplierDto } from '@/services/suppliers';
 
 interface CreateSupplierModalProps {
@@ -68,190 +69,184 @@ export function CreateSupplierModal({ isOpen, onClose, onSave, submitting }: Cre
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Nuevo Proveedor" size="xl">
-      <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
+      <div className="space-y-8 py-2">
         {/* ── Información General ─── */}
-        <div>
-          <h4 className="text-sm font-semibold text-zinc-700 mb-3 border-b pb-2">
-            Información General
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Nombre / Razón Social <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-blue-600" />
+            </div>
+            <h4 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+              Información de la Empresa
+            </h4>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="md:col-span-2">
+              <Input
+                label="Nombre / Razón Social"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej: Distribuidora Nacional SA de CV"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
                 autoFocus
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">RFC</label>
-              <input
-                type="text"
-                value={rfc}
-                onChange={(e) => setRfc(e.target.value.toUpperCase())}
-                placeholder="Ej: XAXX010101000"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              label="RFC"
+              value={rfc}
+              onChange={(e) => setRfc(e.target.value.toUpperCase())}
+              placeholder="XAXX010101000"
+              hint="Opcional"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="proveedor@email.com"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              label="Email de la Empresa"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ventas@proveedor.com"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Teléfono
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Ej: +52 55 1234 5678"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Input
+              label="Teléfono Principal"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+52 55 1234 5678"
+            />
           </div>
-        </div>
+        </section>
 
-        {/* ── Dirección ─── */}
-        <div>
-          <h4 className="text-sm font-semibold text-zinc-700 mb-3 border-b pb-2">
-            Dirección
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Dirección
-              </label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Calle, número, colonia"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* ── Dirección ─── */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-amber-600" />
+              </div>
+              <h4 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+                Ubicación
+              </h4>
             </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <Input
+                  label="Dirección"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Calle, número, colonia"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Ciudad</label>
-              <input
-                type="text"
+              <Input
+                label="Ciudad"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Ej: Ciudad de México"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Ciudad de México"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Estado</label>
-              <input
-                type="text"
+              <Input
+                label="Estado"
                 value={state}
                 onChange={(e) => setState(e.target.value)}
-                placeholder="Ej: CDMX"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="CDMX"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Código Postal
-              </label>
-              <input
-                type="text"
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
-                placeholder="Ej: 06600"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="sm:col-span-2">
+                <Input
+                  label="Código Postal"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  placeholder="06600"
+                />
+              </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* ── Contacto ─── */}
-        <div>
-          <h4 className="text-sm font-semibold text-zinc-700 mb-3 border-b pb-2">
-            Persona de Contacto
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Nombre del Contacto
-              </label>
-              <input
-                type="text"
+          {/* ── Contacto ─── */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                <User className="w-4 h-4 text-purple-600" />
+              </div>
+              <h4 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+                Persona de Contacto
+              </h4>
+            </div>
+            
+            <div className="space-y-4">
+              <Input
+                label="Nombre Completo"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
                 placeholder="Ej: Juan Pérez"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Teléfono del Contacto
-              </label>
-              <input
+              <Input
+                label="Teléfono Directo"
                 type="tel"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
                 placeholder="+52 55 1234 5678"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">
-                Email del Contacto
-              </label>
-              <input
+              <Input
+                label="Email Directo"
                 type="email"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="contacto@email.com"
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="juan.perez@proveedor.com"
               />
             </div>
-          </div>
+          </section>
         </div>
 
         {/* ── Notas ─── */}
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-1">Notas</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            placeholder="Información adicional sobre el proveedor..."
-            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          />
-        </div>
-      </div>
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-zinc-100 rounded-lg flex items-center justify-center">
+              <Notebook className="w-4 h-4 text-zinc-600" />
+            </div>
+            <h4 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">
+              Notas Adicionales
+            </h4>
+          </div>
+          
+          <div className="w-full space-y-1.5">
+            <label className="block text-sm font-medium text-zinc-700">
+              Observaciones
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder="Información relevante sobre condiciones comerciales, tiempos de entrega, etc..."
+              className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:border-zinc-400 text-sm placeholder:text-zinc-400 min-h-[100px] transition-all resize-none"
+            />
+          </div>
+        </section>
 
-      {/* ── Botones ─── */}
-      <div className="flex items-center gap-3 pt-5 border-t mt-5">
-        <Button variant="outline" onClick={handleClose} className="flex-1" disabled={submitting}>
-          Cancelar
-        </Button>
-        <Button onClick={handleSubmit} className="flex-1" disabled={!name.trim() || submitting}>
-          {submitting ? 'Guardando...' : 'Crear Proveedor'}
-        </Button>
+        {/* ── Botones ─── */}
+        <div className="flex items-center gap-3 pt-6 border-t border-zinc-100">
+          <Button 
+            variant="outline" 
+            onClick={handleClose} 
+            className="flex-1 h-11" 
+            disabled={submitting}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            className="flex-1 h-11 shadow-sm" 
+            disabled={!name.trim() || submitting}
+          >
+            {submitting ? 'Guardando...' : 'Crear Proveedor'}
+          </Button>
+        </div>
       </div>
     </Modal>
   );

@@ -41,6 +41,8 @@ export interface ClientDetail {
   departmentCode?: string | null;
   departmentName?: string | null;
   nitDv?: string | null;
+  email?: string | null;
+  documentType?: string | null;
 }
 
 // ── Filtros para GET /api/clients (paginado) ───────────────────────

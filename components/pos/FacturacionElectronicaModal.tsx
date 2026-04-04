@@ -8,7 +8,7 @@ import {
   Building2, Mail, Phone, Home, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
-import { getClients } from '@/services/clients';
+import { getClients, getClientById } from '@/services/clients';
 import type { ClientDetail } from '@/services/clients/clients.types';
 import {
   emitInvoice, downloadInvoiceXml, downloadInvoiceZip, linkSaleToInvoice,
@@ -300,12 +300,44 @@ export function FacturacionElectronicaModal({ sale, onClose, onSuccess }: Props)
     setLines(mapSaleToInvoiceLines(sale));
   }, [sale]);
 
+  // Auto-cargar datos fiscales del cliente vinculado a la venta
+  useEffect(() => {
+    if (!sale.clientId) return;
+    getClientById(sale.clientId)
+      .then((client) => {
+        setSelectedClientName(client.name);
+        const clientEmail = client.email ?? '';
+        setBuyer({
+          name:           client.name,
+          nit:            client.document ?? '',
+          nitDv:          client.nitDv   ?? '',
+          email:          clientEmail,
+          phone:          client.phone   ?? '',
+          address:        client.address ?? '',
+          cityCode:       client.cityCode       ?? '',
+          cityName:       client.cityName       ?? '',
+          departmentCode: client.departmentCode ?? '',
+          departmentName: client.departmentName ?? '',
+        });
+        if (client.cityCode) {
+          const city = searchDaneCities(client.cityCode, 1).find(
+            (c) => c.cityCode === client.cityCode,
+          ) ?? null;
+          setSelectedCity(city);
+        }
+      })
+      .catch(() => {
+        // Si falla la carga, deja el formulario vacío para llenado manual
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sale.clientId]);
+
   function patchBuyer(patch: Partial<BuyerForm>) {
     setBuyer((prev) => ({ ...prev, ...patch }));
   }
 
   function handleClientSelect(client: ClientDetail) {
-    const clientEmail = 'email' in client && typeof client.email === 'string' ? client.email : '';
+    const clientEmail = client.email ?? '';
 
     setSelectedClientName(client.name);
     patchBuyer({

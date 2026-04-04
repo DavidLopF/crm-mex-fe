@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Users, Shield, Building2 } from 'lucide-react';
-import { RolesTable, UsersTable, ConfigTableSkeleton, CompanySettingsForm } from '@/components/configuracion';
+import { Users, Shield, Building2, FileText } from 'lucide-react';
+import { RolesTable, UsersTable, ConfigTableSkeleton, CompanySettingsForm, IssuerForm } from '@/components/configuracion';
 import {
   getRoles,
   createRole,
@@ -27,11 +27,13 @@ import { cn } from '@/lib/utils';
 import { useCompany } from '@/lib/company-context';
 import type { UpdateCompanySettingsDto, CompanySettings } from '@/services/company';
 import { updateCompanySettings } from '@/services/company';
+import { getIssuer, upsertIssuer } from '@/services/issuer';
+import type { IssuerDto, UpsertIssuerDto } from '@/services/issuer';
 import { PermissionGuard } from '@/components/layout';
 import { useConfigStore } from '@/stores';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 
-type Tab = 'users' | 'roles' | 'company';
+type Tab = 'users' | 'roles' | 'company' | 'facturacion';
 
 export default function ConfiguracionPage() {
   // ── Store (data — single shallow subscription) ──
@@ -252,6 +254,46 @@ export default function ConfiguracionPage() {
   };
 
   // ═══════════════════════════════════════════════════════════════
+  // EMISOR (FACTURACIÓN ELECTRÓNICA)
+  // ═══════════════════════════════════════════════════════════════
+
+  const [issuer, setIssuer] = useState<IssuerDto | null>(null);
+  const [loadingIssuer, setLoadingIssuer] = useState(false);
+
+  const loadIssuer = useCallback(async () => {
+    setLoadingIssuer(true);
+    try {
+      const data = await getIssuer();
+      setIssuer(data);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error al cargar configuración del emisor: ${msg}`);
+    } finally {
+      setLoadingIssuer(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'facturacion') loadIssuer();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const handleIssuerSave = async (data: UpsertIssuerDto) => {
+    setSubmitting(true);
+    try {
+      const updated = await upsertIssuer(data);
+      setIssuer(updated as unknown as IssuerDto);
+      toast.success('Configuración del emisor guardada exitosamente');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error al guardar el emisor: ${msg}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════
   // COMPANY SETTINGS
   // ═══════════════════════════════════════════════════════════════
 
@@ -288,6 +330,7 @@ export default function ConfiguracionPage() {
     { key: 'users', label: 'Usuarios', icon: Users },
     { key: 'roles', label: 'Roles', icon: Shield },
     { key: 'company', label: 'Empresa', icon: Building2 },
+    { key: 'facturacion', label: 'Facturación', icon: FileText },
   ];
 
   return (
@@ -375,6 +418,18 @@ export default function ConfiguracionPage() {
             onSave={handleCompanySettingsSave}
             submitting={submitting}
           />
+        )}
+
+        {activeTab === 'facturacion' && (
+          loadingIssuer ? (
+            <ConfigTableSkeleton rows={8} columns={2} />
+          ) : (
+            <IssuerForm
+              issuer={issuer}
+              onSave={handleIssuerSave}
+              submitting={submitting}
+            />
+          )
         )}
       </div>
     </main>

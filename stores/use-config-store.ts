@@ -8,8 +8,8 @@ import type { Role, UserDetail } from '@/services/users';
 
 interface ConfigState {
   // ── Active tab ──
-  activeTab: 'users' | 'roles' | 'company';
-  setActiveTab: (tab: 'users' | 'roles' | 'company') => void;
+  activeTab: 'users' | 'roles' | 'company' | 'facturacion';
+  setActiveTab: (tab: 'users' | 'roles' | 'company' | 'facturacion') => void;
 
   // ── Roles ──
   roles: Role[];

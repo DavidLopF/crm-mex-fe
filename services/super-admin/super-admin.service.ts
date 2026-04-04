@@ -59,3 +59,16 @@ export async function createCompanyUser(
 export async function toggleUserStatus(userId: number): Promise<{ id: number; isActive: boolean }> {
   return patch<{ id: number; isActive: boolean }>(`${BASE}/users/${userId}/toggle`);
 }
+
+// ─── Certificado DIAN ─────────────────────────────────────────────────────────
+
+export async function uploadCompanyCertificate(
+  companyId: number,
+  certificateB64: string,
+  certificatePassword: string,
+): Promise<void> {
+  await post(`${BASE}/companies/${companyId}/issuer/certificate`, {
+    certificateB64,
+    certificatePassword,
+  });
+}

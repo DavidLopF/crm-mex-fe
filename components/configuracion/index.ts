@@ -9,3 +9,4 @@ export { DeleteUserModal } from './delete-user-modal';
 export { ChangeRoleModal } from './change-role-modal';
 export { ConfigTableSkeleton } from './config-table-skeleton';
 export { CompanySettingsForm } from './company-settings-form';
+export { IssuerForm } from './issuer-form';

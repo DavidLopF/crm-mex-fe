@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Button } from '@/components/ui';
+import { Card, Button, Modal, Input } from '@/components/ui';
 import {
   Search,
   Plus,
@@ -12,7 +12,6 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  X,
   Truck,
   Calendar,
   StickyNote,
@@ -20,6 +19,10 @@ import {
   ChevronDown,
   ChevronUp,
   Percent,
+  Layers,
+  Info,
+  History,
+  ArrowRight,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useDebounce } from '@/lib/hooks';
@@ -52,7 +55,7 @@ interface LineaOC {
 }
 
 let itemCounter = 0;
-const PRODUCTS_PER_PAGE = 4;
+const PRODUCTS_PER_PAGE = 6;
 
 export function CreatePurchaseOrderFullscreen({
   isOpen,
@@ -62,8 +65,8 @@ export function CreatePurchaseOrderFullscreen({
 }: CreatePurchaseOrderFullscreenProps) {
   const { settings } = useCompany();
   const primary = settings.primaryColor;
-  const primaryBg = primary + '18';
-  const primaryBgMid = primary + '30';
+  const primaryBg = primary + '10';
+  const primaryBgMid = primary + '20';
 
   // ── Estado principal ──
   const [supplierId, setSupplierId] = useState<number | ''>('');
@@ -72,7 +75,7 @@ export function CreatePurchaseOrderFullscreen({
   const [notas, setNotas] = useState('');
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
 
-  // ── Costos de internación (landed cost) ──
+  // ── Costos de internación ──
   const [costosOpen, setCostosOpen] = useState(false);
   const [freightPct, setFreightPct] = useState(0);
   const [customsPct, setCustomsPct] = useState(0);
@@ -84,14 +87,14 @@ export function CreatePurchaseOrderFullscreen({
   const [suppliers, setSuppliers] = useState<SupplierListItem[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
 
-  // ── Productos (paginados desde API /api/inventory) ──
+  // ── Productos ──
   const [productos, setProductos] = useState<OrderProductItem[]>([]);
   const [loadingProductos, setLoadingProductos] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
 
-  // ── Catálogo del proveedor ──
+  // ── Catálogo ──
   const [catalogoProveedor, setCatalogoProveedor] = useState<SupplierProductItem[]>([]);
   const [loadingCatalogo, setLoadingCatalogo] = useState(false);
   const [showCatalogo, setShowCatalogo] = useState(true);
@@ -100,21 +103,7 @@ export function CreatePurchaseOrderFullscreen({
 
   const supplierSeleccionado = suppliers.find(s => s.id === supplierId);
 
-  // ── Bloquear scroll y manejar Escape ──
-  useEffect(() => {
-    if (!isOpen) return;
-    document.body.style.overflow = 'hidden';
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen, onClose]);
-
-  // ── Cargar proveedores cuando se abre ──
+  // ── Cargar proveedores ──
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -134,7 +123,7 @@ export function CreatePurchaseOrderFullscreen({
     return () => { cancelled = true; };
   }, [isOpen]);
 
-  // ── Cargar catálogo del proveedor seleccionado ──
+  // ── Cargar catálogo ──
   useEffect(() => {
     if (!isOpen || !supplierId) {
       setCatalogoProveedor([]);
@@ -155,7 +144,7 @@ export function CreatePurchaseOrderFullscreen({
     return () => { cancelled = true; };
   }, [isOpen, supplierId]);
 
-  // ── Cargar productos con búsqueda y paginación ──
+  // ── Cargar productos ──
   const loadProductos = useCallback(async (page: number, search: string) => {
     setLoadingProductos(true);
     try {
@@ -177,7 +166,6 @@ export function CreatePurchaseOrderFullscreen({
     }
   }, []);
 
-  // Recargar cuando cambia la búsqueda
   useEffect(() => {
     if (isOpen && supplierId) {
       setCurrentPage(1);
@@ -185,43 +173,20 @@ export function CreatePurchaseOrderFullscreen({
     }
   }, [debouncedSearch, isOpen, supplierId, loadProductos]);
 
-  // ── Paginación ──
-  const handlePrevPage = () => {
-    if (currentPage > 1) loadProductos(currentPage - 1, debouncedSearch);
-  };
-  const handleNextPage = () => {
-    if (currentPage < totalPages) loadProductos(currentPage + 1, debouncedSearch);
-  };
+  const handlePrevPage = () => { if (currentPage > 1) loadProductos(currentPage - 1, debouncedSearch); };
+  const handleNextPage = () => { if (currentPage < totalPages) loadProductos(currentPage + 1, debouncedSearch); };
 
-  // ── Agregar producto al carrito ──
   const agregarAlCarrito = (producto: OrderProductItem) => {
-    // Si ya existe esta variante, incrementar cantidad
     const existing = carrito.find(l => l.producto.id === producto.id);
     if (existing) {
-      setCarrito(prev =>
-        prev.map(l =>
-          l.key === existing.key
-            ? { ...l, cantidad: l.cantidad + 1, subtotal: l.costoUnitario * (l.cantidad + 1) }
-            : l
-        )
-      );
+      setCarrito(prev => prev.map(l => l.key === existing.key ? { ...l, cantidad: l.cantidad + 1, subtotal: l.costoUnitario * (l.cantidad + 1) } : l));
       return;
     }
-
     itemCounter++;
-    const nuevaLinea: LineaOC = {
-      key: itemCounter,
-      producto,
-      cantidad: 1,
-      costoUnitario: producto.price,
-      subtotal: producto.price,
-    };
-    setCarrito(prev => [...prev, nuevaLinea]);
+    setCarrito(prev => [...prev, { key: itemCounter, producto, cantidad: 1, costoUnitario: producto.price, subtotal: producto.price }]);
   };
 
-  // ── Agregar producto desde catálogo del proveedor (con costo pre-llenado) ──
   const agregarDesdeCatalogo = (sp: SupplierProductItem) => {
-    // Build a virtual OrderProductItem from the catalog entry
     const variant = sp.product.variants?.[0];
     const virtualProducto: OrderProductItem = {
       id: variant?.id ?? sp.productId,
@@ -239,108 +204,59 @@ export function CreatePurchaseOrderFullscreen({
       isActive: true,
       warehouses: [],
     };
-
-    // If already in cart, increment
     const existing = carrito.find(l => l.producto.id === virtualProducto.id);
     if (existing) {
-      setCarrito(prev =>
-        prev.map(l =>
-          l.key === existing.key
-            ? { ...l, cantidad: l.cantidad + 1, subtotal: l.costoUnitario * (l.cantidad + 1) }
-            : l
-        )
-      );
+      setCarrito(prev => prev.map(l => l.key === existing.key ? { ...l, cantidad: l.cantidad + 1, subtotal: l.costoUnitario * (l.cantidad + 1) } : l));
       return;
     }
-
     itemCounter++;
-    const nuevaLinea: LineaOC = {
-      key: itemCounter,
-      producto: virtualProducto,
-      cantidad: sp.minOrderQty || 1,
-      costoUnitario: sp.supplierCost,
-      subtotal: sp.supplierCost * (sp.minOrderQty || 1),
-    };
-    setCarrito(prev => [...prev, nuevaLinea]);
+    setCarrito(prev => [...prev, { key: itemCounter, producto: virtualProducto, cantidad: sp.minOrderQty || 1, costoUnitario: sp.supplierCost, subtotal: sp.supplierCost * (sp.minOrderQty || 1) }]);
   };
 
-  // ── Actualizar cantidad ──
   const actualizarCantidad = (key: number, cantidad: number) => {
-    if (cantidad < 1) return;
-    setCarrito(prev =>
-      prev.map(l =>
-        l.key === key
-          ? { ...l, cantidad, subtotal: l.costoUnitario * cantidad }
-          : l
-      )
-    );
+    setCarrito(prev => prev.map(l => l.key === key ? { ...l, cantidad, subtotal: (l.costoUnitario || 0) * cantidad } : l));
   };
 
-  // ── Actualizar costo unitario ──
   const actualizarCosto = (key: number, costo: number) => {
-    if (costo < 0) return;
-    setCarrito(prev =>
-      prev.map(l =>
-        l.key === key
-          ? { ...l, costoUnitario: costo, subtotal: costo * l.cantidad }
-          : l
-      )
-    );
+    setCarrito(prev => prev.map(l => l.key === key ? { ...l, costoUnitario: costo, subtotal: costo * (l.cantidad || 0) } : l));
   };
 
-  // ── Eliminar del carrito ──
-  const eliminarDelCarrito = (key: number) => {
-    setCarrito(prev => prev.filter(l => l.key !== key));
-  };
+  const eliminarDelCarrito = (key: number) => setCarrito(prev => prev.filter(l => l.key !== key));
 
-  // ── Totales ──
   const subtotal = carrito.reduce((sum, l) => sum + l.subtotal, 0);
   const totalUnidades = carrito.reduce((sum, l) => sum + l.cantidad, 0);
 
-  // ── Landed cost calculations ──
   const totalPctSum = freightPct + customsPct + taxPct + handlingPct + otherPct;
   const landedMultiplier = 1 + totalPctSum / 100;
-  const freightCost = subtotal * freightPct / 100;
-  const customsCost = subtotal * customsPct / 100;
-  const taxCostCalc = subtotal * taxPct / 100;
-  const handlingCost = subtotal * handlingPct / 100;
-  const otherCost = subtotal * otherPct / 100;
-  const totalLandedCosts = freightCost + customsCost + taxCostCalc + handlingCost + otherCost;
+  const totalLandedCosts = subtotal * totalPctSum / 100;
   const grandTotal = subtotal + totalLandedCosts;
 
   const costFields = [
-    { key: 'freightPct', label: 'Flete', icon: '🚛', value: freightPct, setter: setFreightPct, cost: freightCost },
-    { key: 'customsPct', label: 'Aduana', icon: '🏛️', value: customsPct, setter: setCustomsPct, cost: customsCost },
-    { key: 'taxPct', label: 'Impuestos', icon: '📋', value: taxPct, setter: setTaxPct, cost: taxCostCalc },
-    { key: 'handlingPct', label: 'Manejo', icon: '📦', value: handlingPct, setter: setHandlingPct, cost: handlingCost },
-    { key: 'otherPct', label: 'Otros', icon: '➕', value: otherPct, setter: setOtherPct, cost: otherCost },
+    { key: 'freightPct', label: 'Flete', icon: '🚛', value: freightPct, setter: setFreightPct },
+    { key: 'customsPct', label: 'Aduana', icon: '🏛️', value: customsPct, setter: setCustomsPct },
+    { key: 'taxPct', label: 'Impuestos', icon: '📋', value: taxPct, setter: setTaxPct },
+    { key: 'handlingPct', label: 'Manejo', icon: '📦', value: handlingPct, setter: setHandlingPct },
+    { key: 'otherPct', label: 'Otros', icon: '➕', value: otherPct, setter: setOtherPct },
   ];
 
-  // ── Guardar ──
   const handleGuardar = () => {
     if (!supplierId || carrito.length === 0) return;
-
-    const dto: CreatePurchaseOrderDto = {
+    onSave({
       supplierId: supplierId as number,
       items: carrito.map(l => ({
         variantId: l.producto.id,
         qty: l.cantidad,
         unitCost: l.costoUnitario,
-        description: l.producto.variantName
-          ? `${l.producto.name} - ${l.producto.variantName}`
-          : l.producto.name,
+        description: l.producto.variantName ? `${l.producto.name} - ${l.producto.variantName}` : l.producto.name,
       })),
       notes: notas.trim() || undefined,
       expectedDeliveryDate: expectedDeliveryDate || undefined,
-      // Landed cost percentages
       ...(freightPct > 0 && { freightPct }),
       ...(customsPct > 0 && { customsPct }),
       ...(taxPct > 0 && { taxPct }),
       ...(handlingPct > 0 && { handlingPct }),
       ...(otherPct > 0 && { otherPct }),
-    };
-
-    onSave(dto);
+    });
   };
 
   const handleClose = () => {
@@ -352,567 +268,266 @@ export function CreatePurchaseOrderFullscreen({
     setProductos([]);
     setCurrentPage(1);
     setCatalogoProveedor([]);
-    setShowCatalogo(true);
-    // Reset landed cost
-    setCostosOpen(false);
-    setFreightPct(0);
-    setCustomsPct(0);
-    setTaxPct(0);
-    setHandlingPct(0);
-    setOtherPct(0);
+    setFreightPct(0); setCustomsPct(0); setTaxPct(0); setHandlingPct(0); setOtherPct(0);
     itemCounter = 0;
     onClose();
   };
 
-  // ── Stock badge ──
   const getStockBadge = (status: string) => {
     switch (status) {
-      case 'in_stock':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">En stock</span>;
-      case 'low_stock':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Stock bajo</span>;
-      case 'out_of_stock':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Sin stock</span>;
-      default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700">{status}</span>;
+      case 'in_stock': return <span className="text-[10px] font-bold text-green-600 uppercase">Stock</span>;
+      case 'low_stock': return <span className="text-[10px] font-bold text-amber-600 uppercase">Bajo</span>;
+      case 'out_of_stock': return <span className="text-[10px] font-bold text-red-600 uppercase">Agotado</span>;
+      default: return null;
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/30 transition-opacity duration-200 animate-in fade-in"
-        onClick={handleClose}
-      />
-
-      {/* Fullscreen Panel */}
-      <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in slide-in-from-bottom-4 fade-in duration-300">
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-200 bg-white flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5" style={{ color: primary }} />
-            <h2 className="text-base font-semibold text-zinc-900">Nueva Orden de Compra</h2>
-          </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-zinc-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-zinc-500" />
-          </button>
-        </div>
-
-        {/* ── Body: 3 columnas ── */}
-        <div className="flex-1 flex min-h-0">
-
-          {/* ═══ Columna 1: Proveedor + Búsqueda de Productos ═══ */}
-          <div className="w-80 flex-shrink-0 border-r border-zinc-200 flex flex-col bg-zinc-50/50">
-            {/* Proveedor */}
-            <div className="p-4 border-b border-zinc-200">
-              <div className="flex items-center gap-2 mb-3">
-                <Truck className="w-4 h-4 text-zinc-500" />
-                <h3 className="text-sm font-semibold text-zinc-900">Proveedor</h3>
-              </div>
-              {loadingSuppliers ? (
-                <div className="flex items-center gap-2 py-2">
-                  <Loader2 className="w-4 h-4 animate-spin" style={{ color: primary }} />
-                  <span className="text-sm text-zinc-500">Cargando...</span>
-                </div>
-              ) : (
-                <select
-                  value={supplierId}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSupplierId(val ? Number(val) : '');
-                    setCarrito([]);
-                    setSearchTerm('');
-                    setShowCatalogo(true);
-                  }}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
-                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                >
-                  <option value="">Seleccione un proveedor...</option>
-                  {suppliers.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              )}
-              {supplierSeleccionado && (
-                <div className="mt-2 px-3 py-2 rounded-lg animate-in slide-in-from-top-2 fade-in duration-200" style={{ backgroundColor: primaryBg }}>
-                  <p className="text-sm font-medium" style={{ color: primary }}>{supplierSeleccionado.name}</p>
-                </div>
-              )}
+    <Modal 
+      isOpen={isOpen} 
+      onClose={handleClose} 
+      title="Emitir Orden de Compra" 
+      size="full"
+      className="max-w-[95vw] h-[90vh]"
+    >
+      <div className="flex h-[calc(90vh-120px)] -mx-6 -mb-6 border-t border-zinc-100">
+        {/* Columna 1: Catálogo */}
+        <aside className="w-[320px] flex-shrink-0 border-r border-zinc-200 flex flex-col bg-zinc-50/30">
+          <div className="p-4 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Proveedor</label>
+              <select
+                value={supplierId}
+                onChange={(e) => { setSupplierId(e.target.value ? Number(e.target.value) : ''); setCarrito([]); setCatalogoProveedor([]); }}
+                className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2"
+                style={{ '--tw-ring-color': primaryBgMid } as React.CSSProperties}
+              >
+                <option value="">Seleccionar...</option>
+                {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
             </div>
-
-            {/* Buscador */}
-            <div className="p-4 border-b border-zinc-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar producto, SKU..."
-                  className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
-                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={!supplierId}
-                />
-              </div>
-            </div>
-
-            {/* Lista de Productos */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {!supplierId ? (
-                <div className="text-center py-12 text-zinc-400 text-sm">
-                  <Truck className="w-10 h-10 mx-auto mb-2 text-zinc-300" />
-                  Selecciona un proveedor primero
-                </div>
-              ) : (
-                <>
-                  {/* ── Catálogo del Proveedor ── */}
-                  {catalogoProveedor.length > 0 && (
-                    <div className="mb-3">
-                      <button
-                        onClick={() => setShowCatalogo(prev => !prev)}
-                        className="flex items-center gap-2 w-full text-left mb-2"
-                      >
-                        {showCatalogo ? <ChevronDown className="w-3.5 h-3.5 text-zinc-400" /> : <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />}
-                        <span className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">
-                          Catálogo del Proveedor ({catalogoProveedor.length})
-                        </span>
-                      </button>
-                      {showCatalogo && (
-                        <div className="space-y-2">
-                          {catalogoProveedor.map((sp) => {
-                            const variant = sp.product.variants?.[0];
-                            const enCarrito = carrito.some(l => l.producto.id === (variant?.id ?? sp.productId));
-                            return (
-                              <div
-                                key={sp.id}
-                                className="p-3 rounded-lg border transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
-                                style={{
-                                  backgroundColor: enCarrito ? primaryBg : 'white',
-                                  borderColor: enCarrito ? primary : '#f3f4f6',
-                                }}
-                                onMouseEnter={e => { if (!enCarrito) e.currentTarget.style.borderColor = primary; }}
-                                onMouseLeave={e => { if (!enCarrito) e.currentTarget.style.borderColor = '#f3f4f6'; }}
-                              >
-                                <div className="flex items-start gap-3">
-                                  <div
-                                    className="w-10 h-10 flex-shrink-0 rounded flex items-center justify-center"
-                                    style={{ backgroundColor: primaryBg }}
-                                  >
-                                    <Package className="w-5 h-5" style={{ color: primary }} />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-zinc-900 truncate">{sp.product.name}</p>
-                                    {variant?.variantName && (
-                                      <p className="text-xs font-medium" style={{ color: primary }}>{variant.variantName}</p>
-                                    )}
-                                    <p className="text-xs text-zinc-400 truncate">
-                                      {sp.supplierSku && <span className="font-mono">{sp.supplierSku}</span>}
-                                      {sp.product.category && <span>{sp.supplierSku ? ' • ' : ''}{sp.product.category.name}</span>}
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <span className="text-sm font-bold" style={{ color: primary }}>
-                                        {formatCurrency(sp.supplierCost)}
-                                      </span>
-                                      {sp.currency && sp.currency !== 'MXN' && (
-                                        <span className="text-xs text-zinc-400">{sp.currency}</span>
-                                      )}
-                                      {sp.minOrderQty && (
-                                        <span className="text-xs text-zinc-400">Min: {sp.minOrderQty}</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={() => agregarDesdeCatalogo(sp)}
-                                    className="p-1.5 rounded-lg text-white flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-95"
-                                    style={{ backgroundColor: primary }}
-                                    title="Agregar al carrito"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {/* Separator */}
-                      <div className="flex items-center gap-2 mt-3 mb-1">
-                        <div className="flex-1 border-t border-zinc-200"></div>
-                        <span className="text-xs text-zinc-400 uppercase tracking-wider">Todos los productos</span>
-                        <div className="flex-1 border-t border-zinc-200"></div>
-                      </div>
-                    </div>
-                  )}
-
-                  {loadingCatalogo && catalogoProveedor.length === 0 && (
-                    <div className="text-center py-4">
-                      <Loader2 className="w-5 h-5 mx-auto animate-spin" style={{ color: primary }} />
-                      <p className="text-xs text-zinc-500 mt-1">Cargando catálogo...</p>
-                    </div>
-                  )}
-
-                  {/* ── Productos del inventario general ── */}
-                  {loadingProductos ? (
-                <div className="text-center py-12">
-                  <Loader2 className="w-6 h-6 mx-auto animate-spin" style={{ color: primary }} />
-                  <p className="text-xs text-zinc-500 mt-2">Cargando productos...</p>
-                </div>
-              ) : productos.length === 0 ? (
-                <div className="text-center py-12 text-zinc-400 text-sm">
-                  <Package className="w-10 h-10 mx-auto mb-2 text-zinc-300" />
-                  Sin resultados
-                </div>
-              ) : (
-                productos.map((producto) => (
-                  <div
-                    key={producto.id}
-                    className="p-3 bg-white rounded-lg border border-zinc-100 hover:shadow-md transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = primary)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = '')}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 flex-shrink-0 bg-zinc-100 rounded flex items-center justify-center">
-                        <Package className="w-5 h-5 text-zinc-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium text-zinc-900 truncate">{producto.name}</p>
-                          {getStockBadge(producto.stockStatus)}
-                        </div>
-                        {producto.variantName && (
-                          <p className="text-xs font-medium" style={{ color: primary }}>{producto.variantName}</p>
-                        )}
-                        <p className="text-xs text-zinc-400 truncate">
-                          {producto.sku}{producto.category ? ` • ${producto.category}` : ''}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm font-bold text-zinc-900">{formatCurrency(producto.price)}</span>
-                          <span className="text-xs text-zinc-400">Stock: {producto.stock}</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => agregarAlCarrito(producto)}
-                        className="p-1.5 rounded-lg text-white flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-95"
-                        style={{ backgroundColor: primary }}
-                        title="Agregar al carrito"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-                </>
-              )}
-            </div>
-
-            {/* Paginación */}
-            {supplierId && totalProducts > 0 && (
-              <div className="px-4 py-2 border-t border-zinc-200 flex items-center justify-between flex-shrink-0 bg-white">
-                <span className="text-xs text-zinc-500">
-                  {totalProducts} resultado{totalProducts !== 1 ? 's' : ''}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={handlePrevPage}
-                    disabled={currentPage <= 1}
-                    className="p-1 rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="text-xs text-zinc-600">{currentPage}/{totalPages}</span>
-                  <button
-                    onClick={handleNextPage}
-                    disabled={currentPage >= totalPages}
-                    className="p-1 rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ═══ Columna 2: Carrito de la Orden ═══ */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Header Carrito */}
-            <div className="px-6 py-3 border-b border-zinc-200 flex-shrink-0" style={{ background: `linear-gradient(to right, ${primaryBg}, ${primaryBgMid})` }}>
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5" style={{ color: primary }} />
-                <h3 className="text-sm font-semibold text-zinc-900">
-                  Artículos de la Orden ({carrito.length} {carrito.length === 1 ? 'item' : 'items'})
-                </h3>
-              </div>
-            </div>
-
-            {/* Items del Carrito */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {carrito.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <ShoppingCart className="w-12 h-12 text-zinc-200 mb-3" />
-                  <p className="text-sm text-zinc-400">No hay artículos en la orden</p>
-                  <p className="text-xs text-zinc-300 mt-1">Agrega productos desde el panel izquierdo</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {carrito.map((linea) => (
-                    <Card key={linea.key} className="p-3 animate-in slide-in-from-right-4 fade-in duration-300 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 flex-shrink-0 bg-zinc-100 rounded flex items-center justify-center">
-                          <Package className="w-4 h-4 text-zinc-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 truncate">{linea.producto.name}</p>
-                              {linea.producto.variantName && (
-                                <p className="text-xs" style={{ color: primary }}>{linea.producto.variantName}</p>
-                              )}
-                              <p className="text-xs text-zinc-400">{linea.producto.sku}</p>
-                            </div>
-                            <button
-                              onClick={() => eliminarDelCarrito(linea.key)}
-                              className="text-red-400 hover:text-red-600 p-0.5 transition-all duration-200 hover:scale-110 active:scale-95"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-4 gap-2 mt-2">
-                            <div>
-                              <label className="text-[10px] text-zinc-500 block">Cantidad</label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={linea.cantidad}
-                                onChange={(e) => actualizarCantidad(linea.key, parseInt(e.target.value) || 1)}
-                                className="w-full px-2 py-1 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
-                                style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] text-zinc-500 block">Costo Unit.</label>
-                              <div className="relative">
-                                <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400">$</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  value={linea.costoUnitario}
-                                  onChange={(e) => actualizarCosto(linea.key, parseFloat(e.target.value) || 0)}
-                                  className="w-full pl-4 pr-1 py-1 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
-                                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-[10px] text-zinc-500 block">Subtotal</label>
-                              <p className="py-1 text-sm font-bold text-zinc-900">
-                                {formatCurrency(linea.subtotal)}
-                              </p>
-                            </div>
-                            {totalPctSum > 0 && (
-                              <div>
-                                <label className="text-[10px] text-zinc-500 block">C. Internado</label>
-                                <p className="py-1 text-sm font-bold" style={{ color: primary }}>
-                                  {formatCurrency(linea.costoUnitario * landedMultiplier)}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Notas */}
-            <div className="px-4 py-3 border-t border-zinc-200 flex-shrink-0">
-              <div className="flex items-center gap-2 mb-2">
-                <StickyNote className="w-3.5 h-3.5 text-zinc-400" />
-                <label className="text-xs font-medium text-zinc-500">Notas (opcional)</label>
-              </div>
-              <textarea
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                placeholder="Instrucciones especiales para el proveedor..."
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2"
-                style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                rows={2}
+            
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Buscar SKU o nombre..."
+                className="w-full pl-9 pr-3 py-2 bg-white border border-zinc-200 rounded-xl text-xs focus:outline-none focus:ring-2"
+                style={{ '--tw-ring-color': primaryBgMid } as React.CSSProperties}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={!supplierId}
               />
             </div>
+          </div>
 
-            {/* ── Costos de Internación (collapsible) ── */}
-            <div className="border-t border-zinc-200 flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setCostosOpen(!costosOpen)}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-50/80 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Percent className="w-3.5 h-3.5" style={{ color: primary }} />
-                  <span className="text-xs font-semibold text-zinc-700">Costos de Internación</span>
-                  {totalPctSum > 0 && (
-                    <span
-                      className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                      style={{ backgroundColor: primaryBg, color: primary }}
-                    >
-                      {totalPctSum.toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-                {costosOpen ? (
-                  <ChevronUp className="w-4 h-4 text-zinc-400" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-zinc-400" />
+          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 scrollbar-thin">
+            {!supplierId ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
+                <Truck className="w-8 h-8 mb-2" />
+                <p className="text-[10px] font-bold uppercase tracking-widest">Seleccione proveedor</p>
+              </div>
+            ) : (
+              <>
+                {catalogoProveedor.length > 0 && (
+                  <section className="space-y-2">
+                    <div className="flex items-center gap-2 px-1">
+                      <Layers className="w-3 h-3 text-zinc-400" />
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Catálogo</span>
+                    </div>
+                    {catalogoProveedor.map(sp => {
+                      const inCart = carrito.some(l => l.producto.id === (sp.product.variants?.[0]?.id ?? sp.productId));
+                      return (
+                        <div 
+                          key={sp.id} 
+                          onClick={() => agregarDesdeCatalogo(sp)}
+                          className={`p-2.5 rounded-xl border transition-all cursor-pointer ${inCart ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-100 hover:border-zinc-300'}`}
+                        >
+                          <p className="text-xs font-bold truncate">{sp.product.name}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-[11px] font-black" style={!inCart ? {color: primary} : {}}>{formatCurrency(sp.supplierCost)}</span>
+                            <Plus className={`w-3 h-3 ${inCart ? 'rotate-45 text-zinc-500' : 'text-zinc-400'}`} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </section>
                 )}
-              </button>
-
-              {costosOpen && (
-                <div className="px-4 pb-3 space-y-2 animate-in slide-in-from-top-2 fade-in duration-200">
-                  {costFields.map((field) => (
-                    <div key={field.key} className="flex items-center gap-3">
-                      <span className="text-sm w-5 flex-shrink-0">{field.icon}</span>
-                      <span className="text-xs text-zinc-600 w-20 flex-shrink-0">{field.label}</span>
-                      <div className="relative flex-shrink-0 w-24">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          value={field.value || ''}
-                          placeholder="0"
-                          onChange={(e) => field.setter(parseFloat(e.target.value) || 0)}
-                          className="w-full pl-2 pr-6 py-1 border border-zinc-200 rounded text-sm text-right focus:outline-none focus:ring-2 transition-all"
-                          style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                        />
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-zinc-400">%</span>
+                
+                <section className="space-y-2">
+                  <div className="flex items-center gap-2 px-1">
+                    <History className="w-3 h-3 text-zinc-400" />
+                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Inventario</span>
+                  </div>
+                  {loadingProductos ? (
+                    <Loader2 className="w-4 h-4 animate-spin mx-auto text-zinc-300" />
+                  ) : productos.map(p => {
+                    const inCart = carrito.some(l => l.producto.id === p.id);
+                    return (
+                      <div 
+                        key={p.id} 
+                        onClick={() => agregarAlCarrito(p)}
+                        className={`p-2.5 rounded-xl border transition-all cursor-pointer ${inCart ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-100 hover:border-zinc-300'}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold truncate">{p.name}</p>
+                          {!inCart && getStockBadge(p.stockStatus)}
+                        </div>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[11px] font-black">{formatCurrency(p.price)}</span>
+                          <span className="text-[9px] font-bold text-zinc-400">S: {p.stock}</span>
+                        </div>
                       </div>
-                      <span className="text-xs text-zinc-500 ml-auto tabular-nums">
-                        {field.cost > 0 ? formatCurrency(field.cost) : '—'}
-                      </span>
+                    );
+                  })}
+                </section>
+              </>
+            )}
+          </div>
+          
+          {supplierId && totalProducts > 0 && (
+            <div className="p-3 border-t border-zinc-100 bg-white flex items-center justify-between">
+              <button onClick={handlePrevPage} disabled={currentPage === 1} className="p-1 disabled:opacity-20"><ChevronLeft className="w-4 h-4" /></button>
+              <span className="text-[10px] font-bold">{currentPage}/{totalPages}</span>
+              <button onClick={handleNextPage} disabled={currentPage === totalPages} className="p-1 disabled:opacity-20"><ChevronRight className="w-4 h-4" /></button>
+            </div>
+          )}
+        </aside>
+
+        {/* Columna 2: Construcción */}
+        <main className="flex-1 flex flex-col bg-white overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {carrito.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center opacity-20">
+                <ShoppingCart className="w-12 h-12 mb-2" />
+                <p className="text-xs font-bold uppercase tracking-widest">Orden vacía</p>
+              </div>
+            ) : (
+              carrito.map(linea => (
+                <div key={linea.key} className="flex items-center gap-4 p-3 bg-zinc-50/50 rounded-2xl border border-zinc-100 hover:bg-white transition-all group">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-zinc-100 flex items-center justify-center flex-shrink-0">
+                    <Package className="w-5 h-5 text-zinc-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-zinc-900 truncate">{linea.producto.name}</p>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">{linea.producto.sku}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20">
+                      <input 
+                        type="number" 
+                        value={linea.cantidad} 
+                        onChange={e => actualizarCantidad(linea.key, parseInt(e.target.value) || 1)}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-center focus:ring-1"
+                        style={{'--tw-ring-color': primary} as any}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <input 
+                        type="number" 
+                        value={linea.costoUnitario} 
+                        onChange={e => actualizarCosto(linea.key, parseFloat(e.target.value) || 0)}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-right focus:ring-1"
+                        style={{'--tw-ring-color': primary} as any}
+                      />
+                    </div>
+                    <div className="w-24 text-right">
+                      <p className="text-xs font-black">{formatCurrency(linea.subtotal)}</p>
+                    </div>
+                    <button onClick={() => eliminarDelCarrito(linea.key)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div className="p-6 border-t border-zinc-100 grid grid-cols-2 gap-6 bg-zinc-50/20">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <StickyNote className="w-3 h-3" /> Notas
+              </label>
+              <textarea 
+                value={notas} onChange={e => setNotas(e.target.value)} 
+                className="w-full p-3 bg-white border border-zinc-200 rounded-xl text-xs min-h-[80px] focus:ring-1"
+                style={{'--tw-ring-color': primary} as any}
+                placeholder="Instrucciones..."
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                  <Percent className="w-3 h-3" /> Costos Adicionales
+                </label>
+                <button onClick={() => setCostosOpen(!costosOpen)} className="text-[9px] font-black text-blue-600 uppercase hover:underline">
+                  {costosOpen ? 'Cerrar' : 'Configurar'}
+                </button>
+              </div>
+              {costosOpen ? (
+                <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-zinc-100 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                  {costFields.map(f => (
+                    <div key={f.key} className="flex items-center justify-between border-b border-zinc-50 pb-1">
+                      <span className="text-[10px] font-bold text-zinc-500">{f.label}</span>
+                      <div className="relative w-14">
+                        <input type="number" value={f.value || ''} onChange={e => f.setter(parseFloat(e.target.value) || 0)} className="w-full p-1 bg-zinc-50 border-none rounded text-[10px] text-right font-bold" />
+                        <span className="absolute right-1 top-1 text-[8px] text-zinc-400">%</span>
+                      </div>
                     </div>
                   ))}
-
-                  {totalPctSum > 0 && (
-                    <div className="pt-2 mt-2 border-t border-dashed border-zinc-200 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-zinc-700">Total costos</span>
-                      <span className="text-sm font-bold" style={{ color: primary }}>
-                        {formatCurrency(totalLandedCosts)}
-                      </span>
-                    </div>
-                  )}
+                </div>
+              ) : (
+                <div className="h-[80px] bg-white rounded-xl border-2 border-dashed border-zinc-100 flex items-center justify-center">
+                  <p className="text-[10px] font-bold text-zinc-300 uppercase">Cargos: {totalPctSum.toFixed(1)}%</p>
                 </div>
               )}
             </div>
           </div>
+        </main>
 
-          {/* ═══ Columna 3: Resumen / Acciones ═══ */}
-          <div className="w-72 flex-shrink-0 border-l border-zinc-200 flex flex-col bg-zinc-50/50">
-            {/* Totales */}
-            <div className="p-5 flex-1 flex flex-col justify-center">
-              <h3 className="text-sm font-semibold text-zinc-700 mb-4">Resumen de la Orden</h3>
-
-              {supplierSeleccionado && (
-                <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: primaryBg }}>
-                  <p className="text-xs text-zinc-500">Proveedor</p>
-                  <p className="text-sm font-medium" style={{ color: primary }}>{supplierSeleccionado.name}</p>
-                </div>
-              )}
-
-              {/* Fecha de entrega */}
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-                  <label className="text-xs font-medium text-zinc-500">Entrega Estimada</label>
-                </div>
-                <input
-                  type="date"
-                  value={expectedDeliveryDate}
-                  onChange={(e) => setExpectedDeliveryDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2"
-                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                />
+        {/* Columna 3: Confirmación */}
+        <aside className="w-[280px] flex-shrink-0 border-l border-zinc-200 bg-zinc-50/50 flex flex-col p-6 space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-widest border-b border-zinc-200 pb-2">Resumen</h3>
+            
+            <div className="space-y-3">
+              <div className="bg-white p-3 rounded-xl border border-zinc-100 shadow-sm">
+                <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Entrega Estimada</p>
+                <input type="date" value={expectedDeliveryDate} onChange={e => setExpectedDeliveryDate(e.target.value)} className="w-full text-xs font-bold bg-transparent border-none p-0 focus:ring-0" />
               </div>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Artículos</span>
-                  <span className="font-medium text-zinc-900">{carrito.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Unidades</span>
-                  <span className="font-medium text-zinc-900">{totalUnidades}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Subtotal</span>
-                  <span className="font-semibold text-zinc-900">{formatCurrency(subtotal)}</span>
-                </div>
-
-                {/* Landed cost breakdown */}
-                {totalPctSum > 0 && (
-                  <>
-                    <div className="pt-2 border-t border-dashed border-zinc-200" />
-                    {costFields.filter(f => f.value > 0).map((field) => (
-                      <div key={field.key} className="flex justify-between text-sm">
-                        <span className="text-zinc-500">{field.icon} {field.label} ({field.value}%)</span>
-                        <span className="font-medium text-zinc-700">{formatCurrency(field.cost)}</span>
-                      </div>
-                    ))}
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-500 font-medium">Costos internación</span>
-                      <span className="font-semibold text-zinc-900">{formatCurrency(totalLandedCosts)}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="pt-3 border-t border-zinc-200">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-bold text-zinc-900">Total Estimado</span>
-                  <span className="text-2xl font-bold" style={{ color: primary }}>{formatCurrency(grandTotal)}</span>
+              
+              <div className="space-y-2 px-1">
+                <div className="flex justify-between text-[11px] font-bold text-zinc-500">
+                  <span>Subtotal</span>
+                  <span className="text-zinc-900">{formatCurrency(subtotal)}</span>
                 </div>
                 {totalPctSum > 0 && (
-                  <p className="text-[10px] text-zinc-400 text-right mt-1">
-                    Incluye {totalPctSum.toFixed(1)}% de costos de internación
-                  </p>
+                  <div className="flex justify-between text-[11px] font-bold text-blue-600">
+                    <span>Adicionales ({totalPctSum.toFixed(1)}%)</span>
+                    <span>{formatCurrency(totalLandedCosts)}</span>
+                  </div>
                 )}
               </div>
-            </div>
-
-            {/* Acciones */}
-            <div className="p-4 border-t border-zinc-200 space-y-2 flex-shrink-0">
-              <Button
-                onClick={handleGuardar}
-                disabled={!supplierId || carrito.length === 0 || submitting}
-                className="w-full flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95"
-              >
-                {submitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <DollarSign className="w-4 h-4" />
-                )}
-                {submitting ? 'Creando...' : 'Crear Orden de Compra'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                className="w-full transition-all duration-200 hover:scale-105 active:scale-95"
-                disabled={submitting}
-              >
-                Cancelar
-              </Button>
             </div>
           </div>
-        </div>
+
+          <div className="mt-auto space-y-4">
+            <div className="text-right">
+              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Total OC</p>
+              <p className="text-3xl font-black text-zinc-900 tabular-nums">{formatCurrency(grandTotal)}</p>
+            </div>
+            
+            <Button
+              onClick={handleGuardar}
+              disabled={!supplierId || carrito.length === 0 || submitting}
+              className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all group"
+            >
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />}
+              {submitting ? 'Emitiendo...' : 'Emitir Orden'}
+            </Button>
+          </div>
+        </aside>
       </div>
-    </>
+    </Modal>
   );
 }

@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Building2, Users, ToggleLeft, ToggleRight, BarChart3 } from 'lucide-react';
 import { CompanyForm, type CompanyFormValues } from '@/components/super-admin/company-form';
-import { getCompany, updateCompany, toggleCompanyStatus } from '@/services/super-admin';
+import { CertificateCard } from '@/components/super-admin/certificate-card';
+import { getCompany, updateCompany, toggleCompanyStatus, uploadCompanyCertificate } from '@/services/super-admin';
 import type { CompanyDetail } from '@/services/super-admin';
 import { useToast } from '@/lib/hooks/use-toast';
 import { ToastContainer } from '@/components/ui';
@@ -17,9 +18,11 @@ export default function EditarEmpresaPage() {
   const toast = useToast();
   const companyId = Number(params.id);
 
-  const [company, setCompany]       = useState<CompanyDetail | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [company, setCompany]           = useState<CompanyDetail | null>(null);
+  const [loading, setLoading]           = useState(true);
+  const [submitting, setSubmitting]     = useState(false);
+  const [hasCertificate, setHasCertificate] = useState(false);
+  const [uploadingCert, setUploadingCert]   = useState(false);
 
   useEffect(() => {
     if (isNaN(companyId)) {
@@ -43,6 +46,21 @@ export default function EditarEmpresaPage() {
       setLoading(false);
     }
   }
+
+  const handleCertificateUpload = async (certificateB64: string, password: string) => {
+    setUploadingCert(true);
+    try {
+      await uploadCompanyCertificate(companyId, certificateB64, password);
+      setHasCertificate(true);
+      toast.success('Certificado cargado exitosamente');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error al cargar el certificado: ${msg}`);
+      throw err;
+    } finally {
+      setUploadingCert(false);
+    }
+  };
 
   const handleSubmit = async (data: CompanyFormValues) => {
     setSubmitting(true);
@@ -178,6 +196,14 @@ export default function EditarEmpresaPage() {
             submitLabel="Guardar cambios"
           />
         </div>
+
+        {/* Certificado DIAN */}
+        <CertificateCard
+          companyId={companyId}
+          hasCertificate={hasCertificate}
+          onUpload={handleCertificateUpload}
+          submitting={uploadingCert}
+        />
       </div>
     </main>
   );
