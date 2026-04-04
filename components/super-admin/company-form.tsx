@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
 import type { CreateCompanyDto, CompanyDetail } from '@/services/super-admin';
-import { DANE_CITIES, type DaneCity } from '@/lib/dane-cities';
+import { searchDaneCities, type DaneCity } from '@/lib/dane-cities';
 
 // ─── Opciones fijas ────────────────────────────────────────────────────────────
 
@@ -79,13 +79,7 @@ export function CompanyForm({ initialData, onSubmit, submitting, submitLabel = '
       setCityResults([]);
       return;
     }
-    const lower = q.toLowerCase();
-    const results = DANE_CITIES.filter(
-      (c) =>
-        c.cityName.toLowerCase().includes(lower) ||
-        c.departmentName.toLowerCase().includes(lower)
-    ).slice(0, 10);
-    setCityResults(results);
+    setCityResults(searchDaneCities(q, 10));
   }, []);
 
   useEffect(() => {

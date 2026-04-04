@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DollarSign, ShoppingBag, TrendingUp, Star } from 'lucide-react';
+import { DollarSign, ShoppingBag, TrendingUp, ArrowUpRight } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { getPosDashboard, type PosDashboardDto } from '@/services/pos';
 import { onCrossTabInvalidation } from '@/lib/cross-tab-sync';
+import { cn } from '@/lib/utils';
 
 export function PosDashboardCards() {
   const [data, setData] = useState<PosDashboardDto | null>(null);
@@ -12,6 +13,7 @@ export function PosDashboardCards() {
 
   const load = useCallback(async () => {
     try {
+      setLoading(true);
       const dashboard = await getPosDashboard();
       setData(dashboard);
     } catch (err) {
@@ -21,27 +23,24 @@ export function PosDashboardCards() {
     }
   }, []);
 
-  // Carga inicial
   useEffect(() => { load(); }, [load]);
 
-  // ── Tiempo real: actualizar contadores cuando cambie una venta ──────
-  // Responde tanto a ventas nuevas (pos-sales) como a cambios de estado
-  // (pos-dashboard), lo que mantiene siempre frescos los KPIs.
   useEffect(() => {
     return onCrossTabInvalidation(['pos-sales', 'pos-dashboard'], load);
   }, [load]);
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
+    new Intl.NumberFormat('es-MX', { 
+      style: 'currency', 
+      currency: 'MXN',
+      maximumFractionDigits: 0
+    }).format(price);
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-5 animate-pulse">
-            <div className="h-4 bg-zinc-200 rounded w-20 mb-3" />
-            <div className="h-8 bg-zinc-200 rounded w-28" />
-          </Card>
+          <div key={i} className="card-premium p-6 h-32 animate-pulse bg-white/50" />
         ))}
       </div>
     );
@@ -49,81 +48,59 @@ export function PosDashboardCards() {
 
   if (!data) return null;
 
+  const cards = [
+    {
+      label: 'Ventas hoy',
+      value: data.todaySalesCount,
+      icon: ShoppingBag,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50',
+      isPrice: false
+    },
+    {
+      label: 'Ingresos hoy',
+      value: data.todaySalesTotal,
+      icon: DollarSign,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50',
+      isPrice: true
+    },
+    {
+      label: 'Ventas mes',
+      value: data.monthSalesCount,
+      icon: TrendingUp,
+      color: 'text-primary',
+      bg: 'bg-primary/5',
+      isPrice: false
+    },
+    {
+      label: 'Ingresos mes',
+      value: data.monthSalesTotal,
+      icon: DollarSign,
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      isPrice: true
+    }
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* Cards principales */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-5">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5 text-blue-600" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {cards.map((card, i) => (
+        <div key={i} className="card-premium p-6 bg-white group hover:border-primary/20 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110", card.bg)}>
+              <card.icon className={cn("w-6 h-6", card.color)} />
             </div>
-            <p className="text-xs text-zinc-500 uppercase font-medium">Ventas hoy</p>
+            <ArrowUpRight className="w-4 h-4 text-zinc-300 group-hover:text-primary transition-colors" />
           </div>
-          <p className="text-3xl font-bold text-zinc-900">{data.todaySalesCount}</p>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-green-600" />
-            </div>
-            <p className="text-xs text-zinc-500 uppercase font-medium">Ingresos hoy</p>
+          <div>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">{card.label}</p>
+            <p className="text-2xl font-black text-zinc-900 tracking-tight">
+              {card.isPrice ? formatPrice(card.value as number) : card.value}
+            </p>
           </div>
-          <p className="text-2xl font-bold text-zinc-900 tracking-tight">{formatPrice(data.todaySalesTotal)}</p>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
-            </div>
-            <p className="text-xs text-zinc-500 uppercase font-medium">Ventas mes</p>
-          </div>
-          <p className="text-3xl font-bold text-zinc-900">{data.monthSalesCount}</p>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-amber-600" />
-            </div>
-            <p className="text-xs text-zinc-500 uppercase font-medium">Ingresos mes</p>
-          </div>
-          <p className="text-2xl font-bold text-zinc-900 tracking-tight">{formatPrice(data.monthSalesTotal)}</p>
-        </Card>
-      </div>
-
-      {/* Top productos hoy */}
-      {data.topProductsToday.length > 0 && (
-        <Card className="p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Star className="w-4 h-4 text-amber-500" />
-            <h3 className="text-sm font-semibold text-zinc-700">Top productos hoy</h3>
-          </div>
-          <div className="space-y-2">
-            {data.topProductsToday.map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-1.5 border-b border-zinc-50 last:border-0">
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-zinc-100 text-xs font-bold flex items-center justify-center text-zinc-500">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-zinc-900">{item.productName}</p>
-                    {item.variantName && (
-                      <p className="text-xs text-zinc-400">{item.variantName}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-zinc-900">{item.qtyTotal} uds.</p>
-                  <p className="text-xs text-zinc-500">{formatPrice(item.revenueTotal)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+        </div>
+      ))}
     </div>
   );
 }

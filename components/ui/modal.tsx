@@ -45,7 +45,7 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close
-        className="absolute right-4 top-4 rounded-lg p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-300"
+        className="absolute right-4 top-4 rounded-lg p-1.5 text-zinc-600 bg-white/90 border border-zinc-200 shadow-sm hover:text-zinc-900 hover:bg-zinc-100 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400"
         aria-label="Cerrar"
       >
         <X className="h-4 w-4" />
@@ -77,7 +77,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn('text-base font-semibold text-zinc-900 leading-tight', className)}
+    className={cn('text-lg font-semibold tracking-tight text-zinc-900 leading-none', className)}
     {...props}
   />
 ));
@@ -126,10 +126,12 @@ export function Modal({ isOpen, onClose, title, children, size = 'lg', className
           className
         )}
       >
-        {title && (
-          <DialogHeader>
+        {title ? (
+          <DialogHeader className="pr-14">
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
+        ) : (
+          <DialogTitle className="sr-only">Ventana modal</DialogTitle>
         )}
         <div className={cn('flex-1 overflow-y-auto', !noPadding && 'px-6 py-5')}>
           {children}

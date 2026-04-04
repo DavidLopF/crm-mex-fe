@@ -2,16 +2,17 @@
 
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown, Banknote, CreditCard } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, Receipt, X, ChevronDown, Banknote, CreditCard, User, Info, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { usePosStore } from '@/stores';
 import { createSale, type PaymentMethod } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
+import { useCompany } from '@/lib/company-context';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import { OfflineQueuedError } from '@/services/http-client';
 import { ClientSelector } from './ClientSelector';
+import { cn } from '@/lib/utils';
 
-/** Ícono Nequi — círculo rosa con "N" blanca (colores de marca) */
 function NequiIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
@@ -21,7 +22,6 @@ function NequiIcon({ className }: { className?: string }) {
   );
 }
 
-/** Ícono Daviplata — círculo rojo con "D" blanca (colores de marca) */
 function DaviplataIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
@@ -38,14 +38,12 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ReactN
   { value: 'DAVIPLATA',  label: 'Daviplata',  icon: <DaviplataIcon className="w-4 h-4" /> },
 ];
 
-const IVA_RATE = 0.16;
-
 interface CartProps {
-  /** Callback para cerrar el drawer en móvil */
   onClose?: () => void;
 }
 
 export function Cart({ onClose }: CartProps) {
+  const { settings } = useCompany();
   const {
     cart, clientName, clientId, notes, paymentMethod,
     updateQty, removeFromCart, clearCart,
@@ -67,15 +65,13 @@ export function Cart({ onClose }: CartProps) {
   const [includesIvaManual, setIncludesIvaManual] = useState(false);
   const toast = useGlobalToast();
 
-  /**
-   * Si hay al menos un producto con requiresIva=true en el carrito,
-   * el IVA se aplica automáticamente y el toggle se bloquea ON.
-   */
+  const ivaRate = settings?.defaultIvaRate ?? 0.19;
+
   const hasRequiredIvaItem = cart.some((i) => i.requiresIva);
   const includesIva = hasRequiredIvaItem || includesIvaManual;
 
   const subtotal = cart.reduce((sum, i) => sum + i.lineTotal, 0);
-  const taxAmount = includesIva ? Math.round(subtotal * IVA_RATE * 100) / 100 : 0;
+  const taxAmount = includesIva ? Math.round(subtotal * ivaRate * 100) / 100 : 0;
   const total = subtotal + taxAmount;
   const itemCount = cart.reduce((sum, i) => sum + i.qty, 0);
 
@@ -99,289 +95,244 @@ export function Cart({ onClose }: CartProps) {
         includesIva,
         paymentMethod,
       });
-      // Invalidar módulos afectados:
-      //  - 'inventory'     → stock actualizado en otras vistas
-      //  - 'pos-sales'     → SalesList recarga el historial al instante
-      //  - 'pos-dashboard' → PosDashboardCards recarga contadores
       broadcastInvalidation(['inventory', 'pos-sales', 'pos-dashboard']);
-      toast.success('Pendiente de cobro', {
-        title: '🧾 Remisión generada',
-        code: sale.code,
-        duration: 7000,
+      toast.success('Venta registrada con éxito', {
+        title: '🧾 Remisión #'+sale.code,
+        duration: 5000,
       });
       clearCart();
       onClose?.();
     } catch (err) {
-      // ── Venta encolada offline: tratar como éxito parcial ──
       if (err instanceof OfflineQueuedError) {
-        toast.warning('Se guardó localmente y se enviará en cuanto vuelva la conexión.', {
-          title: '📱 Venta guardada offline',
-          duration: 9000,
-        });
+        toast.warning('Operación guardada localmente.', { title: '📱 Offline' });
         clearCart();
         onClose?.();
         return;
       }
-      toast.error(err instanceof Error ? err.message : 'Error al crear la venta', { title: 'No se pudo crear' });
+      toast.error('Error al procesar la venta');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Carrito vacío ──
   if (cart.length === 0) {
     return (
-      <div className="flex flex-col h-full">
-        {/* Header con botón cerrar en móvil */}
-        {onClose && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
-            <h3 className="font-semibold text-zinc-900">Carrito</h3>
-            <button onClick={onClose} className="p-2 rounded-xl hover:bg-zinc-100">
-              <ChevronDown className="w-5 h-5 text-zinc-500" />
-            </button>
-          </div>
-        )}
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-zinc-400 p-6">
-          <ShoppingBag className="w-16 h-16 opacity-25" />
-          <p className="text-base font-medium">Carrito vacío</p>
-          <p className="text-sm text-center">Toca un producto para agregarlo</p>
+      <div className="flex flex-col h-full glass border-l border-white/20">
+        <div className="p-6 flex items-center justify-between border-b border-zinc-100/50">
+          <h3 className="text-lg font-black text-zinc-900 tracking-tight">Carrito</h3>
           {onClose && (
-            <button
-              onClick={onClose}
-              className="mt-2 text-sm text-primary underline"
-            >
-              Ver productos
+            <button onClick={onClose} className="p-2 rounded-xl bg-zinc-50 text-zinc-400 hover:text-primary transition-all">
+              <ChevronDown className="w-5 h-5" />
             </button>
           )}
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-zinc-300 p-10 animate-fadeIn">
+          <div className="w-24 h-24 rounded-3xl bg-zinc-50 flex items-center justify-center">
+            <ShoppingBag className="w-12 h-12 opacity-20" />
+          </div>
+          <div className="text-center space-y-1">
+            <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Carrito Vacío</p>
+            <p className="text-xs font-medium text-zinc-300">Selecciona productos del catálogo para comenzar</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="flex flex-col h-full bg-white">
-
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            {onClose && (
-              <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-zinc-100 mr-1">
-                <ChevronDown className="w-5 h-5 text-zinc-500" />
-              </button>
-            )}
-            <h3 className="font-semibold text-zinc-900">
-              Carrito
-            </h3>
-            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-              {itemCount} items
-            </span>
-          </div>
-          <button
-            onClick={clearCart}
-            className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 px-2 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Vaciar
-          </button>
+    <div className="flex flex-col h-full glass border-l border-white/20 shadow-2xl animate-fadeIn">
+      {/* Header */}
+      <div className="p-6 flex items-center justify-between border-b border-zinc-100/50 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          {onClose && (
+            <button onClick={onClose} className="p-2 rounded-xl bg-zinc-50 text-zinc-400 hover:text-primary transition-all mr-1">
+              <ChevronDown className="w-5 h-5" />
+            </button>
+          )}
+          <h3 className="text-lg font-black text-zinc-900 tracking-tight">Carrito</h3>
+          <span className="px-2.5 py-1 bg-primary text-primary-foreground text-[10px] font-black rounded-lg uppercase tracking-tighter">
+            {itemCount} Items
+          </span>
         </div>
+        <button
+          onClick={clearCart}
+          className="p-2 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all group"
+          title="Vaciar carrito"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
 
-        {/* ── Lista de items ── */}
-        <div className="flex-1 overflow-y-auto py-2">
-          {cart.map((item) => (
-            <div
-              key={item.variantId}
-              className="flex items-start gap-3 px-5 py-3.5 border-b border-zinc-50 last:border-0"
-            >
-              {/* Info del producto */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-zinc-900 leading-snug">
+      {/* Item List */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+        {cart.map((item) => (
+          <div
+            key={item.variantId}
+            className="card-premium p-4 space-y-4 border-none bg-white/60 hover:bg-white animate-slideUp"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black text-zinc-900 leading-tight truncate">
                   {item.productName}
                 </p>
                 {item.variantName && (
-                  <p className="text-xs text-zinc-400 mt-0.5">{item.variantName}</p>
+                  <p className="text-[11px] font-bold text-zinc-400 mt-0.5">{item.variantName}</p>
                 )}
-                {item.appliedTierLabel && (
-                  <span className="inline-block mt-1 text-[11px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
-                    {item.appliedTierLabel}
-                  </span>
-                )}
-                <p className="text-xs text-zinc-400 mt-1">
-                  {formatPrice(item.unitPrice)} c/u
-                </p>
-              </div>
-
-              {/* Controles de cantidad — mínimo 44×44px para touch */}
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-0.5">
-                  <button
-                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-l-xl border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 active:bg-zinc-200 transition-colors"
-                    onClick={() => updateQty(item.variantId, item.qty - 1)}
-                    aria-label="Reducir cantidad"
-                  >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="w-10 h-8 sm:h-9 text-center text-sm font-bold border-y border-zinc-200 flex items-center justify-center bg-white">
-                    {item.qty}
-                  </span>
-                  <button
-                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-r-xl border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 active:bg-zinc-200 transition-colors"
-                    onClick={() => updateQty(item.variantId, item.qty + 1)}
-                    aria-label="Aumentar cantidad"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Subtotal + eliminar */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-zinc-900">
-                    {formatPrice(item.lineTotal)}
-                  </span>
-                  <button
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    onClick={() => removeFromCart(item.variantId)}
-                    aria-label="Eliminar producto"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                <div className="flex items-center gap-2 mt-2">
+                   <span className="text-xs font-black text-zinc-900">{formatPrice(item.unitPrice)}</span>
+                   {item.appliedTierLabel && (
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[9px] font-black rounded-md uppercase tracking-tighter">
+                      {item.appliedTierLabel}
+                    </span>
+                  )}
                 </div>
               </div>
+              <button
+                onClick={() => removeFromCart(item.variantId)}
+                className="p-1.5 rounded-lg text-zinc-200 hover:text-rose-500 hover:bg-rose-50 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-          ))}
-        </div>
 
-        {/* ── Cliente y notas ── */}
-        <div className="px-5 py-3 border-t border-zinc-100 space-y-2.5 flex-shrink-0">
-          {/* Selector de cliente con búsqueda y creación inline */}
-          <ClientSelector />
-          <input
-            type="text"
-            placeholder="Notas (opcional)"
-            className="w-full px-4 py-3 text-sm border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </div>
-
-        {/* ── IVA toggle + Total + Botón ── */}
-        <div
-          className="px-5 py-4 border-t-2 border-zinc-100 bg-zinc-50/80 flex-shrink-0 space-y-3"
-          style={{
-            paddingBottom: onClose
-              ? 'calc(max(env(safe-area-inset-bottom), 20px) + 96px)'
-              : 'calc(max(env(safe-area-inset-bottom), 0px) + 16px)',
-          }}
-        >
-
-          {/* Medio de pago */}
-          <div>
-            <p className="text-xs font-medium text-zinc-500 mb-1.5">Medio de pago</p>
-            <div className="grid grid-cols-2 gap-1.5">
-              {PAYMENT_METHODS.map((pm) => (
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center p-1 bg-zinc-50 rounded-xl border border-zinc-100">
                 <button
-                  key={pm.value}
-                  type="button"
-                  onClick={() => setPaymentMethod(pm.value)}
-                  className={`
-                    flex flex-col items-center gap-1 py-2 px-1 rounded-xl border-2 text-xs font-medium transition-all
-                    ${paymentMethod === pm.value
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'
-                    }
-                  `}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-zinc-600 hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
+                  onClick={() => updateQty(item.variantId, item.qty - 1)}
                 >
-                  {pm.icon}
-                  <span>{pm.label}</span>
+                  <Minus className="w-3.5 h-3.5" />
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Toggle IVA */}
-          <button
-            type="button"
-            onClick={() => !hasRequiredIvaItem && setIncludesIvaManual((v) => !v)}
-            disabled={hasRequiredIvaItem}
-            title={hasRequiredIvaItem ? 'Uno o más productos requieren IVA obligatorio' : undefined}
-            className={`
-              w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all
-              ${includesIva
-                ? 'border-primary bg-primary/5 text-primary'
-                : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'
-              }
-              ${hasRequiredIvaItem ? 'cursor-not-allowed opacity-90' : ''}
-            `}
-          >
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-medium">Incluye IVA (16%)</span>
-              {hasRequiredIvaItem && (
-                <span className="text-[11px] text-amber-600 font-normal leading-tight">
-                  Obligatorio — producto(s) con IVA incluido
+                <span className="w-10 text-center text-sm font-black text-zinc-900">
+                  {item.qty}
                 </span>
-              )}
-            </div>
-            {/* Switch visual */}
-            <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-2 ${includesIva ? 'bg-primary' : 'bg-zinc-300'}`}>
-              <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${includesIva ? 'translate-x-5' : 'translate-x-0'}`} />
-            </span>
-          </button>
-
-          {/* Desglose */}
-          <div className="space-y-1">
-            {includesIva && (
-              <>
-                <div className="flex items-center justify-between text-sm text-zinc-500">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(subtotal)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm text-green-700">
-                  <span>IVA 16%</span>
-                  <span>+ {formatPrice(taxAmount)}</span>
-                </div>
-                <div className="border-t border-zinc-200 pt-1" />
-              </>
-            )}
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm text-zinc-500">Total a cobrar</span>
-              <span className="text-3xl font-bold text-zinc-900 tracking-tight">
-                {formatPrice(total)}
+                <button
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-zinc-600 hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
+                  onClick={() => updateQty(item.variantId, item.qty + 1)}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <span className="text-base font-black text-zinc-900 tracking-tight">
+                {formatPrice(item.lineTotal)}
               </span>
             </div>
           </div>
-
-          {!onClose && (
-            <Button
-              className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-sm"
-              onClick={handleGenerateRemision}
-              disabled={submitting}
-            >
-              <Receipt className="w-5 h-5" />
-              {submitting ? 'Generando...' : 'Generar Remisión'}
-            </Button>
-          )}
-        </div>
-
-        {onClose && (
-          <div
-            className="md:hidden fixed left-0 right-0 z-[70] px-4 pt-2"
-            style={{
-              bottom: 'calc(max(env(safe-area-inset-bottom), 0px) + 6px)',
-              background: 'linear-gradient(to top, rgba(255,255,255,1) 72%, rgba(255,255,255,0))',
-            }}
-          >
-            <Button
-              className="w-full h-14 text-base font-semibold flex items-center justify-center gap-2 rounded-2xl shadow-2xl bg-zinc-900 text-white hover:bg-zinc-800"
-              onClick={handleGenerateRemision}
-              disabled={submitting}
-            >
-              <Receipt className="w-5 h-5" />
-              {submitting ? 'Generando...' : 'Generar Remisión'}
-            </Button>
-          </div>
-        )}
+        ))}
       </div>
 
-    </>
+      {/* Checkout Section */}
+      <div className="p-6 border-t border-zinc-100/50 bg-white/40 space-y-6 flex-shrink-0">
+        
+        {/* Customer & Notes */}
+        <div className="space-y-3">
+          <ClientSelector />
+          <div className="relative group">
+            <Info className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Notas de la remisión..."
+              className="w-full h-12 pl-10 pr-4 bg-white border-2 border-zinc-100 rounded-xl text-sm font-bold text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Payment Methods */}
+        <div className="space-y-3">
+          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] ml-1">Medio de Pago</p>
+          <div className="grid grid-cols-2 gap-2">
+            {PAYMENT_METHODS.map((pm) => (
+              <button
+                key={pm.value}
+                onClick={() => setPaymentMethod(pm.value)}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-300 active:scale-[0.97]",
+                  paymentMethod === pm.value
+                    ? "bg-primary border-primary text-primary-foreground shadow-xl"
+                    : "bg-white border-zinc-100 text-zinc-400 hover:border-zinc-300"
+                )}
+              >
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                  paymentMethod === pm.value ? "bg-white/10" : "bg-zinc-50"
+                )}>
+                  {pm.icon}
+                </div>
+                <span className="text-xs font-black uppercase tracking-tight">{pm.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Taxes Toggle */}
+        <button
+          onClick={() => !hasRequiredIvaItem && setIncludesIvaManual((v) => !v)}
+          disabled={hasRequiredIvaItem}
+          className={cn(
+            "w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-300",
+            includesIva ? "bg-primary border-primary text-primary-foreground shadow-xl" : "bg-white border-zinc-100 text-zinc-400"
+          )}
+        >
+          <div className="flex flex-col items-start text-left">
+            <span className="text-xs font-black uppercase tracking-widest">Incluir IVA ({(ivaRate * 100).toFixed(0)}%)</span>
+            {hasRequiredIvaItem && (
+              <span className="text-[9px] font-bold text-emerald-400 mt-0.5">Obligatorio por producto</span>
+            )}
+          </div>
+          <div className={cn(
+            "w-10 h-5 rounded-full relative transition-colors p-1",
+            includesIva ? "bg-emerald-500" : "bg-zinc-200"
+          )}>
+            <div className={cn(
+              "w-3 h-3 bg-white rounded-full transition-transform duration-300",
+              includesIva ? "translate-x-5" : "translate-x-0"
+            )} />
+          </div>
+        </button>
+
+        {/* Summary & Button */}
+        <div className="space-y-4 pt-2">
+          <div className="space-y-2">
+            {includesIva && (
+              <div className="flex items-center justify-between text-xs font-bold text-zinc-400 uppercase tracking-widest px-1">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+            )}
+            <div className="flex items-end justify-between px-1">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Total a Cobrar</span>
+                <span className="text-3xl font-black text-zinc-900 tracking-tighter leading-none mt-1">
+                  {formatPrice(total)}
+                </span>
+              </div>
+              {includesIva && (
+                <div className="text-right">
+                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">IVA Incluido</span>
+                  <p className="text-xs font-bold text-emerald-600">{formatPrice(taxAmount)}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button
+            disabled={submitting}
+            onClick={handleGenerateRemision}
+            className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black text-sm uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all hover:opacity-90 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 shadow-xl"
+          >
+            {submitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Receipt className="w-5 h-5" />
+                Generar Remisión
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

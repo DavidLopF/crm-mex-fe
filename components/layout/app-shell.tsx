@@ -27,10 +27,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const isPublicPage = ['/login', '/forgot-password', '/reset-password'].includes(pathname);
 
   useEffect(() => {
+    setMounted(true);
     const media = window.matchMedia('(max-width: 1023px)');
     const update = () => {
       const nextIsMobile = media.matches;
@@ -41,6 +43,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);
+
+  // Evitar hydration mismatches: renderizar nada (o un shell vacío) hasta montar
+  if (!mounted) {
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -71,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       />
       <div
         className="transition-all duration-300 ease-in-out"
-        style={{ marginLeft: isMobile ? 0 : (collapsed ? '5rem' : '16rem') }}
+        style={{ marginLeft: isMobile ? 0 : (collapsed ? '80px' : '16rem') }}
       >
         <Header
           showMobileMenu={isMobile}

@@ -32,3 +32,4 @@ export type { FilterOption } from './pill-filter';
 export { DataTable } from './data-table';
 export type { DataTableColumn, DataTableProps, BulkAction, SortDirection } from './data-table';
 export { Sparkline, SPARKLINE_PRESETS } from './sparkline';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';

@@ -7,6 +7,10 @@ export interface CompanySettings {
   accentColor: string;    // Color de acento (fondos de avatares, badges)
   logoUrl?: string | null; // URL pública del logo en S3 (opcional)
   updatedAt?: string;
+  /** Tasa IVA por defecto (0.0–1.0). Ej: 0.19 = 19 %. Proviene de Company. */
+  defaultIvaRate?: number;
+  /** Moneda por defecto. Ej: "COP". Proviene de Company. */
+  defaultCurrency?: string;
 }
 
 export interface UpdateCompanySettingsDto {

@@ -14,6 +14,8 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  ShieldCheck,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -67,210 +69,188 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen flex bg-white">
+  const primaryColor = settings.primaryColor ?? '#2563eb';
+  const accentColor = settings.accentColor ?? '#3b82f6';
 
-      {/* ═══ Panel Izquierdo — Branding ═══ */}
-      <div
-        className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center"
-        style={{
-          background: `linear-gradient(140deg, ${settings.primaryColor} 0%, ${settings.accentColor} 60%, ${settings.primaryColor}cc 100%)`,
-        }}
-      >
-        {/* Decorative grid */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
+  return (
+    <div className="min-h-screen flex bg-zinc-50 font-sans selection:bg-primary selection:text-primary-foreground">
+
+      {/* ═══ Left Panel — Branding & Atmosphere ═══ */}
+      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden bg-primary items-center justify-center">
+        
+        {/* Deep Mesh Gradient Background */}
+        <div className="absolute inset-0 z-0">
+          <div 
+            className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full opacity-40 blur-[120px]" 
+            style={{ backgroundColor: primaryColor }}
+          />
+          <div 
+            className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-30 blur-[100px]" 
+            style={{ backgroundColor: accentColor }}
+          />
+          <div className="absolute inset-0 bg-primary/20 backdrop-blur-[2px]" />
+        </div>
+
+        {/* Decorative Grid */}
+        <div className="absolute inset-0 z-1 opacity-[0.15] mix-blend-overlay"
           style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '32px 32px'
           }}
         />
-        {/* Blobs */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-white/5 blur-3xl" />
 
         {/* Content */}
-        <div className="relative z-10 text-center px-12 animate-fadeIn">
-          <div className="flex justify-center mb-8">
-            <div style={{ animation: 'float 6s ease-in-out infinite' }}>
-              <svg width="200" height="200" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl">
-                <ellipse cx="110" cy="200" rx="70" ry="12" fill="rgba(0,0,0,0.1)" />
-                <path d="M110 170 L50 135 L50 75 L110 110 Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
-                <path d="M110 170 L170 135 L170 75 L110 110 Z" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
-                <path d="M110 110 L50 75 L110 40 L170 75 Z" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-                <rect x="72" y="65" width="10" height="25" rx="2" fill="rgba(255,255,255,0.6)" transform="skewY(-30) translate(32, 55)" />
-                <rect x="88" y="55" width="10" height="35" rx="2" fill="rgba(255,255,255,0.8)" transform="skewY(-30) translate(32, 55)" />
-                <rect x="104" y="60" width="10" height="30" rx="2" fill="rgba(255,255,255,0.5)" transform="skewY(-30) translate(32, 55)" />
-                <rect x="120" y="50" width="10" height="40" rx="2" fill="rgba(255,255,255,0.9)" transform="skewY(-30) translate(32, 55)" />
-                <circle cx="185" cy="55" r="2" fill="rgba(255,255,255,0.6)">
-                  <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite" />
-                </circle>
-                <circle cx="30" cy="110" r="1.5" fill="rgba(255,255,255,0.5)">
-                  <animate attributeName="opacity" values="0.5;0.1;0.5" dur="3s" repeatCount="indefinite" />
-                </circle>
-              </svg>
+        <div className="relative z-10 w-full max-w-lg px-12 animate-fadeIn space-y-12">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+               <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
+                 <ShieldCheck className="w-7 h-7 text-white" />
+               </div>
+               <div className="h-px w-12 bg-white/20" />
+               <span className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em]">Sistema de Gestión</span>
             </div>
-          </div>
-
-          <h1 className="text-4xl font-bold text-white mb-3 tracking-tight">
-            {settings.companyName}
-          </h1>
-          <p className="text-base text-white/70 mb-10 max-w-xs mx-auto leading-relaxed">
-            Sistema integral de gestión de inventarios, ventas y clientes
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-2">
-            {['Inventario', 'Pedidos', 'Clientes', 'Reportes'].map((f) => (
-              <span
-                key={f}
-                className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/85 text-xs font-medium backdrop-blur-sm"
-              >
-                {f}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ═══ Panel Derecho — Formulario ═══ */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-zinc-50">
-        <div className="w-full max-w-sm animate-slideUp">
-
-          {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-8">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
-              style={{ backgroundColor: settings.primaryColor }}
-            >
-              <Package className="w-6 h-6 text-white" />
-            </div>
-          </div>
-
-          {/* Header */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-zinc-900 tracking-tight tracking-tight">
-              Bienvenido de nuevo
-            </h2>
-            <p className="text-sm text-zinc-500">
-              Ingresa tus credenciales para continuar
+            
+            <h1 className="text-5xl md:text-6xl font-black text-white leading-[1.1] tracking-tighter">
+              Potencia tu <br />
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-white via-white to-white/40">Negocio Hoy.</span>
+            </h1>
+            
+            <p className="text-lg text-white/60 font-medium leading-relaxed max-w-md">
+              La plataforma CRM diseñada para escalar empresas mexicanas con control absoluto de inventario y ventas.
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { label: 'Control Total', icon: Zap },
+              { label: 'Tiempo Real', icon: Package },
+            ].map((item, i) => (
+              <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <item.icon className="w-5 h-5 text-white mb-3" />
+                <p className="text-sm font-bold text-white tracking-tight">{item.label}</p>
+              </div>
+            ))}
+          </div>
+          
+        </div>
+      </div>
+
+      {/* ═══ Right Panel — Form ═══ */}
+      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 md:p-12 relative">
+        {/* Mobile decorative blobs */}
+        <div className="lg:hidden absolute top-0 right-0 w-64 h-64 bg-zinc-200 rounded-full blur-3xl opacity-50 -z-10" />
+        
+        <div className="w-full max-w-md space-y-10 animate-slideUp">
+          
+          <div className="space-y-3">
+             <div className="lg:hidden w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl mb-6" style={{ backgroundColor: primaryColor }}>
+                <Package className="w-7 h-7 text-white" />
+             </div>
+             <h2 className="text-4xl font-black text-zinc-900 tracking-tight">Ingresar</h2>
+             <p className="text-base font-medium text-zinc-500">Bienvenido. Por favor introduce tus credenciales.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="flex items-center gap-2.5 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm animate-slideUp">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold animate-fadeIn">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 {error}
               </div>
             )}
 
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-zinc-700 block">
-                Correo electrónico
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
-                  autoComplete="email"
-                  className={cn(
-                    'w-full h-10 pl-10 pr-4 bg-white border border-zinc-200 rounded-lg text-sm text-zinc-900',
-                    'placeholder:text-zinc-400 transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-zinc-900/15 focus:border-zinc-400'
-                  )}
-                />
+            <div className="space-y-5">
+              {/* Email */}
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">
+                  Correo Electrónico
+                </label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="ejemplo@empresa.com"
+                    className="w-full h-14 pl-12 pr-4 bg-white border-2 border-zinc-100 rounded-2xl text-sm font-bold text-zinc-900 placeholder:text-zinc-300 transition-all focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 shadow-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">
+                  Contraseña
+                </label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full h-14 pl-12 pr-12 bg-white border-2 border-zinc-100 rounded-2xl text-sm font-bold text-zinc-900 placeholder:text-zinc-300 transition-all focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-primary transition-colors p-1"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-zinc-700 block">
-                Contraseña
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  className={cn(
-                    'w-full h-10 pl-10 pr-11 bg-white border border-zinc-200 rounded-lg text-sm text-zinc-900',
-                    'placeholder:text-zinc-400 transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-zinc-900/15 focus:border-zinc-400'
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember + forgot */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-zinc-300 accent-zinc-900 cursor-pointer"
-                />
-                <span className="text-sm text-zinc-600">Recordarme</span>
+            <div className="flex items-center justify-between px-1">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="relative flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="peer w-5 h-5 rounded-lg border-2 border-zinc-200 checked:bg-primary checked:border-primary transition-all cursor-pointer appearance-none"
+                  />
+                  <ShieldCheck className="w-3 h-3 text-primary-foreground absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                </div>
+                <span className="text-sm font-bold text-zinc-500 group-hover:text-primary transition-colors">Recordarme</span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+                className="text-sm font-bold text-zinc-400 hover:text-primary transition-colors"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className={cn(
-                'w-full h-10 px-4 rounded-lg text-white font-semibold text-sm',
-                'flex items-center justify-center gap-2',
-                'transition-all duration-200 hover:opacity-90 hover:shadow-md active:scale-[0.98]',
-                'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:active:scale-100'
-              )}
-              style={{
-                background: `linear-gradient(135deg, ${settings.primaryColor}, ${settings.accentColor})`,
-              }}
+              className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black text-sm uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all hover:opacity-90 hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 shadow-xl"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Iniciando sesión…
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Verificando...
                 </>
               ) : (
                 <>
-                  Iniciar sesión
-                  <ArrowRight className="w-4 h-4" />
+                  Entrar ahora
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="mt-8 text-center text-xs text-zinc-400">
-            © {new Date().getFullYear()} {settings.companyName}. Todos los derechos reservados.
-          </p>
+          <div className="pt-8 text-center">
+             <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+               © {new Date().getFullYear()} {settings.companyName}
+             </p>
+             <p className="text-[10px] font-medium text-zinc-300 mt-2 italic">
+               Hecho con pasión para empresas que crecen.
+             </p>
+          </div>
         </div>
       </div>
     </div>

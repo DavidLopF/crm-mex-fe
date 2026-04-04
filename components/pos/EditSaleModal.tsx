@@ -9,6 +9,7 @@ import { updateSale, getPosProducts, type SaleResponseDto, type PaymentMethod } 
 import type { PosProductDto } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
 import { broadcastInvalidation } from '@/lib/cross-tab-sync';
+import { useCompany } from '@/lib/company-context';
 
 // ── Íconos de medios de pago (reutilizados de Cart.tsx) ──
 
@@ -37,8 +38,6 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ReactN
   { value: 'DAVIPLATA', label: 'Daviplata', icon: <DaviplataIcon className="w-4 h-4" /> },
 ];
 
-const IVA_RATE = 0.16;
-
 // ── Tipos locales ──
 
 interface EditItem {
@@ -59,6 +58,8 @@ interface Props {
 
 export function EditSaleModal({ sale, onClose, onSaved }: Props) {
   const toast = useGlobalToast();
+  const { settings } = useCompany();
+  const ivaRate = settings?.defaultIvaRate ?? 0.19;
 
   // ── Estado editable del modal ──
   // (No usa el store de POS para no contaminar el carrito activo)
@@ -90,7 +91,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
 
   // ── Calcular totales ──
   const subtotal  = items.reduce((s, i) => s + i.unitPrice * i.qty, 0);
-  const taxAmount = includesIva ? Math.round(subtotal * IVA_RATE * 100) / 100 : 0;
+  const taxAmount = includesIva ? Math.round(subtotal * ivaRate * 100) / 100 : 0;
   const total     = subtotal + taxAmount;
 
   const formatPrice = (price: number) =>
@@ -393,7 +394,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
               ${includesIva ? 'border-primary bg-primary/5 text-primary' : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'}
             `}
           >
-            <span className="text-sm font-medium">Incluye IVA (16%)</span>
+            <span className="text-sm font-medium">Incluye IVA ({(ivaRate * 100).toFixed(0)}%)</span>
             <span className={`w-10 h-5 flex items-center rounded-full transition-colors flex-shrink-0 ml-2 ${includesIva ? 'bg-primary' : 'bg-zinc-300'}`}>
               <span className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${includesIva ? 'translate-x-5' : 'translate-x-0'}`} />
             </span>
@@ -408,7 +409,7 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm text-green-700">
-                  <span>IVA 16%</span>
+                  <span>IVA {(ivaRate * 100).toFixed(0)}%</span>
                   <span>+ {formatPrice(taxAmount)}</span>
                 </div>
                 <div className="border-t border-zinc-200 pt-1" />

@@ -9,3 +9,5 @@ export { ReturnedSalesAlert } from './ReturnedSalesAlert';
 export { SalesList } from './SalesList';
 export { PosDashboardCards } from './PosDashboardCards';
 export { CierreCaja } from './CierreCaja';
+export { CierreCajaModerno } from './CierreCajaModerno';
+export { CashCloseHistory } from './CashCloseHistory';

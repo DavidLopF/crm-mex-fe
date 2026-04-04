@@ -39,8 +39,8 @@ export function PillFilter<T extends string = string>({
           'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
           'border transition-all duration-150',
           value === 'all'
-            ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
-            : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:text-zinc-900'
+            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+            : 'bg-white text-zinc-600 border-zinc-200 hover:border-primary/30 hover:text-primary'
         )}
       >
         {allLabel}
@@ -57,8 +57,8 @@ export function PillFilter<T extends string = string>({
               'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
               'border transition-all duration-150',
               isActive
-                ? opt.color ?? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
-                : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:text-zinc-900'
+                ? opt.color ?? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-white text-zinc-600 border-zinc-200 hover:border-primary/30 hover:text-primary'
             )}
           >
             {opt.label}

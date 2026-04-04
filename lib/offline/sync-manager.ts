@@ -159,35 +159,41 @@ async function executeOperation(op: OfflineOperation): Promise<unknown> {
 
 /**
  * Encola una operación de mutación para sincronizar cuando haya internet.
- * Si ya existe una operación pendiente con el mismo método + path, la reemplaza
- * (evita duplicados cuando el usuario repite la acción mientras está offline).
+ * Solo deduplica si es una actualización (PUT/PATCH) al mismo recurso exacto
+ * y el clientId coincide, o si es un reintento manual.
  */
 export async function enqueueOperation(
   op: Omit<OfflineOperation, 'id' | 'clientId' | 'queuedAt' | 'retries'>
 ): Promise<void> {
   const db = getOfflineDB();
+  const clientId = crypto.randomUUID();
 
-  // Deduplicar: si ya hay una operación pendiente con el mismo método + path, reemplazarla
-  const existing = await db.offlineQueue
-    .filter((item) => item.method === op.method && item.path === op.path)
-    .first();
+  // Para POST nunca deduplicamos (cada creación es única)
+  // Para PUT/PATCH/DELETE podríamos deduplicar si el path es idéntico (ej: editar el mismo producto 2 veces)
+  if (op.method !== 'POST') {
+    const existing = await db.offlineQueue
+      .filter((item) => item.method === op.method && item.path === op.path)
+      .first();
 
-  if (existing?.id !== undefined) {
-    await db.offlineQueue.update(existing.id, {
-      body: op.body,
-      params: op.params,
-      queuedAt: Date.now(),
-      retries: 0,
-      lastError: undefined,
-    });
-  } else {
-    await db.offlineQueue.add({
-      ...op,
-      clientId: crypto.randomUUID(),
-      queuedAt: Date.now(),
-      retries: 0,
-    });
+    if (existing?.id !== undefined) {
+      await db.offlineQueue.update(existing.id, {
+        body: op.body,
+        params: op.params,
+        queuedAt: Date.now(),
+        retries: 0,
+        lastError: undefined,
+      });
+      await emitQueueCount();
+      return;
+    }
   }
+
+  await db.offlineQueue.add({
+    ...op,
+    clientId,
+    queuedAt: Date.now(),
+    retries: 0,
+  });
 
   await emitQueueCount();
 }

@@ -48,9 +48,9 @@ export function Switch({
         className={cn(
           'relative inline-flex flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent',
           'transition-colors duration-200 ease-in-out',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/30 focus-visible:ring-offset-2',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          checked ? 'bg-zinc-900' : 'bg-zinc-200',
+          checked ? 'bg-primary' : 'bg-zinc-200',
           trackSize
         )}
       >

@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Sparkline, SPARKLINE_PRESETS } from '@/components/ui/sparkline';
 import { cn } from '@/lib/utils';
-import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
@@ -12,13 +12,9 @@ interface StatCardProps {
     isPositive: boolean;
   };
   className?: string;
-  /** @deprecated kept for backward compat — use iconBg + iconColor */
-  iconClassName?: string;
   iconBg?: string;
   iconColor?: string;
-  /** Optional sparkline data. Defaults to a random-looking upward preset */
   sparklineData?: number[];
-  /** Sparkline stroke color */
   sparklineColor?: string;
 }
 
@@ -28,72 +24,73 @@ export function StatCard({
   icon: Icon,
   trend,
   className,
-  iconClassName,
   iconBg,
   iconColor,
   sparklineData,
   sparklineColor,
 }: StatCardProps) {
-  const containerClass = iconClassName ?? iconBg ?? 'bg-zinc-100';
-  const iconClass = iconColor ?? (iconClassName ? 'text-current' : 'text-zinc-600');
+  const containerClass = iconBg ?? 'bg-zinc-100';
+  const iconClass = iconColor ?? 'text-zinc-600';
 
-  // Default sparkline: choose preset based on trend direction
+  // Default sparkline
   const chartData = sparklineData ?? (
     trend?.isPositive === false ? SPARKLINE_PRESETS.downward : SPARKLINE_PRESETS.upward
   );
   const chartColor = sparklineColor ?? (
-    trend?.isPositive === false ? '#ef4444' : '#22c55e'
+    trend?.isPositive === false ? '#f43f5e' : '#10b981'
   );
 
   return (
     <Card className={cn(
-      'relative overflow-hidden border-zinc-200/80 hover:shadow-md transition-all duration-200',
+      'card-premium group relative overflow-hidden border-none transition-all duration-500',
       className
     )}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-3">
-
-          {/* Left: label + value + trend */}
-          <div className="space-y-1 min-w-0 flex-1">
-            <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-widest truncate">
-              {title}
-            </p>
-            <p className="text-2xl font-bold text-zinc-900 tracking-tight leading-none">
-              {value}
-            </p>
-            {trend && (
-              <div className="flex items-center gap-1 pt-1">
-                {trend.isPositive
-                  ? <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                  : <TrendingDown className="w-3.5 h-3.5 text-red-500" />}
-                <span className={cn(
-                  'text-xs font-semibold',
-                  trend.isPositive ? 'text-emerald-600' : 'text-red-500'
-                )}>
-                  {trend.isPositive ? '+' : ''}{trend.value}%
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Right: icon + sparkline stacked */}
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            {/* Icon */}
+      {/* Sutil gradiente de fondo en hover */}
+      <div className="absolute inset-0 bg-linear-to-br from-transparent via-transparent to-zinc-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <CardContent className="p-6 relative z-10">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start justify-between">
+            {/* Icon Container */}
             <div className={cn(
-              'w-9 h-9 rounded-xl flex items-center justify-center ring-1 ring-inset ring-zinc-900/5',
+              'w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 duration-500',
               containerClass
             )}>
-              <Icon className={cn('w-4.5 h-4.5', iconClass)} />
+              <Icon className={cn('w-6 h-6', iconClass)} />
             </div>
 
-            {/* Sparkline */}
-            <Sparkline
-              data={chartData}
-              color={chartColor}
-              width={72}
-              height={32}
-              strokeWidth={1.75}
-            />
+            {/* Sparkline overlay right */}
+            <div className="pt-2">
+               <Sparkline
+                data={chartData}
+                color={chartColor}
+                width={80}
+                height={35}
+                strokeWidth={2}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.15em]">
+              {title}
+            </p>
+            <div className="flex items-baseline gap-2">
+              <h3 className="text-3xl font-extrabold text-zinc-900 tracking-tight">
+                {value}
+              </h3>
+              {trend && (
+                <div className={cn(
+                  'flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold',
+                  trend.isPositive 
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50' 
+                    : 'bg-rose-50 text-rose-600 border border-rose-100/50'
+                )}>
+                  {trend.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                  <span>{Math.abs(trend.value)}%</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

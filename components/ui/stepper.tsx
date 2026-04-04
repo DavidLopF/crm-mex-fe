@@ -36,9 +36,9 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
                   'w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold',
                   'ring-2 transition-all duration-200',
                   isDone
-                    ? 'bg-zinc-900 ring-zinc-900 text-white'
+                    ? 'bg-primary ring-primary text-primary-foreground'
                     : isActive
-                    ? 'bg-white ring-zinc-900 text-zinc-900'
+                    ? 'bg-white ring-primary text-primary'
                     : 'bg-white ring-zinc-200 text-zinc-400'
                 )}
               >
@@ -50,7 +50,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
                 <p
                   className={cn(
                     'text-xs font-medium leading-tight',
-                    isActive ? 'text-zinc-900' : isDone ? 'text-zinc-600' : 'text-zinc-400'
+                    isActive ? 'text-primary' : isDone ? 'text-zinc-600' : 'text-zinc-400'
                   )}
                 >
                   {step.label}
@@ -69,7 +69,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
                 <div
                   className={cn(
                     'h-0.5 w-full transition-colors duration-300',
-                    isDone ? 'bg-zinc-900' : 'bg-zinc-200'
+                    isDone ? 'bg-primary' : 'bg-zinc-200'
                   )}
                 />
               </div>
@@ -138,7 +138,7 @@ export function StepperActions({
           'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
           isFirst
             ? 'text-zinc-300 cursor-not-allowed'
-            : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+            : 'text-zinc-600 hover:bg-zinc-50 hover:text-primary'
         )}
       >
         Atrás
@@ -149,8 +149,8 @@ export function StepperActions({
         onClick={isLast ? onFinish : onNext}
         disabled={!canNext || isLoading}
         className={cn(
-          'px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all',
-          'bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-950',
+          'px-5 py-2 rounded-lg text-sm font-semibold text-primary-foreground transition-all',
+          'bg-primary hover:opacity-90 active:scale-[0.98]',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           'flex items-center gap-2'
         )}

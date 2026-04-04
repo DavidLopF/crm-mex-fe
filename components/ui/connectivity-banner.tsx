@@ -7,8 +7,10 @@ import { useEffect, useState } from 'react';
 export function ConnectivityBanner() {
   const { isOnline, pendingCount, isSyncing, syncNow } = useConnectivity();
   const [justSynced, setJustSynced] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleComplete = () => {
       if (pendingCount === 0 && isOnline) {
         setJustSynced(true);
@@ -19,6 +21,8 @@ export function ConnectivityBanner() {
     window.addEventListener('offline-sync-complete', handleComplete);
     return () => window.removeEventListener('offline-sync-complete', handleComplete);
   }, [pendingCount, isOnline]);
+
+  if (!mounted) return null;
 
   // ── Sin conexión ──
   if (!isOnline) {

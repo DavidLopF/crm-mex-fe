@@ -13,10 +13,14 @@ import {
   Store,
   Truck,
   Users,
+  ChevronDown,
+  Circle,
 } from 'lucide-react';
 import { useCompany } from '@/lib/company-context';
 import { useAuth } from '@/lib/auth-context';
 import { NotificationBell } from './NotificationBell';
+import { SyncStatus } from './SyncStatus';
+import { cn } from '@/lib/utils';
 
 interface CommandAction {
   label: string;
@@ -94,18 +98,18 @@ export function Header({ showMobileMenu = false, onMobileMenuClick }: HeaderProp
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/85 backdrop-blur-md">
-        <div className="mx-auto flex h-14 items-center gap-4 px-4 md:px-6">
+      <header className="sticky top-0 z-30 h-20 glass border-b border-white/20">
+        <div className="mx-auto flex h-full items-center gap-4 px-4 md:px-8">
 
           {/* Mobile menu */}
           {showMobileMenu && (
             <button
               type="button"
               onClick={onMobileMenuClick}
-              className="flex-shrink-0 p-1.5 rounded-md text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 transition-colors"
+              className="flex-shrink-0 p-2 rounded-xl text-zinc-500 hover:text-primary hover:bg-white/50 transition-all"
               aria-label="Abrir menú"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
           )}
 
@@ -113,41 +117,48 @@ export function Header({ showMobileMenu = false, onMobileMenuClick }: HeaderProp
           <button
             type="button"
             onClick={openPalette}
-            className="flex flex-1 max-w-sm items-center gap-2.5 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-left transition-colors hover:border-zinc-300 hover:bg-zinc-100"
+            className="group flex flex-1 max-w-md items-center gap-3 rounded-xl border border-zinc-200/50 bg-white/40 px-4 py-2.5 text-left transition-all hover:bg-white hover:shadow-premium hover:border-white"
           >
-            <Search className="h-4 w-4 text-zinc-400 flex-shrink-0" />
-            <span className="flex-1 text-sm text-zinc-400 truncate">Buscar...</span>
-            <div className="hidden sm:flex items-center gap-0.5 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400">
-              <span>⌘K</span>
+            <Search className="h-4 w-4 text-zinc-400 group-hover:text-primary transition-colors" />
+            <span className="flex-1 text-sm font-medium text-zinc-400 group-hover:text-zinc-600 truncate">Buscar en el CRM...</span>
+            <div className="hidden sm:flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-bold text-zinc-400">
+              <span>⌘</span>
+              <span>K</span>
             </div>
           </button>
 
           {/* Right section */}
-          <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
+          <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
             {/* Live indicator */}
-            <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span>En línea</span>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-[11px] font-bold text-emerald-600 border border-emerald-100/50">
+              <Circle className="h-2 w-2 fill-emerald-500 animate-pulse" />
+              <span>SISTEMA EN LÍNEA</span>
             </div>
 
             {/* Notifications */}
             <NotificationBell />
 
-            <div className="w-px h-4 bg-zinc-200 hidden md:block" />
+            <div className="w-px h-6 bg-zinc-200/50 hidden md:block" />
 
-            {/* User card */}
-            <div className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-2.5 py-1.5">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-md text-white text-[11px] font-bold flex-shrink-0"
-                style={{ backgroundColor: settings.primaryColor ?? '#2563eb' }}
-              >
-                {initials}
+            {/* User Profile */}
+            <button className="flex items-center gap-3 group rounded-xl hover:bg-white/50 p-1 transition-all">
+              <div className="flex items-center gap-3 px-1">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl text-primary-foreground text-xs font-bold shadow-lg transition-transform group-hover:scale-105"
+                  style={{ 
+                    backgroundColor: 'var(--primary-color)',
+                    boxShadow: `0 8px 16px -4px color-mix(in srgb, var(--primary-color), transparent 75%)`
+                  }}
+                >
+                  {initials}
+                </div>
+                <div className="hidden lg:block text-left">
+                  <p className="text-sm font-bold text-zinc-900 leading-tight group-hover:text-primary transition-colors">{fullName || 'Usuario'}</p>
+                  <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">{roleName || 'Sin rol'}</p>
+                </div>
               </div>
-              <div className="hidden lg:block leading-tight">
-                <p className="text-[13px] font-semibold text-zinc-900">{fullName || 'Usuario'}</p>
-                <p className="text-[11px] text-zinc-400">{roleName || 'Sin rol'}</p>
-              </div>
-            </div>
+              <ChevronDown className="w-4 h-4 text-zinc-400 hidden lg:block group-hover:text-primary transition-colors" />
+            </button>
           </div>
 
         </div>
@@ -156,54 +167,84 @@ export function Header({ showMobileMenu = false, onMobileMenuClick }: HeaderProp
       {/* Command palette overlay */}
       {isPaletteOpen && (
         <div
-          className="fixed inset-0 z-[9999] flex items-start justify-center bg-zinc-950/40 p-4 pt-16 md:pt-20 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-start justify-center bg-zinc-950/20 p-4 pt-20 backdrop-blur-md animate-fadeIn"
           onClick={(e) => { if (e.target === e.currentTarget) closePalette(); }}
         >
-          <div className="w-full max-w-xl rounded-lg border border-zinc-200 bg-white shadow-[0_20px_48px_rgba(9,9,11,0.18)]">
-            <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3">
-              <Search className="h-4 w-4 text-zinc-400 flex-shrink-0" />
+          <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/30 bg-white/80 backdrop-blur-xl shadow-2xl animate-slideUp">
+            <div className="flex items-center gap-3 border-b border-zinc-100 px-6 py-5">
+              <Search className="h-5 w-5 text-zinc-400 flex-shrink-0" />
               <input
                 autoFocus
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ir a inventario, pedidos, clientes..."
-                className="w-full bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+                placeholder="¿Qué estás buscando hoy? (Productos, pedidos, clientes...)"
+                className="w-full bg-transparent text-base font-medium text-zinc-900 outline-none placeholder:text-zinc-400"
               />
-              <button
-                type="button"
-                onClick={closePalette}
-                className="rounded border border-zinc-200 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 hover:bg-zinc-50 flex-shrink-0"
-              >
-                Esc
-              </button>
+              <div className="flex items-center gap-2">
+                 <button
+                  type="button"
+                  onClick={closePalette}
+                  className="rounded-lg border border-zinc-200 px-2 py-1 text-[11px] font-bold text-zinc-400 hover:bg-white hover:text-primary transition-all"
+                >
+                  ESC
+                </button>
+              </div>
             </div>
 
-            <div className="p-2 space-y-0.5">
+            <div className="p-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
               {filteredActions.length === 0 && (
-                <p className="px-4 py-8 text-center text-sm text-zinc-400">
-                  Sin resultados para esta búsqueda
-                </p>
-              )}
-              {filteredActions.map((action) => (
-                <button
-                  key={action.href}
-                  type="button"
-                  onClick={() => goToAction(action.href)}
-                  className="group flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left transition-colors hover:bg-zinc-50"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-100 bg-zinc-50 text-zinc-500">
-                      <action.icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-zinc-900">{action.label}</p>
-                      <p className="text-xs text-zinc-400">{action.description}</p>
-                    </div>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-12 h-12 rounded-full bg-zinc-50 flex items-center justify-center mb-3">
+                    <Search className="h-6 w-6 text-zinc-300" />
                   </div>
-                  <ArrowRight className="h-3.5 w-3.5 text-zinc-300 opacity-0 transition-opacity group-hover:opacity-100" />
-                </button>
-              ))}
+                  <p className="text-sm font-medium text-zinc-500">
+                    No encontramos nada para "<span className="text-primary">{query}</span>"
+                  </p>
+                  <p className="text-xs text-zinc-400 mt-1">Intenta con términos más generales</p>
+                </div>
+              )}
+              
+              {filteredActions.length > 0 && (
+                <div className="grid grid-cols-1 gap-1">
+                  {filteredActions.map((action) => (
+                    <button
+                      key={action.href}
+                      type="button"
+                      onClick={() => goToAction(action.href)}
+                      className="group flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition-all hover:bg-white hover:shadow-md"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-50 text-zinc-400 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                          <action.icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-zinc-900 group-hover:text-primary transition-colors">{action.label}</p>
+                          <p className="text-xs font-medium text-zinc-400">{action.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0">
+                        <span className="text-[10px] font-bold text-primary uppercase">Abrir</span>
+                        <ArrowRight className="h-4 w-4 text-primary" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-zinc-50/50 border-t border-zinc-100 px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <kbd className="rounded bg-white border border-zinc-200 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 shadow-sm">ENTER</kbd>
+                  <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Seleccionar</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <kbd className="rounded bg-white border border-zinc-200 px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 shadow-sm">↑↓</kbd>
+                  <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Navegar</span>
+                </div>
+              </div>
+              <p className="text-[11px] font-bold text-primary uppercase tracking-widest">Atajos rápidos</p>
             </div>
           </div>
         </div>

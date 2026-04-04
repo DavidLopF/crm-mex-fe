@@ -1,6 +1,12 @@
 'use client';
 
-import { Printer, CheckCircle, XCircle, Copy, Check, Pencil, CornerUpLeft, Receipt } from 'lucide-react';
+import { 
+  Printer, CheckCircle, XCircle, Copy, Check, 
+  Pencil, CornerUpLeft, Receipt, ShoppingBag, 
+  User, Calendar, CreditCard, Sparkles, 
+  ChevronRight, ArrowRight, Download, Share2,
+  Clock, Loader2, Info
+} from 'lucide-react';
 import { Button, Modal } from '@/components/ui';
 import { changeSaleStatus, type SaleResponseDto } from '@/services/pos';
 import { useGlobalToast } from '@/lib/hooks';
@@ -11,6 +17,8 @@ import { useState } from 'react';
 import { EditSaleModal } from './EditSaleModal';
 import { ReturnSaleModal } from './ReturnSaleModal';
 import { FacturacionElectronicaModal } from './FacturacionElectronicaModal';
+import { useCompany } from '@/lib/company-context';
+import { cn } from '@/lib/utils';
 
 interface Props {
   sale: SaleResponseDto;
@@ -19,6 +27,7 @@ interface Props {
 }
 
 export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: Props) {
+  const { settings } = useCompany();
   const toast = useGlobalToast();
   const { isOnline } = useConnectivity();
   const [sale, setSale]           = useState<SaleResponseDto>(initialSale);
@@ -28,6 +37,9 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
   const [showReturn, setShowReturn] = useState(false);
   const [showFE, setShowFE]         = useState(false);
 
+  const isPaid = sale.statusCode === 'PAGADA';
+  const isCanceled = sale.statusCode === 'ANULADA';
+
   const handleCopyCode = () => {
     navigator.clipboard.writeText(sale.code).then(() => {
       setCodeCopied(true);
@@ -36,11 +48,15 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
   };
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
+    new Intl.NumberFormat('es-MX', { 
+      style: 'currency', 
+      currency: 'MXN',
+      maximumFractionDigits: 0
+    }).format(price);
 
   const formatDate = (dateStr: string) =>
     new Intl.DateTimeFormat('es-MX', {
-      dateStyle: 'long',
+      dateStyle: 'medium',
       timeStyle: 'short',
     }).format(new Date(dateStr));
 
@@ -53,35 +69,29 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
       setProcessing(true);
 
       if (!isOnline) {
-        // Modo contingencia: encolar para sincronizar al recuperar conexión
         await enqueueOperation({
           method: 'PATCH',
           path: `/api/pos/sales/${sale.id}/status`,
           body: { newStatusCode: 'PAGADA' },
           module: 'pos',
         });
-        // Actualización optimista local
         setSale((prev) => ({ ...prev, statusCode: 'PAGADA', status: 'Pagada' }));
         toast.success('El pago se sincronizará automáticamente al recuperar la conexión.', {
           title: '📋 Pago registrado en contingencia',
           duration: 7000,
         });
-        onClose(true);
         return;
       }
 
       await changeSaleStatus(sale.id, 'PAGADA');
       broadcastInvalidation(['inventory', 'pos-sales', 'pos-dashboard']);
-      toast.success('Pago registrado y stock actualizado', {
-        title: '✅ ¡Venta confirmada!',
-        code: sale.code,
-        duration: 6000,
+      setSale(prev => ({ ...prev, statusCode: 'PAGADA', status: 'Pagada' }));
+      toast.success('Venta confirmada y stock actualizado', {
+        title: '✅ ¡Venta Pagada!',
+        duration: 4000,
       });
-      onClose(true);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al confirmar pago', {
-        title: 'Error al confirmar',
-      });
+      toast.error(err instanceof Error ? err.message : 'Error al confirmar pago');
     } finally {
       setProcessing(false);
     }
@@ -91,222 +101,314 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
     try {
       setProcessing(true);
       await changeSaleStatus(sale.id, 'ANULADA');
-      // Reflejar anulación en historial y KPIs en tiempo real
       broadcastInvalidation(['pos-sales', 'pos-dashboard']);
-      toast.warning('La venta fue marcada como anulada', {
-        title: 'Venta anulada',
-        code: sale.code,
-      });
+      toast.warning('La venta fue marcada como anulada');
       onClose(true);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al anular la venta', {
-        title: 'Error al anular',
-      });
+      toast.error('Error al anular la venta');
     } finally {
       setProcessing(false);
     }
   };
 
   return (
-    <Modal isOpen onClose={() => onClose(false)} size="md" noPadding>
-      <div className="flex flex-col">
-        {/* Contenido imprimible */}
-        <div id="remision-print" className="px-6 py-5 flex-1">
-          {/* Header de remisión */}
-          <div className="text-center border-b border-zinc-100 pb-5 mb-5">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-2">Nota de Venta</p>
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="font-mono text-base font-semibold text-zinc-900">{sale.code}</span>
-              <button
-                onClick={handleCopyCode}
-                className="p-1 rounded-md hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors print:hidden"
-                title="Copiar código"
-                type="button"
-              >
-                {codeCopied
-                  ? <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  : <Copy className="w-3.5 h-3.5" />
-                }
-              </button>
-            </div>
-            <p className="text-xs text-zinc-400 mt-0.5">{formatDate(sale.createdAt)}</p>
+    <Modal isOpen onClose={() => onClose(false)} size="lg" noPadding className="bg-zinc-50 border-zinc-200">
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 0;
+            size: 80mm auto;
+          }
+          body * {
+            visibility: hidden;
+            background: none !important;
+            box-shadow: none !important;
+          }
+          #remision-print, #remision-print * {
+            visibility: visible;
+          }
+          #remision-print {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 80mm;
+            padding: 10mm 5mm;
+            margin: 0;
+            background: white !important;
+            color: black !important;
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+          .print-no-border { border: none !important; }
+          .print-text-xs { font-size: 8pt !important; }
+          .print-text-sm { font-size: 9pt !important; }
+          .print-text-lg { font-size: 11pt !important; }
+          .print-text-xl { font-size: 13pt !important; }
+          .print-w-full { width: 100% !important; }
+          .print-hidden { display: none !important; }
+          .print-m-0 { margin: 0 !important; }
+          .print-p-0 { padding: 0 !important; }
+          
+          /* Forzar estilos de ticket */
+          .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-full { border-radius: 0 !important; }
+          .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl { box-shadow: none !important; }
+          .bg-zinc-50, .bg-white, .bg-zinc-100 { background: white !important; }
+          .border { border: none !important; border-bottom: 1px dashed #ccc !important; }
+          
+          /* Ajuste de columnas */
+          .grid-cols-2 { grid-template-columns: 1fr !important; gap: 10px !important; }
+          
+          /* Ocultar elementos innecesarios */
+          button, .print-hide { display: none !important; }
+          
+          /* Separador visual */
+          .ticket-divider {
+            border-bottom: 1px dashed black !important;
+            margin: 10px 0 !important;
+          }
+        }
+      `}</style>
+
+      <div className="flex flex-col max-h-[90vh]">
+        
+        {/* Contenido Imprimible */}
+        <div id="remision-print" className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 space-y-8 bg-zinc-50">
+          
+          {/* Company Header (Solo para impresión o siempre visible) */}
+          <div className="hidden print:block text-center space-y-1 mb-6">
+            <h1 className="text-xl font-black uppercase tracking-tighter">{settings.companyName}</h1>
+            <p className="text-[10px] font-bold text-zinc-500 uppercase">Comprobante de Venta</p>
+            <div className="ticket-divider" />
           </div>
 
-          {/* Info cliente / vendedor */}
-          <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-            <div>
-              <p className="text-zinc-500">Cliente</p>
-              <p className="font-medium">{sale.clientName || 'Público general'}</p>
-            </div>
-            <div>
-              <p className="text-zinc-500">Vendedor</p>
-              <p className="font-medium">{sale.sellerName || '—'}</p>
-            </div>
-          </div>
-
-          {/* Tabla de items */}
-          <table className="w-full text-sm mb-4">
-            <thead>
-              <tr className="border-b border-zinc-200">
-                <th className="text-left pb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Producto</th>
-                <th className="text-center pb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400 w-14">Cant.</th>
-                <th className="text-right pb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400 w-24">P. Unit.</th>
-                <th className="text-right pb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400 w-24">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sale.items.map((item) => (
-                <tr key={item.id} className="border-b border-zinc-100/80">
-                  <td className="py-2.5">
-                    <p className="font-medium text-zinc-900 text-sm">{item.productName}</p>
-                    {item.variantName && (
-                      <p className="text-xs text-zinc-400 mt-0.5">{item.variantName}</p>
-                    )}
-                    {item.appliedTierLabel && (
-                      <p className="text-[10px] text-emerald-600 mt-0.5">{item.appliedTierLabel}</p>
-                    )}
-                  </td>
-                  <td className="py-2.5 text-center text-zinc-700 tabular-nums">{item.qty}</td>
-                  <td className="py-2.5 text-right text-zinc-700 tabular-nums">{formatPrice(item.unitPrice)}</td>
-                  <td className="py-2.5 text-right font-semibold text-zinc-900 tabular-nums">{formatPrice(item.lineTotal)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Total (con desglose IVA si aplica) */}
-          <div className="border-t border-zinc-200 pt-3 space-y-1.5">
-            {sale.taxAmount > 0 && (
-              <>
-                <div className="flex items-center justify-between text-sm text-zinc-500">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(sale.subtotal)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm text-zinc-500">
-                  <span>IVA ({Math.round(sale.taxRate * 100)}%)</span>
-                  <span>{formatPrice(sale.taxAmount)}</span>
-                </div>
-              </>
+          {/* Status Header */}
+          <div className="flex flex-col items-center text-center space-y-4 print:space-y-2">
+            {!isPaid && !isCanceled ? (
+              <div className="w-20 h-20 rounded-full bg-amber-500 flex items-center justify-center shadow-xl shadow-amber-100 animate-fadeIn print:hidden">
+                <Clock className="w-10 h-10 text-white" />
+              </div>
+            ) : isPaid ? (
+              <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center shadow-xl shadow-emerald-100 animate-fadeIn print:hidden">
+                <Sparkles className="w-10 h-10 text-white animate-pulse" />
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-rose-500 flex items-center justify-center shadow-xl shadow-rose-100 animate-fadeIn print:hidden">
+                <XCircle className="w-10 h-10 text-white" />
+              </div>
             )}
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-sm font-semibold text-zinc-500 uppercase tracking-widest">Total</span>
-              <span className="text-xl font-bold text-zinc-900 tabular-nums">{formatPrice(sale.total)}</span>
+
+            <div className="space-y-1">
+              <h2 className="text-2xl font-black text-zinc-900 tracking-tight print:text-lg">
+                {isPaid ? '¡Venta Confirmada!' : isCanceled ? 'Venta Anulada' : 'Venta Pendiente'}
+              </h2>
+              <div className="flex items-center justify-center gap-2">
+                <span className="font-mono text-sm font-bold text-zinc-400 uppercase tracking-widest print:text-black print:text-xs">{sale.code}</span>
+                <button onClick={handleCopyCode} className="p-1 rounded-lg hover:bg-zinc-200 hover:text-primary transition-all print:hidden">
+                  {codeCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-zinc-300" />}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Notas */}
-          {sale.notes && (
-            <div className="mt-3 p-2 bg-zinc-50 rounded text-xs text-zinc-500">
-              Notas: {sale.notes}
+          {/* Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:gap-2">
+            <div className="p-5 bg-white rounded-2xl border border-zinc-200 shadow-sm space-y-3 print:p-2 print:border-none">
+              <div className="flex items-center gap-2 text-zinc-400 print:text-black">
+                <User className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Cliente</span>
+              </div>
+              <p className="text-sm font-black text-zinc-900 uppercase truncate print:text-xs">{sale.clientName || 'Público General'}</p>
+              <div className="flex items-center gap-2 text-zinc-400 print:text-black">
+                <Calendar className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold print:text-[10px]">{formatDate(sale.createdAt)}</span>
+              </div>
             </div>
-          )}
 
-          {/* Estado */}
-          <div className="mt-4 flex justify-center">
-            <span
-              className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold tracking-wide ${
-                sale.statusCode === 'PAGADA'
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : sale.statusCode === 'ANULADA'
-                  ? 'bg-red-50 text-red-700 border border-red-200'
-                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }`}
-            >
-              {sale.status}
-            </span>
+            <div className="p-5 bg-white rounded-2xl border border-zinc-200 shadow-sm space-y-3 print:p-2 print:border-none">
+              <div className="flex items-center gap-2 text-zinc-400 print:text-black">
+                <CreditCard className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Pago y Vendedor</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-lg bg-zinc-100 text-zinc-600 text-[10px] font-black uppercase border border-zinc-200 print:border-none print:p-0">
+                  {sale.paymentMethod}
+                </span>
+                <span className="text-zinc-200 print:hidden">·</span>
+                <p className="text-sm font-bold text-zinc-600 truncate print:text-xs">{sale.sellerName || 'Sistema'}</p>
+              </div>
+              <div className="flex items-center gap-2 text-zinc-400 print:hidden">
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold">{sale.items.length} productos registrados</span>
+              </div>
+            </div>
           </div>
 
-          {/* Facturación Electrónica DIAN — sección visible cuando la FE ya fue emitida */}
-          {sale.feInvoiceId && (
-            <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200/70 rounded-md">
-              <div className="flex items-center gap-2 mb-2">
-                <Receipt className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wide">
-                  Factura Electrónica DIAN · #{sale.feInvoiceId}
+          {/* Items List Container */}
+          <div className="bg-white rounded-3xl border border-zinc-200 shadow-sm overflow-hidden print:border-none">
+            <div className="bg-zinc-50 px-6 py-4 border-b border-zinc-100 flex items-center justify-between print:bg-white print:px-2 print:py-2">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest print:text-black">Detalle</span>
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest print:text-black">Total</span>
+            </div>
+            <div className="divide-y divide-zinc-50 print:divide-zinc-200">
+              {sale.items.map((item) => (
+                <div key={item.id} className="px-6 py-5 flex items-center justify-between gap-4 hover:bg-zinc-50/50 transition-colors print:px-2 print:py-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-black text-zinc-900 uppercase truncate print:text-xs">{item.productName}</p>
+                    <p className="text-[10px] font-bold text-zinc-400 mt-0.5 print:text-black">
+                      {item.qty}uds × {formatPrice(item.unitPrice)}
+                      {item.variantName && <span className="ml-2 text-primary font-black print:text-black">({item.variantName})</span>}
+                    </p>
+                  </div>
+                  <span className="text-sm font-black text-zinc-900 tabular-nums print:text-xs">
+                    {formatPrice(item.lineTotal)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            
+            {/* Totals Section */}
+            <div className="bg-zinc-100/50 p-8 space-y-4 print:bg-white print:p-4 print:space-y-2">
+              {sale.taxAmount > 0 && (
+                <div className="flex justify-between items-center text-xs font-bold text-zinc-400 uppercase tracking-widest print:text-black print:text-[10px]">
+                  <span>Subtotal Neto</span>
+                  <span className="tabular-nums font-black text-zinc-600 print:text-black">{formatPrice(sale.subtotal)}</span>
+                </div>
+              )}
+              {sale.taxAmount > 0 && (
+                <div className="flex justify-between items-center text-xs font-bold text-emerald-600 uppercase tracking-widest print:text-black print:text-[10px]">
+                  <span>IVA ({Math.round(sale.taxRate * 100)}%)</span>
+                  <span className="tabular-nums font-black">{formatPrice(sale.taxAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-end pt-2 border-t border-zinc-200 print:border-black print:pt-4">
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1 print:text-black">TOTAL</span>
+                <span className="text-4xl font-black text-zinc-900 tracking-tighter leading-none print:text-2xl">
+                  {formatPrice(sale.total)}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* DIAN Banner */}
+          {sale.feInvoiceId && (
+            <div className="p-6 rounded-3xl bg-white border-2 border-emerald-100 space-y-4 animate-fadeIn print:border-none print:p-2 print:space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 print:gap-2">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-100 print:hidden">
+                    <Receipt className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest print:text-black">Factura DIAN</p>
+                    <p className="text-base font-black text-emerald-900 uppercase print:text-sm">#{sale.feInvoiceId}</p>
+                  </div>
+                </div>
+                <button className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all print:hidden">
+                  <Download className="w-5 h-5" />
+                </button>
+              </div>
               {sale.feCufe && (
-                <div>
-                  <p className="text-[10px] text-emerald-600 mb-0.5 font-medium">CUFE</p>
-                  <p className="font-mono text-[10px] text-emerald-900 break-all bg-emerald-100/60 px-2 py-1.5 rounded">
+                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100 print:bg-white print:p-0 print:border-none">
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1 print:text-black">CUFE</p>
+                  <p className="font-mono text-[9px] text-zinc-600 break-all leading-relaxed select-all print:text-black">
                     {sale.feCufe}
                   </p>
                 </div>
               )}
             </div>
           )}
+
+          {sale.notes && (
+            <div className="flex items-start gap-3 p-5 bg-white rounded-2xl border border-zinc-200 border-dashed print:p-2 print:border-none">
+              <Info className="w-4 h-4 text-zinc-300 mt-0.5 flex-shrink-0 print:hidden" />
+              <p className="text-xs font-medium text-zinc-500 leading-relaxed italic print:text-[10px] print:text-black">"{sale.notes}"</p>
+            </div>
+          )}
+
+          <div className="hidden print:block text-center pt-8">
+            <p className="text-[10px] font-bold uppercase tracking-widest">¡Gracias por su compra!</p>
+            <p className="text-[8px] text-zinc-400 mt-1">Este no es una factura legal si no tiene número de DIAN</p>
+          </div>
         </div>
 
-        {/* Acciones (no se imprimen) */}
-        <div className="px-6 py-3.5 border-t border-zinc-100 print:hidden">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-
-            {/* Izquierda: acciones secundarias y destructivas */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="secondary" size="sm" onClick={handlePrint}>
-                <Printer className="w-3.5 h-3.5" />
+        {/* Footer */}
+        <div className="p-6 border-t border-zinc-200 bg-white print:hidden">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button 
+                onClick={handlePrint}
+                className="flex-1 sm:flex-none h-12 px-6 rounded-xl bg-zinc-100 text-zinc-600 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-200 transition-all active:scale-95"
+              >
+                <Printer className="w-4 h-4" />
                 Imprimir
-              </Button>
-
-              {sale.statusCode === 'PENDIENTE' && !readOnly && (
-                <Button variant="danger-outline" size="sm" onClick={handleCancel} disabled={processing}>
-                  <XCircle className="w-3.5 h-3.5" />
+              </button>
+              
+              {!isPaid && !isCanceled && !readOnly && (
+                <button 
+                  onClick={handleCancel}
+                  disabled={processing}
+                  className="flex-1 sm:flex-none h-12 px-6 rounded-xl bg-white border border-rose-200 text-rose-600 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-50 transition-all active:scale-95"
+                >
+                  <XCircle className="w-4 h-4" />
                   Anular
-                </Button>
+                </button>
               )}
             </div>
 
-            {/* Derecha: flujo principal */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {sale.statusCode === 'PAGADA' && sale.feInvoiceId && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-emerald-200 bg-emerald-50 text-xs font-medium text-emerald-700">
-                  <Receipt className="w-3.5 h-3.5" />
-                  Facturada · #{sale.feInvoiceId}
-                </span>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {isPaid ? (
+                <>
+                  {!sale.feInvoiceId && (
+                    <button 
+                      onClick={() => setShowFE(true)}
+                      className="flex-1 sm:flex-none h-12 px-6 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all active:scale-95"
+                    >
+                      <Receipt className="w-4 h-4" />
+                      Facturar
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => onClose(true)}
+                    className="flex-1 sm:flex-none h-12 px-8 rounded-xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center transition-all hover:opacity-90 active:scale-95 shadow-lg"
+                  >
+                    Finalizar
+                  </button>
+                </>
+              ) : isCanceled ? (
+                <button 
+                  onClick={() => onClose(true)}
+                  className="w-full sm:w-auto h-12 px-10 rounded-xl bg-zinc-900 text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95"
+                >
+                  Cerrar
+                </button>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => setShowEdit(true)}
+                    disabled={processing}
+                    className="flex-1 sm:flex-none h-12 px-6 rounded-xl bg-white border border-zinc-200 text-zinc-500 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-50 transition-all active:scale-95"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Editar
+                  </button>
+                  <button 
+                    onClick={handleConfirmPayment}
+                    disabled={processing}
+                    className="flex-1 sm:flex-none h-12 px-8 rounded-xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 shadow-lg transition-all active:scale-95"
+                  >
+                    {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                    Cobrar
+                  </button>
+                </>
               )}
-
-              {sale.statusCode === 'PAGADA' && !sale.feInvoiceId && (
-                <Button variant="outline" size="sm" onClick={() => setShowFE(true)}>
-                  <Receipt className="w-3.5 h-3.5" />
-                  Factura Electrónica
-                </Button>
-              )}
-
-              {sale.statusCode === 'PENDIENTE' && !readOnly && !sale.returnedAt && (
-                <Button variant="outline" size="sm" onClick={() => setShowReturn(true)} disabled={processing}>
-                  <CornerUpLeft className="w-3.5 h-3.5" />
-                  Devolver
-                </Button>
-              )}
-
-              {sale.statusCode === 'PENDIENTE' && (!readOnly || sale.returnedAt) && (
-                <Button variant="outline" size="sm" onClick={() => setShowEdit(true)} disabled={processing}>
-                  <Pencil className="w-3.5 h-3.5" />
-                  {sale.returnedAt ? 'Corregir y reenviar' : 'Editar'}
-                </Button>
-              )}
-
-              {sale.statusCode === 'PENDIENTE' && (!readOnly || sale.returnedAt) && (
-                <Button variant="brand" size="sm" onClick={handleConfirmPayment} disabled={processing}>
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  {processing ? 'Procesando...' : 'Confirmar Pago'}
-                </Button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => onClose(sale.statusCode !== 'PENDIENTE')}
-                className="px-2 py-1.5 text-sm text-zinc-400 hover:text-zinc-600 transition-colors"
-              >
-                Cerrar
-              </button>
             </div>
 
           </div>
         </div>
       </div>
 
-      {/* Sub-modales — montados sobre el RemisionModal */}
+      {/* Sub-modales */}
       {showEdit && (
         <EditSaleModal
           sale={sale}
@@ -328,7 +430,6 @@ export function RemisionModal({ sale: initialSale, onClose, readOnly = false }: 
           sale={sale}
           onClose={() => setShowFE(false)}
           onSuccess={(result) => {
-            // Actualiza el sale local → el badge cambia inmediatamente
             setSale((prev) => ({
               ...prev,
               feInvoiceId: result.documentId,
