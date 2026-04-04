@@ -49,8 +49,8 @@ interface CreatePurchaseOrderFullscreenProps {
 interface LineaOC {
   key: number;
   producto: OrderProductItem;
-  cantidad: number;
-  costoUnitario: number;
+  cantidad: number | '';
+  costoUnitario: number | '';
   subtotal: number;
 }
 
@@ -179,7 +179,13 @@ export function CreatePurchaseOrderFullscreen({
   const agregarAlCarrito = (producto: OrderProductItem) => {
     const existing = carrito.find(l => l.producto.id === producto.id);
     if (existing) {
-      setCarrito(prev => prev.map(l => l.key === existing.key ? { ...l, cantidad: l.cantidad + 1, subtotal: l.costoUnitario * (l.cantidad + 1) } : l));
+      setCarrito(prev => prev.map(l => {
+        if (l.key === existing.key) {
+          const nuevaCant = (typeof l.cantidad === 'number' ? l.cantidad : 0) + 1;
+          return { ...l, cantidad: nuevaCant, subtotal: (typeof l.costoUnitario === 'number' ? l.costoUnitario : 0) * nuevaCant };
+        }
+        return l;
+      }));
       return;
     }
     itemCounter++;
@@ -206,28 +212,43 @@ export function CreatePurchaseOrderFullscreen({
     };
     const existing = carrito.find(l => l.producto.id === virtualProducto.id);
     if (existing) {
-      setCarrito(prev => prev.map(l => l.key === existing.key ? { ...l, cantidad: l.cantidad + 1, subtotal: l.costoUnitario * (l.cantidad + 1) } : l));
+      setCarrito(prev => prev.map(l => {
+        if (l.key === existing.key) {
+          const nuevaCant = (typeof l.cantidad === 'number' ? l.cantidad : 0) + 1;
+          return { ...l, cantidad: nuevaCant, subtotal: (typeof l.costoUnitario === 'number' ? l.costoUnitario : 0) * nuevaCant };
+        }
+        return l;
+      }));
       return;
     }
     itemCounter++;
     setCarrito(prev => [...prev, { key: itemCounter, producto: virtualProducto, cantidad: sp.minOrderQty || 1, costoUnitario: sp.supplierCost, subtotal: sp.supplierCost * (sp.minOrderQty || 1) }]);
   };
 
-  const actualizarCantidad = (key: number, cantidad: number) => {
-    setCarrito(prev => prev.map(l => l.key === key ? { ...l, cantidad, subtotal: (l.costoUnitario || 0) * cantidad } : l));
+  const actualizarCantidad = (key: number, val: string) => {
+    const cantidad = val === '' ? '' : parseInt(val);
+    setCarrito(prev => prev.map(l => l.key === key ? { 
+      ...l, 
+      cantidad, 
+      subtotal: (typeof l.costoUnitario === 'number' ? l.costoUnitario : 0) * (typeof cantidad === 'number' ? cantidad : 0) 
+    } : l));
   };
 
-  const actualizarCosto = (key: number, costo: number) => {
-    setCarrito(prev => prev.map(l => l.key === key ? { ...l, costoUnitario: costo, subtotal: costo * (l.cantidad || 0) } : l));
+  const actualizarCosto = (key: number, val: string) => {
+    const costoUnitario = val === '' ? '' : parseFloat(val);
+    setCarrito(prev => prev.map(l => l.key === key ? { 
+      ...l, 
+      costoUnitario, 
+      subtotal: (typeof costoUnitario === 'number' ? costoUnitario : 0) * (typeof l.cantidad === 'number' ? l.cantidad : 0) 
+    } : l));
   };
 
   const eliminarDelCarrito = (key: number) => setCarrito(prev => prev.filter(l => l.key !== key));
 
   const subtotal = carrito.reduce((sum, l) => sum + l.subtotal, 0);
-  const totalUnidades = carrito.reduce((sum, l) => sum + l.cantidad, 0);
+  const totalUnidades = carrito.reduce((sum, l) => sum + (typeof l.cantidad === 'number' ? l.cantidad : 0), 0);
 
   const totalPctSum = freightPct + customsPct + taxPct + handlingPct + otherPct;
-  const landedMultiplier = 1 + totalPctSum / 100;
   const totalLandedCosts = subtotal * totalPctSum / 100;
   const grandTotal = subtotal + totalLandedCosts;
 
@@ -239,14 +260,16 @@ export function CreatePurchaseOrderFullscreen({
     { key: 'otherPct', label: 'Otros', icon: '➕', value: otherPct, setter: setOtherPct },
   ];
 
+  const canSave = supplierId !== '' && carrito.length > 0 && carrito.every(l => typeof l.cantidad === 'number' && l.cantidad > 0 && typeof l.costoUnitario === 'number');
+
   const handleGuardar = () => {
-    if (!supplierId || carrito.length === 0) return;
+    if (!canSave) return;
     onSave({
       supplierId: supplierId as number,
       items: carrito.map(l => ({
         variantId: l.producto.id,
-        qty: l.cantidad,
-        unitCost: l.costoUnitario,
+        qty: l.cantidad as number,
+        unitCost: l.costoUnitario as number,
         description: l.producto.variantName ? `${l.producto.name} - ${l.producto.variantName}` : l.producto.name,
       })),
       notes: notas.trim() || undefined,
@@ -417,7 +440,7 @@ export function CreatePurchaseOrderFullscreen({
                       <input 
                         type="number" 
                         value={linea.cantidad} 
-                        onChange={e => actualizarCantidad(linea.key, parseInt(e.target.value) || 1)}
+                        onChange={e => actualizarCantidad(linea.key, e.target.value)}
                         className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-center focus:ring-1"
                         style={{'--tw-ring-color': primary} as any}
                       />
@@ -426,7 +449,7 @@ export function CreatePurchaseOrderFullscreen({
                       <input 
                         type="number" 
                         value={linea.costoUnitario} 
-                        onChange={e => actualizarCosto(linea.key, parseFloat(e.target.value) || 0)}
+                        onChange={e => actualizarCosto(linea.key, e.target.value)}
                         className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-right focus:ring-1"
                         style={{'--tw-ring-color': primary} as any}
                       />
@@ -519,7 +542,7 @@ export function CreatePurchaseOrderFullscreen({
             
             <Button
               onClick={handleGuardar}
-              disabled={!supplierId || carrito.length === 0 || submitting}
+              disabled={!canSave || submitting}
               className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all group"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />}

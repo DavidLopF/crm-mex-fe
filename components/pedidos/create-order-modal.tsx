@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Button } from '@/components/ui';
+import { Card, Button, Modal } from '@/components/ui';
 import { 
   Search, 
   Plus, 
@@ -17,6 +17,9 @@ import {
   Warehouse,
   X,
   User,
+  Loader2,
+  ArrowRight,
+  StickyNote,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useDebounce } from '@/lib/hooks';
@@ -42,85 +45,59 @@ interface CreateOrderModalProps {
 interface LineaCarrito {
   id: string;
   producto: OrderProductItem;
-  cantidad: number;
-  precioUnitario: number;
+  cantidad: number | '';
+  precioUnitario: number | '';
   precioLista: number;
   subtotal: number;
   usandoPrecioHistorico: boolean;
 }
 
 let carritoCounter = 0;
-
-const PRODUCTS_PER_PAGE = 3;
+const PRODUCTS_PER_PAGE = 6;
 
 export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalProps) {
-  // ── Tema ──────────────────────────────────────────────────────────
   const { settings } = useCompany();
-  const primary = settings.primaryColor;          // e.g. "#2563eb"
-  // Generate a light tint (10% opacity) for backgrounds
-  const primaryBg = primary + '18';               // hex alpha ~10%
-  const primaryBgMid = primary + '30';            // hex alpha ~19%
+  const primary = settings.primaryColor;
+  const primaryBg = primary + '10';
+  const primaryBgMid = primary + '20';
 
-  // ── Estado principal ──────────────────────────────────────────────
+  // ── Estado principal ──
   const [clienteId, setClienteId] = useState<number | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [carrito, setCarrito] = useState<LineaCarrito[]>([]);
   const [notas, setNotas] = useState('');
 
-  // ── Clientes ──────────────────────────────────────────────────────
+  // ── Clientes ──
   const [clientes, setClientes] = useState<ClientListItem[]>([]);
   const [loadingClientes, setLoadingClientes] = useState(false);
 
-  // ── Productos (paginados desde API) ───────────────────────────────
+  // ── Productos ──
   const [productos, setProductos] = useState<OrderProductItem[]>([]);
   const [loadingProductos, setLoadingProductos] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
 
-  // ── Historial de precios ──────────────────────────────────────────
+  // ── Historial de precios ──
   const [expandedHistorial, setExpandedHistorial] = useState<number | null>(null);
   const [historialPrecios, setHistorialPrecios] = useState<PriceHistoryItem[]>([]);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
 
   const debouncedSearch = useDebounce(searchTerm, 400);
-
   const clienteSeleccionado = clientes.find(c => c.id === clienteId);
 
-  // ── Bloquear scroll del body y manejar Escape ─────────────────────
-  useEffect(() => {
-    if (!isOpen) return;
-    document.body.style.overflow = 'hidden';
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen, onClose]);
-
-  // ── Cargar clientes cuando se abre el modal ───────────────────────
+  // ── Cargar clientes ──
   useEffect(() => {
     if (isOpen) {
-      loadClientes();
+      setLoadingClientes(true);
+      getAllClients()
+        .then(setClientes)
+        .catch(() => console.error('Error clientes'))
+        .finally(() => setLoadingClientes(false));
     }
   }, [isOpen]);
 
-  const loadClientes = async () => {
-    setLoadingClientes(true);
-    try {
-      const data = await getAllClients();
-      setClientes(data);
-    } catch {
-      console.error('Error al cargar clientes');
-    } finally {
-      setLoadingClientes(false);
-    }
-  };
-
-  // ── Cargar productos con búsqueda y paginación ────────────────────
+  // ── Cargar productos ──
   const loadProductos = useCallback(async (page: number, search: string) => {
     setLoadingProductos(true);
     try {
@@ -135,14 +112,12 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
       setTotalProducts(response.total);
       setCurrentPage(response.page);
     } catch {
-      console.error('Error al cargar productos');
       setProductos([]);
     } finally {
       setLoadingProductos(false);
     }
   }, []);
 
-  // Recargar productos cuando cambia la búsqueda (debounced)
   useEffect(() => {
     if (isOpen) {
       setCurrentPage(1);
@@ -150,16 +125,13 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
     }
   }, [debouncedSearch, isOpen, loadProductos]);
 
-  // ── Cargar historial de precios para un producto ──────────────────
   const toggleHistorial = async (variantId: number) => {
     if (expandedHistorial === variantId) {
       setExpandedHistorial(null);
       setHistorialPrecios([]);
       return;
     }
-
     if (!clienteId) return;
-
     setExpandedHistorial(variantId);
     setLoadingHistorial(true);
     try {
@@ -172,48 +144,24 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
     }
   };
 
-  // ── Paginación ────────────────────────────────────────────────────
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      loadProductos(currentPage - 1, debouncedSearch);
-    }
-  };
+  const handlePrevPage = () => { if (currentPage > 1) loadProductos(currentPage - 1, debouncedSearch); };
+  const handleNextPage = () => { if (currentPage < totalPages) loadProductos(currentPage + 1, debouncedSearch); };
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      loadProductos(currentPage + 1, debouncedSearch);
-    }
-  };
-
-  // ── Agregar producto al carrito ───────────────────────────────────
-  // Si el producto ya existe en el carrito (misma variante, mismo precio),
-  // incrementa la cantidad en lugar de crear una línea duplicada.
   const agregarAlCarrito = (producto: OrderProductItem, precioPersonalizado?: number) => {
     const precioBase = producto.price;
     const precioFinal = precioPersonalizado ?? precioBase;
 
     setCarrito(prev => {
-      // Buscar línea existente: mismo producto id Y mismo precio
-      const idx = prev.findIndex(
-        (l) => l.producto.id === producto.id && l.precioUnitario === precioFinal
-      );
-
+      const idx = prev.findIndex(l => l.producto.id === producto.id && l.precioUnitario === precioFinal);
       if (idx !== -1) {
-        // Incrementar cantidad de la línea existente
-        return prev.map((linea, i) =>
-          i === idx
-            ? {
-                ...linea,
-                cantidad: linea.cantidad + 1,
-                subtotal: linea.precioUnitario * (linea.cantidad + 1),
-              }
-            : linea
-        );
+        return prev.map((l, i) => i === idx ? {
+          ...l,
+          cantidad: (typeof l.cantidad === 'number' ? l.cantidad : 0) + 1,
+          subtotal: (precioFinal) * ((typeof l.cantidad === 'number' ? l.cantidad : 0) + 1)
+        } : l);
       }
-
-      // Línea nueva (precio distinto o primera vez)
       carritoCounter++;
-      const nuevaLinea: LineaCarrito = {
+      return [...prev, {
         id: `${producto.id}-${carritoCounter}`,
         producto,
         cantidad: 1,
@@ -221,499 +169,297 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
         precioLista: precioBase,
         subtotal: precioFinal,
         usandoPrecioHistorico: precioPersonalizado !== undefined,
-      };
-      return [...prev, nuevaLinea];
+      }];
     });
-
     setExpandedHistorial(null);
   };
 
-  // ── Actualizar cantidad ───────────────────────────────────────────
-  const actualizarCantidad = (lineaId: string, cantidad: number) => {
-    if (cantidad < 1) return;
-    setCarrito(prev =>
-      prev.map(linea =>
-        linea.id === lineaId
-          ? { ...linea, cantidad, subtotal: linea.precioUnitario * cantidad }
-          : linea
-      )
-    );
+  const actualizarCantidad = (lineaId: string, val: string) => {
+    const cantidad = val === '' ? '' : parseInt(val);
+    setCarrito(prev => prev.map(l => l.id === lineaId ? {
+      ...l,
+      cantidad,
+      subtotal: (typeof l.precioUnitario === 'number' ? l.precioUnitario : 0) * (typeof cantidad === 'number' ? cantidad : 0)
+    } : l));
   };
 
-  // ── Actualizar precio unitario ────────────────────────────────────
-  const actualizarPrecio = (lineaId: string, precio: number) => {
-    if (precio < 0) return;
-    setCarrito(prev =>
-      prev.map(linea =>
-        linea.id === lineaId
-          ? {
-              ...linea,
-              precioUnitario: precio,
-              subtotal: precio * linea.cantidad,
-              usandoPrecioHistorico: false,
-            }
-          : linea
-      )
-    );
+  const actualizarPrecio = (lineaId: string, val: string) => {
+    const precioUnitario = val === '' ? '' : parseFloat(val);
+    setCarrito(prev => prev.map(l => l.id === lineaId ? {
+      ...l,
+      precioUnitario,
+      subtotal: (typeof precioUnitario === 'number' ? precioUnitario : 0) * (typeof l.cantidad === 'number' ? l.cantidad : 0),
+      usandoPrecioHistorico: false,
+    } : l));
   };
 
-  // ── Eliminar del carrito ────────────────────────────────────────────
-  const eliminarDelCarrito = (lineaId: string) => {
-    setCarrito(prev => prev.filter(linea => linea.id !== lineaId));
-  };
+  const eliminarDelCarrito = (lineaId: string) => setCarrito(prev => prev.filter(l => l.id !== lineaId));
 
-  // ── Calcular totales ──────────────────────────────────────────────
-  const subtotal = carrito.reduce((sum, linea) => sum + linea.subtotal, 0);
-  const total = subtotal;
+  const subtotal = carrito.reduce((sum, l) => sum + l.subtotal, 0);
+  const totalUnidades = carrito.reduce((sum, l) => sum + (typeof l.cantidad === 'number' ? l.cantidad : 0), 0);
 
-  // ── Guardar pedido ────────────────────────────────────────────────
+  const canSave = clienteId !== '' && carrito.length > 0 && carrito.every(l => typeof l.cantidad === 'number' && l.cantidad > 0 && typeof l.precioUnitario === 'number');
+
   const handleGuardar = () => {
-    if (!clienteId || carrito.length === 0) return;
-
-    const dto: CreateOrderDto = {
+    if (!canSave) return;
+    onSave({
       clientId: clienteId as number,
-      items: carrito.map(linea => ({
-        variantId: linea.producto.id,
-        qty: linea.cantidad,
-        unitPrice: linea.precioUnitario,
-        listPrice: linea.precioLista,
-        description: linea.producto.variantName
-          ? `${linea.producto.name} - ${linea.producto.variantName}`
-          : linea.producto.name,
+      items: carrito.map(l => ({
+        variantId: l.producto.id,
+        qty: l.cantidad as number,
+        unitPrice: l.precioUnitario as number,
+        listPrice: l.precioLista,
+        description: l.producto.variantName ? `${l.producto.name} - ${l.producto.variantName}` : l.producto.name,
       })),
       currency: 'MXN',
-    };
-
-    onSave(dto);
+    });
     handleClose();
   };
 
   const handleClose = () => {
-    setClienteId('');
-    setSearchTerm('');
-    setCarrito([]);
-    setNotas('');
-    setExpandedHistorial(null);
-    setHistorialPrecios([]);
-    setProductos([]);
-    setCurrentPage(1);
-    onClose();
+    setClienteId(''); setSearchTerm(''); setCarrito([]); setNotas('');
+    setExpandedHistorial(null); setHistorialPrecios([]); setProductos([]);
+    setCurrentPage(1); onClose();
   };
 
-  const handleDescargarPDF = () => {
-    console.log('Descargar PDF', { cliente: clienteSeleccionado, carrito, total });
-    alert('Funcionalidad de PDF en desarrollo');
-  };
-
-  const handleDescargarExcel = () => {
-    console.log('Descargar Excel', { cliente: clienteSeleccionado, carrito, total });
-    alert('Funcionalidad de Excel en desarrollo');
-  };
-
-  // ── Badge de stock ────────────────────────────────────────────────
   const getStockBadge = (status: string) => {
     switch (status) {
-      case 'in_stock':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">En stock</span>;
-      case 'low_stock':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Stock bajo</span>;
-      case 'out_of_stock':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Sin stock</span>;
-      default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700">{status}</span>;
+      case 'in_stock': return <span className="text-[10px] font-bold text-green-600 uppercase">Stock</span>;
+      case 'low_stock': return <span className="text-[10px] font-bold text-amber-600 uppercase">Bajo</span>;
+      case 'out_of_stock': return <span className="text-[10px] font-bold text-red-600 uppercase">Agotado</span>;
+      default: return null;
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 z-40 bg-black/30 transition-opacity duration-200 animate-in fade-in" 
-        onClick={handleClose} 
-      />
-
-      {/* Fullscreen Panel */}
-      <div className="fixed inset-0 z-50 flex flex-col bg-white animate-in slide-in-from-bottom-4 fade-in duration-300">
-        {/* ── Header ─────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-200 bg-white flex-shrink-0">
-          <h2 className="text-base font-semibold text-zinc-900">Crear Nuevo Pedido</h2>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-zinc-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-zinc-500" />
-          </button>
-        </div>
-
-        {/* ── Body: 3 columnas ───────────────────────────────────── */}
-        <div className="flex-1 flex min-h-0">
-
-          {/* ═══ Columna 1: Cliente + Búsqueda ═══ */}
-          <div className="w-80 flex-shrink-0 border-r border-zinc-200 flex flex-col bg-zinc-50/50">
-            {/* Cliente */}
-            <div className="p-4 border-b border-zinc-200">
-              <div className="flex items-center gap-2 mb-3">
-                <User className="w-4 h-4 text-zinc-500" />
-                <h3 className="text-sm font-semibold text-zinc-900">Cliente</h3>
-              </div>
-              {loadingClientes ? (
-                <div className="flex items-center gap-2 py-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: primary }} />
-                  <span className="text-sm text-zinc-500">Cargando...</span>
-                </div>
-              ) : (
-                <select
-                  value={clienteId}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setClienteId(val ? Number(val) : '');
-                    setExpandedHistorial(null);
-                    setHistorialPrecios([]);
-                  }}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
-                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                >
-                  <option value="">Seleccione un cliente...</option>
-                  {clientes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              )}
-              {clienteSeleccionado && (
-                <div className="mt-2 px-3 py-2 rounded-lg animate-in slide-in-from-top-2 fade-in duration-200" style={{ backgroundColor: primaryBg }}>
-                  <p className="text-sm font-medium" style={{ color: primary }}>{clienteSeleccionado.name}</p>
-                </div>
-              )}
+    <Modal 
+      isOpen={isOpen} 
+      onClose={handleClose} 
+      title="Crear Nuevo Pedido" 
+      size="full"
+      className="max-w-[95vw] h-[90vh]"
+    >
+      <div className="flex h-[calc(90vh-120px)] -mx-6 -mb-6 border-t border-zinc-100">
+        {/* Columna 1: Catálogo */}
+        <aside className="w-[320px] flex-shrink-0 border-r border-zinc-200 flex flex-col bg-zinc-50/30">
+          <div className="p-4 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Cliente</label>
+              <select
+                value={clienteId}
+                onChange={(e) => { setClienteId(e.target.value ? Number(e.target.value) : ''); setCarrito([]); setExpandedHistorial(null); }}
+                className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2"
+                style={{ '--tw-ring-color': primaryBgMid } as React.CSSProperties}
+              >
+                <option value="">Seleccionar cliente...</option>
+                {clientes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
             </div>
-
-            {/* Buscador */}
-            <div className="p-4 border-b border-zinc-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar producto, SKU..."
-                  className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 bg-white transition-all duration-200"
-                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Lista de Productos */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {!clienteId ? (
-                <div className="text-center py-12 text-zinc-400 text-sm">
-                  <Package className="w-10 h-10 mx-auto mb-2 text-zinc-300" />
-                  Selecciona un cliente
-                </div>
-              ) : loadingProductos ? (
-                <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: primary }} />
-                  <p className="text-xs text-zinc-500 mt-2">Cargando...</p>
-                </div>
-              ) : productos.length === 0 ? (
-                <div className="text-center py-12 text-zinc-400 text-sm">
-                  Sin resultados
-                </div>
-              ) : (
-                productos.map((producto) => (
-                  <div
-                    key={producto.id}
-                    className="p-3 bg-white rounded-lg border border-zinc-100 hover:shadow-md transition-all duration-200 cursor-pointer group transform hover:scale-[1.01]"
-                    style={{ ['--hover-border' as string]: primary }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = primary)}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = '')}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 flex-shrink-0 bg-zinc-100 rounded flex items-center justify-center">
-                        <Package className="w-5 h-5 text-zinc-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium text-zinc-900 truncate">{producto.name}</p>
-                          {getStockBadge(producto.stockStatus)}
-                        </div>
-                        {producto.variantName && (
-                          <p className="text-xs font-medium" style={{ color: primary }}>{producto.variantName}</p>
-                        )}
-                        <p className="text-xs text-zinc-400 truncate">
-                          {producto.sku}{producto.category ? ` • ${producto.category}` : ''}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm font-bold text-zinc-900">{formatCurrency(producto.price)}</span>
-                          <span className="text-xs text-zinc-400">Stock: {producto.stock}</span>
-                        </div>
-                        {/* Almacenes inline */}
-                        {producto.warehouses && producto.warehouses.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {producto.warehouses.map((wh, idx) => (
-                              <span key={idx} className="inline-flex items-center gap-0.5 text-[10px] text-zinc-500">
-                                <Warehouse className="w-2.5 h-2.5" />
-                                {wh.warehouseName}: {wh.qtyOnHand}
-                                {wh.qtyReserved > 0 && (
-                                  <span className="text-orange-500">({wh.qtyReserved} res.)</span>
-                                )}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => agregarAlCarrito(producto)}
-                        disabled={producto.stock <= 0}
-                        className="p-1.5 rounded-lg text-white disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 transition-all duration-200 hover:scale-110 active:scale-95"
-                        style={{ backgroundColor: primary }}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                    {/* Historial toggle */}
-                    {clienteId && (
-                      <div className="mt-1.5">
-                        <button
-                          onClick={() => toggleHistorial(producto.id)}
-                          className="text-xs hover:opacity-75 flex items-center gap-1 transition-colors duration-200"
-                          style={{ color: primary }}
-                        >
-                          <History className="w-3 h-3" />
-                          {expandedHistorial === producto.id ? 'Ocultar historial' : 'Ver historial'}
-                        </button>
-                        {expandedHistorial === producto.id && (
-                          <div className="mt-2 p-2 rounded space-y-1 animate-in slide-in-from-top-2 fade-in duration-200" style={{ backgroundColor: primaryBg }}>
-                            {loadingHistorial ? (
-                              <p className="text-xs" style={{ color: primary }}>Cargando...</p>
-                            ) : historialPrecios.length === 0 ? (
-                              <p className="text-xs" style={{ color: primary }}>Sin historial</p>
-                            ) : (
-                              historialPrecios.slice(0, 3).map((h) => (
-                                <button
-                                  key={h.orderId}
-                                  onClick={() => agregarAlCarrito(producto, h.unitPrice)}
-                                  className="w-full flex items-center justify-between p-1.5 bg-white rounded text-xs transition-all duration-200 hover:scale-[1.02]"
-                                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = primaryBgMid)}
-                                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = '')}
-                                >
-                                  <div className="text-left">
-                                    <span className="text-zinc-600">{new Date(h.orderDate).toLocaleDateString('es-MX')}</span>
-                                    <span className="text-zinc-400 ml-1">• {h.orderCode}</span>
-                                  </div>
-                                  <span className="font-semibold" style={{ color: primary }}>{formatCurrency(h.unitPrice)}</span>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Paginación */}
-            {clienteId && totalProducts > 0 && (
-              <div className="px-4 py-2 border-t border-zinc-200 flex items-center justify-between flex-shrink-0 bg-white">
-                <span className="text-xs text-zinc-500">
-                  {totalProducts} resultado{totalProducts !== 1 ? 's' : ''}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={handlePrevPage}
-                    disabled={currentPage <= 1}
-                    className="p-1 rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="text-xs text-zinc-600">{currentPage}/{totalPages}</span>
-                  <button
-                    onClick={handleNextPage}
-                    disabled={currentPage >= totalPages}
-                    className="p-1 rounded border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ═══ Columna 2: Carrito ═══ */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Header Carrito */}
-            <div className="px-6 py-3 border-b border-zinc-200 flex-shrink-0" style={{ background: `linear-gradient(to right, ${primaryBg}, ${primaryBgMid})` }}>
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5" style={{ color: primary }} />
-                <h3 className="text-sm font-semibold text-zinc-900">
-                  Carrito ({carrito.length} {carrito.length === 1 ? 'item' : 'items'})
-                </h3>
-              </div>
-            </div>
-
-            {/* Items del Carrito */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {carrito.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <ShoppingCart className="w-12 h-12 text-zinc-200 mb-3" />
-                  <p className="text-sm text-zinc-400">El carrito está vacío</p>
-                  <p className="text-xs text-zinc-300 mt-1">Agrega productos desde el panel izquierdo</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {carrito.map((linea) => (
-                    <Card key={linea.id} className="p-3 animate-in slide-in-from-right-4 fade-in duration-300 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 flex-shrink-0 bg-zinc-100 rounded flex items-center justify-center">
-                          <Package className="w-4 h-4 text-zinc-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 truncate">{linea.producto.name}</p>
-                              {linea.producto.variantName && (
-                                <p className="text-xs" style={{ color: primary }}>{linea.producto.variantName}</p>
-                              )}
-                              {linea.usandoPrecioHistorico && (
-                                <span className="inline-flex items-center gap-1 text-[10px]" style={{ color: primary }}>
-                                  <History className="w-2.5 h-2.5" />Precio histórico
-                                </span>
-                              )}
-                            </div>
-                            <button onClick={() => eliminarDelCarrito(linea.id)} className="text-red-400 hover:text-red-600 p-0.5 transition-all duration-200 hover:scale-110 active:scale-95">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2 mt-2">
-                            <div>
-                              <label className="text-[10px] text-zinc-500 block">Cant.</label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={linea.cantidad}
-                                onChange={(e) => actualizarCantidad(linea.id, parseInt(e.target.value))}
-                                className="w-full px-2 py-1 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
-                                style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] text-zinc-500 block">P. Unit.</label>
-                              <div className="relative">
-                                <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400">$</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  value={linea.precioUnitario}
-                                  onChange={(e) => actualizarPrecio(linea.id, parseFloat(e.target.value))}
-                                  className="w-full pl-4 pr-1 py-1 border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 transition-all"
-                                  style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-[10px] text-zinc-500 block">Subtotal</label>
-                              <p className="py-1 text-sm font-bold text-zinc-900">
-                                {formatCurrency(linea.subtotal)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Notas */}
-            <div className="px-4 py-3 border-t border-zinc-200 flex-shrink-0">
-              <textarea
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                placeholder="Notas del pedido (opcional)..."
-                className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2"
-                style={{ '--tw-ring-color': primary } as React.CSSProperties}
-                rows={2}
+            
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Buscar SKU o nombre..."
+                className="w-full pl-9 pr-3 py-2 bg-white border border-zinc-200 rounded-xl text-xs focus:outline-none focus:ring-2"
+                style={{ '--tw-ring-color': primaryBgMid } as React.CSSProperties}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={!clienteId}
               />
             </div>
           </div>
 
-          {/* ═══ Columna 3: Resumen / Acciones ═══ */}
-          <div className="w-72 flex-shrink-0 border-l border-zinc-200 flex flex-col bg-zinc-50/50">
-            {/* Totales */}
-            <div className="p-5 flex-1 flex flex-col justify-center">
-              <h3 className="text-sm font-semibold text-zinc-700 mb-4">Resumen del Pedido</h3>
-
-              {clienteSeleccionado && (
-                <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: primaryBg }}>
-                  <p className="text-xs text-zinc-500">Cliente</p>
-                  <p className="text-sm font-medium" style={{ color: primary }}>{clienteSeleccionado.name}</p>
-                </div>
-              )}
-
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Productos</span>
-                  <span className="font-medium text-zinc-900">{carrito.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Unidades</span>
-                  <span className="font-medium text-zinc-900">{carrito.reduce((s, l) => s + l.cantidad, 0)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-500">Subtotal</span>
-                  <span className="font-semibold text-zinc-900">{formatCurrency(subtotal)}</span>
-                </div>
+          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 scrollbar-thin">
+            {!clienteId ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
+                <User className="w-8 h-8 mb-2" />
+                <p className="text-[10px] font-bold uppercase tracking-widest">Seleccione cliente</p>
               </div>
+            ) : loadingProductos ? (
+              <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-zinc-300" /></div>
+            ) : (
+              productos.map(p => {
+                const inCart = carrito.some(l => l.producto.id === p.id);
+                return (
+                  <div key={p.id} className="space-y-2">
+                    <div 
+                      onClick={() => p.stock > 0 && agregarAlCarrito(p)}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer ${inCart ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-100 hover:border-zinc-300'} ${p.stock <= 0 ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-bold truncate">{p.name}</p>
+                        {!inCart && getStockBadge(p.stockStatus)}
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-[11px] font-black">{formatCurrency(p.price)}</span>
+                        <span className="text-[9px] font-bold text-zinc-400">Stock: {p.stock}</span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => toggleHistorial(p.id)}
+                      className="text-[9px] font-bold uppercase tracking-tighter flex items-center gap-1 px-1 hover:opacity-70 transition-opacity"
+                      style={{ color: primary }}
+                    >
+                      <History className="w-2.5 h-2.5" />
+                      {expandedHistorial === p.id ? 'Ocultar historial' : 'Ver historial'}
+                    </button>
 
-              <div className="pt-3 border-t border-zinc-200">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-bold text-zinc-900">Total</span>
-                  <span className="text-2xl font-bold" style={{ color: primary }}>{formatCurrency(total)}</span>
-                </div>
-              </div>
+                    {expandedHistorial === p.id && (
+                      <div className="p-2 rounded-lg space-y-1 animate-in slide-in-from-top-1" style={{ backgroundColor: primaryBg }}>
+                        {loadingHistorial ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : 
+                         historialPrecios.length === 0 ? <p className="text-[9px] text-center font-bold text-zinc-400">SIN HISTORIAL</p> :
+                         historialPrecios.slice(0, 3).map(h => (
+                           <button
+                             key={h.orderId}
+                             onClick={() => agregarAlCarrito(p, h.unitPrice)}
+                             className="w-full flex items-center justify-between p-1.5 bg-white rounded-md text-[10px] font-bold hover:scale-[1.02] transition-transform"
+                           >
+                             <span className="text-zinc-500">{new Date(h.orderDate).toLocaleDateString()}</span>
+                             <span style={{ color: primary }}>{formatCurrency(h.unitPrice)}</span>
+                           </button>
+                         ))
+                        }
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+          
+          {clienteId && totalProducts > 0 && (
+            <div className="p-3 border-t border-zinc-100 bg-white flex items-center justify-between">
+              <button onClick={handlePrevPage} disabled={currentPage === 1} className="p-1 disabled:opacity-20"><ChevronLeft className="w-4 h-4" /></button>
+              <span className="text-[10px] font-bold">{currentPage}/{totalPages}</span>
+              <button onClick={handleNextPage} disabled={currentPage === totalPages} className="p-1 disabled:opacity-20"><ChevronRight className="w-4 h-4" /></button>
             </div>
+          )}
+        </aside>
 
-            {/* Acciones */}
-            <div className="p-4 border-t border-zinc-200 space-y-2 flex-shrink-0">
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleDescargarPDF}
-                  disabled={!clienteId || carrito.length === 0}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-xs transition-all duration-200 hover:scale-105 active:scale-95"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDescargarExcel}
-                  disabled={!clienteId || carrito.length === 0}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-xs transition-all duration-200 hover:scale-105 active:scale-95"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Excel
-                </Button>
+        {/* Columna 2: Construcción */}
+        <main className="flex-1 flex flex-col bg-white overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {carrito.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center opacity-20">
+                <ShoppingCart className="w-12 h-12 mb-2" />
+                <p className="text-xs font-bold uppercase tracking-widest">Pedido vacío</p>
               </div>
-              <Button
-                onClick={handleGuardar}
-                disabled={!clienteId || carrito.length === 0}
-                className="w-full flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95"
-              >
-                <DollarSign className="w-4 h-4" />
-                Crear Cotización
-              </Button>
-              <Button variant="outline" onClick={handleClose} className="w-full transition-all duration-200 hover:scale-105 active:scale-95">
-                Cancelar
-              </Button>
+            ) : (
+              carrito.map(linea => (
+                <div key={linea.id} className="flex items-center gap-4 p-3 bg-zinc-50/50 rounded-2xl border border-zinc-100 hover:bg-white transition-all group">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-zinc-100 flex items-center justify-center flex-shrink-0">
+                    <Package className="w-5 h-5 text-zinc-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold text-zinc-900 truncate">{linea.producto.name}</p>
+                      {linea.usandoPrecioHistorico && <History className="w-3 h-3 text-amber-500" title="Precio histórico aplicado" />}
+                    </div>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">{linea.producto.sku}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-20">
+                      <input 
+                        type="number" 
+                        value={linea.cantidad} 
+                        onChange={e => actualizarCantidad(linea.id, e.target.value)}
+                        className="w-full bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-center focus:ring-1"
+                        style={{'--tw-ring-color': primary} as any}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400">$</span>
+                        <input 
+                          type="number" 
+                          value={linea.precioUnitario} 
+                          onChange={e => actualizarPrecio(linea.id, e.target.value)}
+                          className="w-full bg-white border border-zinc-200 rounded-lg pl-4 pr-2 py-1 text-xs font-bold text-right focus:ring-1"
+                          style={{'--tw-ring-color': primary} as any}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-24 text-right">
+                      <p className="text-xs font-black">{formatCurrency(linea.subtotal)}</p>
+                    </div>
+                    <button onClick={() => eliminarDelCarrito(linea.id)} className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div className="p-6 border-t border-zinc-100 bg-zinc-50/20">
+            <div className="max-w-md space-y-2">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <StickyNote className="w-3 h-3" /> Notas del Pedido
+              </label>
+              <textarea 
+                value={notas} onChange={e => setNotas(e.target.value)} 
+                className="w-full p-3 bg-white border border-zinc-200 rounded-xl text-xs min-h-[80px] focus:ring-1"
+                style={{'--tw-ring-color': primary} as any}
+                placeholder="Instrucciones de entrega, referencias..."
+              />
             </div>
           </div>
-        </div>
+        </main>
+
+        {/* Columna 3: Confirmación */}
+        <aside className="w-[280px] flex-shrink-0 border-l border-zinc-200 bg-zinc-50/50 flex flex-col p-6 space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-widest border-b border-zinc-200 pb-2">Resumen</h3>
+            
+            <div className="space-y-3">
+              <div className="bg-white p-3 rounded-xl border border-zinc-100 shadow-sm">
+                <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Cliente</p>
+                <p className="text-xs font-bold text-zinc-900 truncate">{clienteSeleccionado?.name || 'No seleccionado'}</p>
+              </div>
+              
+              <div className="space-y-2 px-1">
+                <div className="flex justify-between text-[11px] font-bold text-zinc-500">
+                  <span>Items</span>
+                  <span className="text-zinc-900">{carrito.length}</span>
+                </div>
+                <div className="flex justify-between text-[11px] font-bold text-zinc-500">
+                  <span>Unidades</span>
+                  <span className="text-zinc-900">{totalUnidades}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-auto space-y-4">
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 h-9 text-[10px] font-bold uppercase tracking-tighter gap-1.5" disabled={carrito.length === 0}>
+                <FileText className="w-3 h-3" /> PDF
+              </Button>
+              <Button variant="outline" className="flex-1 h-9 text-[10px] font-bold uppercase tracking-tighter gap-1.5" disabled={carrito.length === 0}>
+                <Download className="w-3 h-3" /> Excel
+              </Button>
+            </div>
+
+            <div className="text-right">
+              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Total Pedido</p>
+              <p className="text-3xl font-black text-zinc-900 tabular-nums">{formatCurrency(subtotal)}</p>
+            </div>
+            
+            <Button
+              onClick={handleGuardar}
+              disabled={!canSave}
+              className="w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all group"
+            >
+              <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+              Crear Cotización
+            </Button>
+          </div>
+        </aside>
       </div>
-    </>
+    </Modal>
   );
 }
