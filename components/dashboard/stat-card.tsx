@@ -14,6 +14,8 @@ interface StatCardProps {
   className?: string;
   iconBg?: string;
   iconColor?: string;
+  /** Shorthand: combined bg + text classes, e.g. "bg-blue-100 text-blue-600" */
+  iconClassName?: string;
   sparklineData?: number[];
   sparklineColor?: string;
 }
@@ -26,11 +28,12 @@ export function StatCard({
   className,
   iconBg,
   iconColor,
+  iconClassName,
   sparklineData,
   sparklineColor,
 }: StatCardProps) {
-  const containerClass = iconBg ?? 'bg-zinc-100';
-  const iconClass = iconColor ?? 'text-zinc-600';
+  const containerClass = iconClassName ?? iconBg ?? 'bg-zinc-100';
+  const iconClass = iconClassName ? '' : (iconColor ?? 'text-zinc-600');
 
   // Default sparkline
   const chartData = sparklineData ?? (
