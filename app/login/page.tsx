@@ -116,7 +116,7 @@ export default function LoginPage() {
             </h1>
             
             <p className="text-lg text-white/60 font-medium leading-relaxed max-w-md">
-              La plataforma CRM diseñada para escalar empresas mexicanas con control absoluto de inventario y ventas.
+              La plataforma CRM diseñada para escalar empresas con control absoluto de inventario y ventas.
             </p>
           </div>
 
