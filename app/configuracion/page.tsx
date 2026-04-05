@@ -282,8 +282,8 @@ export default function ConfiguracionPage() {
   const handleIssuerSave = async (data: UpsertIssuerDto) => {
     setSubmitting(true);
     try {
-      const updated = await upsertIssuer(data);
-      setIssuer(updated as unknown as IssuerDto);
+      await upsertIssuer(data);
+      await loadIssuer();
       toast.success('Configuración del emisor guardada exitosamente');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

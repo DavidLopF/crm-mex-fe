@@ -122,7 +122,8 @@ export function IssuerForm({ issuer, onSave, submitting }: IssuerFormProps) {
     softwareId, resolutionNumber, resolutionDate, prefix, rangeStart, rangeEnd,
   ];
   // softwarePin es requerido solo en creación; en edición es opcional (vacío = no cambiar)
-  const isNew = !issuer;
+  // isNew = nunca se completaron los datos DIAN (softwareId vacío = esqueleto inicial)
+  const isNew = !issuer?.softwareId;
   const canSubmit = requiredFields.every((v) => v.trim() !== '') &&
     (!isNew || softwarePin.trim() !== '') &&
     Number(rangeStart) > 0 && Number(rangeEnd) > Number(rangeStart);
@@ -455,7 +456,7 @@ export function IssuerForm({ issuer, onSave, submitting }: IssuerFormProps) {
               Guardando...
             </span>
           ) : (
-            issuer ? 'Guardar cambios' : 'Configurar emisor'
+            isNew ? 'Configurar emisor' : 'Guardar cambios'
           )}
         </Button>
       </div>
