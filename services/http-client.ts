@@ -16,10 +16,10 @@ import {
   getOfflineDB,
   buildCacheKey,
   CACHE_TTL,
+  notifyQueueChanged,
   type HttpMethod,
   type OfflineOperation,
 } from '@/lib/offline/db';
-import { notifyQueueChanged } from '@/lib/offline/sync-manager';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 

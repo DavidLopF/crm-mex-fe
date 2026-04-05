@@ -357,7 +357,7 @@ export function CreateOrderModal({ isOpen, onClose, onSave }: CreateOrderModalPr
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-bold text-zinc-900 truncate">{linea.producto.name}</p>
-                      {linea.usandoPrecioHistorico && <History className="w-3 h-3 text-amber-500" title="Precio histórico aplicado" />}
+                      {linea.usandoPrecioHistorico && <span title="Precio histórico aplicado"><History className="w-3 h-3 text-amber-500" /></span>}
                     </div>
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">{linea.producto.sku}</p>
                   </div>

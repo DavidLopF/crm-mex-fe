@@ -15,7 +15,7 @@
  *  - `offline-sync-complete`  : cuando se termina de procesar toda la cola
  */
 
-import { getOfflineDB, type OfflineOperation } from './db';
+import { getOfflineDB, getPendingCount, notifyQueueChanged, type OfflineOperation } from './db';
 
 const MAX_RETRIES = 3;
 
@@ -89,7 +89,7 @@ export async function processQueue(): Promise<void> {
     emitEvent('offline-sync-complete', {});
   } finally {
     processing = false;
-    await emitQueueCount();
+    await notifyQueueChanged();
   }
 }
 
@@ -183,7 +183,7 @@ export async function enqueueOperation(
         retries: 0,
         lastError: undefined,
       });
-      await emitQueueCount();
+      await notifyQueueChanged();
       return;
     }
   }
@@ -195,32 +195,13 @@ export async function enqueueOperation(
     retries: 0,
   });
 
-  await emitQueueCount();
-}
-
-export async function getPendingCount(): Promise<number> {
-  try {
-    const db = getOfflineDB();
-    return db.offlineQueue.count();
-  } catch {
-    return 0;
-  }
+  await notifyQueueChanged();
 }
 
 export async function clearQueue(): Promise<void> {
   const db = getOfflineDB();
   await db.offlineQueue.clear();
-  await emitQueueCount();
-}
-
-async function emitQueueCount(): Promise<void> {
-  const count = await getPendingCount();
-  emitEvent<QueueChangedDetail>('offline-queue-changed', { count });
-}
-
-// Exportar para que el http-client pueda notificar cambios en la cola
-export async function notifyQueueChanged(): Promise<void> {
-  await emitQueueCount();
+  await notifyQueueChanged();
 }
 
 // ── Utilidad de eventos ───────────────────────────────────────────────────────
@@ -229,3 +210,5 @@ function emitEvent<T extends object>(name: string, detail: T): void {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new CustomEvent(name, { detail }));
 }
+
+export { getPendingCount, notifyQueueChanged };

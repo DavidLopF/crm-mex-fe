@@ -88,6 +88,23 @@ export function buildCacheKey(path: string, params?: Record<string, unknown>): s
   return `GET:${path}:${sorted}`;
 }
 
+// ── Helpers de cola offline ──────────────────────────────────────────────────
+
+export async function getPendingCount(): Promise<number> {
+  try {
+    const db = getOfflineDB();
+    return db.offlineQueue.count();
+  } catch {
+    return 0;
+  }
+}
+
+export async function notifyQueueChanged(): Promise<void> {
+  const count = await getPendingCount();
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('offline-queue-changed', { detail: { count } }));
+}
+
 // ── TTL por módulo (milisegundos) ────────────────────────────────────────────
 
 export const CACHE_TTL = {
