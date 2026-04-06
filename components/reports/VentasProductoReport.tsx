@@ -6,7 +6,7 @@ import { getVentasPorProducto } from '@/services/reports';
 import type { VentaProductoRow, VentasProductoSummary } from '@/services/reports';
 import { exportVentasProductoToExcel } from '@/lib/export-excel';
 import { useCompany } from '@/lib/company-context';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -44,6 +44,12 @@ function SummaryCard({
 export function VentasProductoReport() {
   const { settings } = useCompany();
   const primaryColor = settings.primaryColor;
+
+  const formatUnits = (value: number): string =>
+    new Intl.NumberFormat('es-MX', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
 
   const [rows, setRows] = useState<VentaProductoRow[]>([]);
   const [summary, setSummary] = useState<VentasProductoSummary | null>(null);
@@ -141,13 +147,13 @@ export function VentasProductoReport() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <SummaryCard
             label="Productos con ventas"
-            value={formatNumber(summary.totalProductos)}
+            value={formatUnits(summary.totalProductos)}
             icon={Package}
             color={primaryColor}
           />
           <SummaryCard
             label="Unidades vendidas"
-            value={formatNumber(summary.totalUnidades)}
+            value={formatUnits(summary.totalUnidades)}
             icon={TrendingUp}
             color="#10B981"
           />
@@ -276,19 +282,19 @@ export function VentasProductoReport() {
                       {row.categoryName ?? '—'}
                     </td>
                     <td className="px-4 py-3 text-right text-zinc-700">
-                      {formatNumber(row.qtySoldPos)}
+                      {formatUnits(row.qtySoldPos)}
                     </td>
                     <td className="px-4 py-3 text-right text-zinc-700">
                       {formatCurrency(row.revenuePos)}
                     </td>
                     <td className="px-4 py-3 text-right text-zinc-700">
-                      {formatNumber(row.qtySoldOrders)}
+                      {formatUnits(row.qtySoldOrders)}
                     </td>
                     <td className="px-4 py-3 text-right text-zinc-700">
                       {formatCurrency(row.revenueOrders)}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-zinc-900">
-                      {formatNumber(row.qtyTotal)}
+                      {formatUnits(row.qtyTotal)}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold" style={{ color: primaryColor }}>
                       {formatCurrency(row.revenueTotal)}
