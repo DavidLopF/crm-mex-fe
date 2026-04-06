@@ -11,6 +11,8 @@ export interface ProductFiltersDto {
   minPrice?: number;
   maxPrice?: number;
   hasStock?: boolean;
+  sortBy?: 'name' | 'price' | 'stock';
+  sortDir?: 'asc' | 'desc';
 }
 
 // ── Forma cruda que devuelve el backend ─────────────────────────────

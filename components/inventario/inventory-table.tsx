@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Search, Plus, Edit, Eye, Package, ChevronLeft, ChevronRight, FileSpreadsheet, DollarSign, Layers } from 'lucide-react';
+import { Search, Plus, Edit, Eye, Package, ChevronLeft, ChevronRight, FileSpreadsheet, DollarSign, Layers, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { getCategories } from '@/services/products';
+import type { CategoryDto } from '@/services/products';
 import { Card, Button, Badge } from '@/components/ui';
 import { ProductDetailModal } from './product-detail-modal';
 import { CreateProductModal } from './create-product-modal';
@@ -32,10 +34,16 @@ interface InventoryTableProps {
   canCreate?: boolean;
   canEdit?: boolean;
   onNeedsRefresh?: () => void;
+  // Sort & category (server-driven)
+  externalCategoryId?: number;
+  onCategoryChange?: (id: number | undefined) => void;
+  externalSortBy?: 'name' | 'price' | 'stock';
+  externalSortDir?: 'asc' | 'desc';
+  onSortChange?: (field: 'name' | 'price' | 'stock', dir: 'asc' | 'desc') => void;
 }
 
-export function InventoryTable({ 
-  productos, 
+export function InventoryTable({
+  productos,
   onProductUpdate,
   onProductCreate,
   onError,
@@ -50,10 +58,17 @@ export function InventoryTable({
   canCreate = true,
   canEdit = true,
   onNeedsRefresh,
+  externalCategoryId,
+  onCategoryChange,
+  externalSortBy,
+  externalSortDir = 'asc',
+  onSortChange,
 }: InventoryTableProps) {
   const [internalSearch, setInternalSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [internalPage, setInternalPage] = useState(1);
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [apiCategories, setApiCategories] = useState<CategoryDto[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [selectedProductRaw, setSelectedProductRaw] = useState<ApiProductDetail | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -64,6 +79,22 @@ export function InventoryTable({
   const [loadingDetail, setLoadingDetail] = useState(false);
   const itemsPerPage = 10;
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (actionsRef.current && !actionsRef.current.contains(e.target as Node)) {
+        setIsActionsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    getCategories()
+      .then(setApiCategories)
+      .catch(() => { /* silencioso — fallback a sin categorías */ });
+  }, []);
+
   const isControlledSearch = typeof externalSearch === 'string' && typeof onSearchChange === 'function';
   const searchTerm = isControlledSearch ? externalSearch! : internalSearch;
 
@@ -72,14 +103,8 @@ export function InventoryTable({
 
   const effectiveItemsPerPage = externalItemsPerPage ?? itemsPerPage;
 
-  const categories = ['Todas', ...Array.from(new Set(productos.map(p => p.categoria)))];
-
-  const filteredProducts = productos.filter(producto => {
-    const matchesSearch = !searchTerm || producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         producto.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === '' || selectedCategory === 'Todas' || producto.categoria === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // En modo server-driven los productos ya vienen filtrados, ordenados y paginados
+  const filteredProducts = productos;
 
   const totalPages = Math.ceil((externalItemsPerPage ? (totalItems ?? filteredProducts.length) : filteredProducts.length) / effectiveItemsPerPage);
   
@@ -88,6 +113,19 @@ export function InventoryTable({
   const currentProducts = externalItemsPerPage 
     ? filteredProducts 
     : filteredProducts.slice((currentPage - 1) * effectiveItemsPerPage, currentPage * effectiveItemsPerPage);
+
+  const handleSort = (field: 'name' | 'price' | 'stock') => {
+    if (!onSortChange) return;
+    const newDir = externalSortBy === field && externalSortDir === 'asc' ? 'desc' : 'asc';
+    onSortChange(field, newDir);
+  };
+
+  const SortIcon = ({ field }: { field: 'name' | 'price' | 'stock' }) => {
+    if (externalSortBy !== field) return <ArrowUpDown className="w-3 h-3 text-zinc-400" />;
+    return externalSortDir === 'asc'
+      ? <ArrowUp className="w-3 h-3 text-blue-500" />
+      : <ArrowDown className="w-3 h-3 text-blue-500" />;
+  };
 
   const getStockStatus = (stock: number) => {
     if (stock === 0) return { variant: 'danger' as const, label: 'Agotado' };
@@ -154,80 +192,135 @@ export function InventoryTable({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <input
-              type="text"
-              placeholder="Buscar productos por nombre o SKU..."
-              className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => {
-                if (isControlledSearch && onSearchChange) {
-                  onSearchChange(e.target.value);
-                } else {
-                  setInternalSearch(e.target.value);
-                }
-              }}
-            />
+    <div className="space-y-3">
+      {/* ── Fila 1: Búsqueda + Acciones ─────────────────────────────── */}
+      <div className="flex items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre o SKU..."
+            className="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={searchTerm}
+            onChange={(e) => {
+              if (isControlledSearch && onSearchChange) {
+                onSearchChange(e.target.value);
+              } else {
+                setInternalSearch(e.target.value);
+              }
+            }}
+          />
+        </div>
+
+        {/* Acciones bulk — dropdown */}
+        {canCreate && (
+          <div className="relative flex-shrink-0" ref={actionsRef}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1.5 whitespace-nowrap"
+              onClick={() => setIsActionsOpen(v => !v)}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Herramientas
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${isActionsOpen ? 'rotate-180' : ''}`} />
+            </Button>
+
+            {isActionsOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-52 bg-white border border-zinc-200 rounded-xl shadow-lg z-20 py-1 overflow-hidden">
+                <button
+                  onClick={() => { setIsBulkPriceModalOpen(true); setIsActionsOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer"
+                >
+                  <DollarSign className="w-4 h-4 text-zinc-400" />
+                  Cambio de Precios
+                </button>
+                <button
+                  onClick={() => { setIsBulkPriceTiersModalOpen(true); setIsActionsOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer"
+                >
+                  <Layers className="w-4 h-4 text-zinc-400" />
+                  Precios Mayoreo
+                </button>
+                <div className="h-px bg-zinc-100 my-1" />
+                <button
+                  onClick={() => { setIsBulkImportModalOpen(true); setIsActionsOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                  Importar Excel
+                </button>
+              </div>
+            )}
           </div>
-          
-          <div className="flex gap-1 bg-zinc-100 rounded-lg p-1">
-            {categories.slice(0, 6).map((category) => (
+        )}
+
+        {canCreate && (
+          <Button className="flex items-center gap-2 flex-shrink-0" onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Nuevo Producto
+          </Button>
+        )}
+      </div>
+
+      {/* ── Fila 2: Filtros de categoría + Sort ─────────────────────── */}
+      <div className="flex items-center gap-3">
+        {/* Category pills — desde API, scrollable */}
+        <div className="flex-1 min-w-0 overflow-x-auto scrollbar-none">
+          <div className="flex gap-1 bg-zinc-100 rounded-lg p-1 w-max min-w-full">
+            <button
+              onClick={() => onCategoryChange?.(undefined)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                externalCategoryId === undefined
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700'
+              }`}
+            >
+              Todas
+            </button>
+            {apiCategories.map((cat) => (
               <button
-                key={category}
-                onClick={() => setSelectedCategory(category === 'Todas' ? '' : category)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
-                  (selectedCategory === '' && category === 'Todas') || selectedCategory === category
+                key={cat.id}
+                onClick={() => onCategoryChange?.(cat.id)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                  externalCategoryId === cat.id
                     ? 'bg-white text-zinc-900 shadow-sm'
                     : 'text-zinc-500 hover:text-zinc-700'
                 }`}
               >
-                {category}
+                {cat.name}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {canCreate && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5 whitespace-nowrap"
-                onClick={() => setIsBulkPriceModalOpen(true)}
-              >
-                <DollarSign className="w-4 h-4" />
-                Cambio de Precios
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5 whitespace-nowrap"
-                onClick={() => setIsBulkPriceTiersModalOpen(true)}
-              >
-                <Layers className="w-4 h-4" />
-                Precios Mayoreo
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5 whitespace-nowrap"
-                onClick={() => setIsBulkImportModalOpen(true)}
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                Importar Excel
-              </Button>
-              <Button className="flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="w-4 h-4" />
-                Nuevo Producto
-              </Button>
-            </>
-          )}
-        </div>
+        {/* Sort — server-side */}
+        {onSortChange && (
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="text-xs text-zinc-400 hidden sm:inline">Ordenar:</span>
+            <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-1">
+              {([
+                { field: 'name',  label: 'Nombre' },
+                { field: 'stock', label: 'Stock'  },
+                { field: 'price', label: 'Precio' },
+              ] as const).map(({ field, label }) => (
+                <button
+                  key={field}
+                  onClick={() => handleSort(field)}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                    externalSortBy === field
+                      ? 'bg-white text-zinc-900 shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-700'
+                  }`}
+                >
+                  {label}
+                  <SortIcon field={field} />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <Card>
@@ -235,8 +328,11 @@ export function InventoryTable({
           <table className="w-full">
             <thead>
               <tr className="border-b border-zinc-100">
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
-                  Producto
+                <th
+                  className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4 cursor-pointer select-none hover:text-zinc-700"
+                  onClick={() => handleSort('name')}
+                >
+                  <span className="flex items-center gap-1">Producto <SortIcon field="name" /></span>
                 </th>
                 <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   SKU
@@ -244,11 +340,17 @@ export function InventoryTable({
                 <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Categoría
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
-                  Stock
+                <th
+                  className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4 cursor-pointer select-none hover:text-zinc-700"
+                  onClick={() => handleSort('stock')}
+                >
+                  <span className="flex items-center gap-1">Stock <SortIcon field="stock" /></span>
                 </th>
-                <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
-                  Precio
+                <th
+                  className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4 cursor-pointer select-none hover:text-zinc-700"
+                  onClick={() => handleSort('price')}
+                >
+                  <span className="flex items-center gap-1">Precio <SortIcon field="price" /></span>
                 </th>
                 <th className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider px-6 py-4">
                   Estado

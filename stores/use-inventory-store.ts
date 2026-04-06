@@ -16,6 +16,9 @@ interface InventoryState {
   page: number;
   limit: number;
   search: string;
+  categoryId: number | undefined;
+  sortBy: 'name' | 'price' | 'stock' | undefined;
+  sortDir: 'asc' | 'desc';
 
   // ── Loading flags ──
   loading: boolean;
@@ -29,6 +32,9 @@ interface InventoryState {
   setPage: (p: number) => void;
   setLimit: (l: number) => void;
   setSearch: (s: string) => void;
+  setCategoryId: (id: number | undefined) => void;
+  setSortBy: (f: 'name' | 'price' | 'stock' | undefined) => void;
+  setSortDir: (d: 'asc' | 'desc') => void;
 
   // ── Granular mutations ──
   /** Inserta o reemplaza un producto en el array (por id) */
@@ -46,6 +52,9 @@ export const useInventoryStore = create<InventoryState>((set) => ({
   page: 1,
   limit: 10,
   search: '',
+  categoryId: undefined,
+  sortBy: undefined,
+  sortDir: 'asc',
   loading: false,
   submitting: false,
 
@@ -57,6 +66,9 @@ export const useInventoryStore = create<InventoryState>((set) => ({
   setPage: (page) => set({ page }),
   setLimit: (limit) => set({ limit, page: 1 }),
   setSearch: (search) => set({ search, page: 1 }),
+  setCategoryId: (categoryId) => set({ categoryId, page: 1 }),
+  setSortBy: (sortBy) => set({ sortBy, page: 1 }),
+  setSortDir: (sortDir) => set({ sortDir, page: 1 }),
 
   upsertProduct: (product) =>
     set((s) => {

@@ -17,7 +17,7 @@ import { useState } from 'react';
 export default function InventarioPage() {
   // ── Data & UI state (single shallow subscription) ──
   const {
-    products, page, limit, search, total, loading, statistics,
+    products, page, limit, search, total, loading, statistics, categoryId, sortBy, sortDir,
   } = useInventoryStore(useShallow((s) => ({
     products: s.products,
     page: s.page,
@@ -26,6 +26,9 @@ export default function InventarioPage() {
     total: s.total,
     loading: s.loading,
     statistics: s.statistics,
+    categoryId: s.categoryId,
+    sortBy: s.sortBy,
+    sortDir: s.sortDir,
   })));
 
   // ── Actions (stable references — no re-render on data change) ──
@@ -35,6 +38,9 @@ export default function InventarioPage() {
   const setPage = useInventoryStore((s) => s.setPage);
   const setLimit = useInventoryStore((s) => s.setLimit);
   const setSearch = useInventoryStore((s) => s.setSearch);
+  const setCategoryId = useInventoryStore((s) => s.setCategoryId);
+  const setSortBy = useInventoryStore((s) => s.setSortBy);
+  const setSortDir = useInventoryStore((s) => s.setSortDir);
   const patchProduct = useInventoryStore((s) => s.patchProduct);
   const removeProduct = useInventoryStore((s) => s.removeProduct);
   const upsertProduct = useInventoryStore((s) => s.upsertProduct);
@@ -46,13 +52,16 @@ export default function InventarioPage() {
 
   const debouncedSearch = useDebounce(search, 500);
 
-  const load = useCallback(async (p = page, q = search, l = limit) => {
+  const load = useCallback(async (
+    p = page, q = search, l = limit,
+    cId = categoryId, sBy = sortBy, sDir = sortDir,
+  ) => {
     setLoading(true);
     let cacheHit = false;
     const onCacheHit = () => { cacheHit = true; };
     window.addEventListener('offline-cache-hit', onCacheHit, { once: true });
     try {
-      const filters = { page: p, limit: l, search: q };
+      const filters = { page: p, limit: l, search: q, categoryId: cId, sortBy: sBy, sortDir: sDir };
       const res: PaginatedProductsDto = await getProducts(filters);
       window.removeEventListener('offline-cache-hit', onCacheHit);
       setProducts(res.items, res.total);
@@ -89,13 +98,13 @@ export default function InventarioPage() {
   }, [loadStatistics]);
 
   useEffect(() => {
-    load(page, debouncedSearch, limit);
+    load(page, debouncedSearch, limit, categoryId, sortBy, sortDir);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, debouncedSearch, limit]);
+  }, [page, debouncedSearch, limit, categoryId, sortBy, sortDir]);
 
   // ── Cross-tab sync: recargar cuando otra pestaña muta inventario ──
   useCrossTabSync('inventory', () => {
-    load(page, debouncedSearch, limit);
+    load(page, debouncedSearch, limit, categoryId, sortBy, sortDir);
     loadStatistics();
   });
 
@@ -152,8 +161,8 @@ export default function InventarioPage() {
           {loading ? (
             <InventoryTableSkeleton rows={limit} />
           ) : (
-            <InventoryTable 
-              productos={products} 
+            <InventoryTable
+              productos={products}
               onProductUpdate={canEdit ? handleProductUpdate : undefined}
               onProductCreate={canCreate ? handleProductCreate : undefined}
               onError={toast.error}
@@ -167,8 +176,13 @@ export default function InventarioPage() {
               totalItems={total}
               canCreate={canCreate}
               canEdit={canEdit}
+              externalCategoryId={categoryId}
+              onCategoryChange={setCategoryId}
+              externalSortBy={sortBy}
+              externalSortDir={sortDir}
+              onSortChange={(field, dir) => { setSortBy(field); setSortDir(dir); }}
               onNeedsRefresh={() => {
-                load(page, debouncedSearch, limit);
+                load(page, debouncedSearch, limit, categoryId, sortBy, sortDir);
                 loadStatistics();
                 broadcastInvalidation('inventory');
               }}

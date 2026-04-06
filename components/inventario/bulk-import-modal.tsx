@@ -2,13 +2,18 @@
 
 import { useState, useRef, useCallback } from 'react';
 import * as XLSX from 'xlsx';
-import { Upload, Download, CheckCircle, XCircle, AlertTriangle, FileSpreadsheet } from 'lucide-react';
+import { Download, CheckCircle, XCircle, AlertTriangle, FileSpreadsheet, Zap } from 'lucide-react';
 import { Modal, Button, Badge } from '@/components/ui';
 import type { BulkImportRow, BulkImportResult } from '@/services/products';
 
 // ── Columnas del Excel de importación ────────────────────────────────────────
-// Nombre | SKU | Precio | Costo | Categoria | Descripcion | NombreVariante |
-// Barcode | Stock | Moneda | RequiereIVA
+// Formato estándar: Nombre | SKU | Precio | Costo | Categoria | Descripcion |
+//                   NombreVariante | Barcode | Stock | Moneda | RequiereIVA
+//
+// Formato El Carretel: GrupoUno | GrupoDos | CódigoInventario | Descripción |
+//                      U Medida | Existencias | Precio 1 | Precio 2 | Precio 3 | Precio 4
+
+type DetectedFormat = 'standard' | 'carretel';
 
 interface ParsedImportRow extends BulkImportRow {
   _rowNum: number;
@@ -20,6 +25,17 @@ interface BulkImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (rows: BulkImportRow[]) => Promise<BulkImportResult>;
+}
+
+// ── Utilidad: detectar formato El Carretel ───────────────────────────────────
+// El Carretel tiene "EL CARRETEL VF SAS" en la celda A1.
+function detectFormat(wb: XLSX.WorkBook): DetectedFormat {
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const cellA1 = ws['A1'];
+  if (cellA1 && typeof cellA1.v === 'string' && cellA1.v.toUpperCase().includes('CARRETEL')) {
+    return 'carretel';
+  }
+  return 'standard';
 }
 
 // ── Plantilla ────────────────────────────────────────────────────────────────
@@ -37,14 +53,94 @@ function downloadTemplate() {
   XLSX.writeFile(wb, 'plantilla_importacion_productos.xlsx');
 }
 
-// ── Parser ────────────────────────────────────────────────────────────────────
-function parseExcel(file: File): Promise<ParsedImportRow[]> {
+// ── Parser: Formato El Carretel (hoja PRECIOS) ───────────────────────────────
+// Usa la hoja "PRECIOS" que tiene formato limpio sin filas de grupos ni totales.
+// Columnas (fila 4 como encabezado, datos desde fila 5):
+//   0: CódigoInventario  1: Descripción  2: U Medida
+//   3: Existencias       4: Precio 1     5: Precio 2  6: Precio 3  7: Precio 4
+function parseExcelCarretel(wb: XLSX.WorkBook): ParsedImportRow[] {
+  // Preferir la hoja "PRECIOS"; si no existe, usar la primera hoja
+  const sheetName = wb.SheetNames.find((n) => n.toUpperCase() === 'PRECIOS') ?? wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+
+  // Leer todas las filas como array de arrays
+  const allRows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null }) as unknown[][];
+
+  const results: ParsedImportRow[] = [];
+
+  // Datos inician en fila 5 (índice 4); fila 4 (índice 3) es encabezado
+  // La hoja PRECIOS no tiene filas de grupos ni totales — formato limpio
+  for (let i = 4; i < allRows.length; i++) {
+    const row = allRows[i];
+    if (!row || row.length === 0) continue;
+
+    const codigoRaw     = row[0];   // CódigoInventario
+    const descripcionRaw = row[1];  // Descripción
+
+    // Saltar filas vacías o sin código
+    if (codigoRaw === null || codigoRaw === undefined || codigoRaw === '') continue;
+    const codigoStr = String(codigoRaw).trim();
+    if (!codigoStr) continue;
+
+    const descripcion = String(descripcionRaw ?? '').trim();
+    if (!descripcion) continue;
+
+    const uMedida   = String(row[2] ?? '').trim();   // U Medida
+    const existencias = row[3];                       // Existencias
+    const precio1   = row[4];                         // Precio 1
+
+    // Sin columnas de categoría en PRECIOS → usar categoría genérica
+    const categoryName = 'El Carretel';
+
+    const defaultPrice = precio1 !== null && precio1 !== undefined && precio1 !== '' ? Number(precio1) : 0;
+    const stock        = existencias !== null && existencias !== undefined && existencias !== '' ? Number(existencias) : 0;
+
+    let error: string | undefined;
+    if (!descripcion)       error = 'Descripción vacía';
+    else if (!codigoStr)    error = 'Código vacío';
+    else if (isNaN(defaultPrice) || defaultPrice < 0) error = 'Precio 1 inválido';
+    else if (!categoryName) error = 'Categoría vacía';
+    else if (isNaN(stock))  error = 'Existencias inválidas';
+
+    results.push({
+      _rowNum: i + 1,   // número de fila en el Excel (1-based)
+      _valid: !error,
+      _error: error,
+      name: descripcion,
+      sku: codigoStr,
+      defaultPrice: isNaN(defaultPrice) ? 0 : defaultPrice,
+      categoryName,
+      description: uMedida ? `Unidad de medida: ${uMedida}` : undefined,
+      variantName: uMedida || undefined,
+      barcode: undefined,
+      stock: isNaN(stock) ? 0 : stock,
+      currency: 'COP',
+      requiresIva: false,
+    });
+  }
+
+  return results;
+}
+
+// ── Parser: Formato estándar ──────────────────────────────────────────────────
+function parseExcel(file: File): Promise<{ rows: ParsedImportRow[]; format: DetectedFormat }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target!.result as ArrayBuffer);
         const wb = XLSX.read(data, { type: 'array' });
+
+        // ── Auto-detectar formato ────────────────────────────────────────────
+        const format = detectFormat(wb);
+
+        if (format === 'carretel') {
+          const rows = parseExcelCarretel(wb);
+          resolve({ rows, format });
+          return;
+        }
+
+        // ── Formato estándar ─────────────────────────────────────────────────
         const ws = wb.Sheets[wb.SheetNames[0]];
         const raw: Record<string, unknown>[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
@@ -66,7 +162,7 @@ function parseExcel(file: File): Promise<ParsedImportRow[]> {
           const variantName = String(get(r, ['nombrevariante', 'variantname', 'variante']) ?? '').trim() || undefined;
           const barcode = String(get(r, ['barcode', 'codigobarra', 'codigo_barra']) ?? '').trim() || undefined;
           const stockRaw = get(r, ['stock', 'existencia']);
-          const currency = String(get(r, ['moneda', 'currency']) ?? 'MXN').trim() || 'MXN';
+          const currency = String(get(r, ['moneda', 'currency']) ?? 'COP').trim() || 'COP';
           const ivaRaw = String(get(r, ['requiereiva', 'iva', 'requiresiva']) ?? '').toLowerCase().trim();
 
           const defaultPrice = precioRaw !== '' && precioRaw !== undefined ? Number(precioRaw) : NaN;
@@ -100,7 +196,7 @@ function parseExcel(file: File): Promise<ParsedImportRow[]> {
           };
         });
 
-        resolve(rows);
+        resolve({ rows, format });
       } catch (err) {
         reject(err);
       }
@@ -114,6 +210,7 @@ function parseExcel(file: File): Promise<ParsedImportRow[]> {
 export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalProps) {
   const [step, setStep] = useState<'upload' | 'preview' | 'result'>('upload');
   const [rows, setRows] = useState<ParsedImportRow[]>([]);
+  const [detectedFormat, setDetectedFormat] = useState<DetectedFormat>('standard');
   const [result, setResult] = useState<BulkImportResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [parseError, setParseError] = useState('');
@@ -125,6 +222,7 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
   const handleClose = () => {
     setStep('upload');
     setRows([]);
+    setDetectedFormat('standard');
     setResult(null);
     setParseError('');
     onClose();
@@ -133,12 +231,13 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
   const handleFile = useCallback(async (file: File) => {
     setParseError('');
     try {
-      const parsed = await parseExcel(file);
+      const { rows: parsed, format } = await parseExcel(file);
       if (parsed.length === 0) {
-        setParseError('El archivo no contiene filas de datos.');
+        setParseError('El archivo no contiene filas de datos válidos.');
         return;
       }
       setRows(parsed);
+      setDetectedFormat(format);
       setStep('preview');
     } catch {
       setParseError('No se pudo leer el archivo. Asegúrate de que sea un .xlsx válido.');
@@ -179,12 +278,16 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
         {step === 'upload' && (
           <>
             <div className="flex justify-between items-start gap-3">
-              <p className="text-sm text-zinc-500">
-                Sube un Excel con: <strong>Nombre</strong>, <strong>SKU</strong>, <strong>Precio</strong>, <strong>Categoria</strong> (requeridos) y campos opcionales como Costo, NombreVariante, Stock, etc.
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm text-zinc-600 font-medium">Formatos soportados (auto-detectados):</p>
+                <ul className="text-sm text-zinc-500 space-y-0.5">
+                  <li>• <strong>Plantilla estándar</strong>: Nombre, SKU, Precio, Categoria, Stock...</li>
+                  <li>• <span className="inline-flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-amber-500" /><strong>El Carretel</strong></span>: auto-detectado por nombre de empresa en A1</li>
+                </ul>
+              </div>
               <Button variant="outline" size="sm" onClick={downloadTemplate} className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
                 <Download className="w-4 h-4" />
-                Descargar Plantilla
+                Plantilla Estándar
               </Button>
             </div>
 
@@ -219,6 +322,16 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
         {step === 'preview' && (
           <>
             <div className="flex items-center gap-3 flex-wrap">
+              {/* Formato detectado */}
+              {detectedFormat === 'carretel' ? (
+                <span className="flex items-center gap-1.5 text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-medium">
+                  <Zap className="w-4 h-4" /> Formato El Carretel detectado
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-sm text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                  Formato Estándar
+                </span>
+              )}
               <span className="flex items-center gap-1.5 text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full">
                 <CheckCircle className="w-4 h-4" /> {validRows.length} productos válidos
               </span>
@@ -228,6 +341,14 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
                 </span>
               )}
             </div>
+            {detectedFormat === 'carretel' && (
+              <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                <Zap className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-500" />
+                <span>
+                  Excel de <strong>El Carretel</strong> detectado. Se mapearán: <em>CódigoInventario → SKU</em>, <em>Descripción → Nombre</em>, <em>GrupoDos → Categoría</em>, <em>Precio 1 → Precio</em>, <em>Existencias → Stock</em>. Moneda: <strong>COP</strong>.
+                </span>
+              </div>
+            )}
 
             <div className="border border-zinc-200 rounded-lg overflow-hidden max-h-72 overflow-y-auto">
               <table className="w-full text-sm">

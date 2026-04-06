@@ -33,6 +33,8 @@ export async function getProducts(filters: ProductFiltersDto = {}): Promise<Pagi
     minPrice: filters.minPrice,
     maxPrice: filters.maxPrice,
     hasStock: filters.hasStock,
+    sortBy: filters.sortBy,
+    sortDir: filters.sortDir,
   });
 
   return {
