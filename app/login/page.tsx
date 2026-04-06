@@ -9,7 +9,7 @@ import {
   Package,
   Eye,
   EyeOff,
-  Mail,
+  UserCircle,
   Lock,
   ArrowRight,
   Loader2,
@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 
 const REMEMBER_KEY = 'crm-remember-me';
 
-function loadRemembered(): { email: string; password: string } | null {
+function loadRemembered(): { login: string; password: string } | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(REMEMBER_KEY);
@@ -35,7 +35,7 @@ export default function LoginPage() {
   const { settings } = useCompany();
 
   const remembered = loadRemembered();
-  const [email, setEmail] = useState(remembered?.email ?? '');
+  const [login, setLogin] = useState(remembered?.login ?? '');
   const [password, setPassword] = useState(remembered?.password ?? '');
   const [rememberMe, setRememberMe] = useState(!!remembered);
   const [showPassword, setShowPassword] = useState(false);
@@ -49,18 +49,18 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!email.trim() || !password.trim()) {
+    if (!login.trim() || !password.trim()) {
       setError('Por favor completa todos los campos');
       return;
     }
     if (rememberMe) {
-      localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email, password }));
+      localStorage.setItem(REMEMBER_KEY, JSON.stringify({ login, password }));
     } else {
       localStorage.removeItem(REMEMBER_KEY);
     }
     setLoading(true);
     try {
-      const data = await loginService({ email, password });
+      const data = await loginService({ login, password });
       setSession(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión. Verifica tus credenciales.');
@@ -159,19 +159,20 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-5">
-              {/* Email */}
+              {/* Login — correo o usuario */}
               <div className="space-y-2">
-                <label htmlFor="email" className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">
-                  Correo Electrónico
+                <label htmlFor="login" className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">
+                  Correo o Usuario
                 </label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-primary transition-colors" />
+                  <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-primary transition-colors" />
                   <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ejemplo@empresa.com"
+                    id="login"
+                    type="text"
+                    autoComplete="username"
+                    value={login}
+                    onChange={(e) => setLogin(e.target.value)}
+                    placeholder="ejemplo@empresa.com o juan.escamilla"
                     className="w-full h-14 pl-12 pr-4 bg-white border-2 border-zinc-100 rounded-2xl text-sm font-bold text-zinc-900 placeholder:text-zinc-300 transition-all focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 shadow-sm"
                   />
                 </div>

@@ -6,3 +6,4 @@ export { useOrdersStore } from './use-orders-store';
 export { useConfigStore } from './use-config-store';
 export { usePosStore } from './use-pos-store';
 export type { CartItem } from './use-pos-store';
+export { useParafiscalesStore } from './use-parafiscales-store';

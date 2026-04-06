@@ -24,6 +24,7 @@ import {
   Warehouse,
   ShieldCheck,
   Building2,
+  Landmark,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCompany } from '@/lib/company-context';
@@ -71,6 +72,7 @@ const navigation: NavItem[] = [
   { name: 'Pedidos',             href: '/pedidos',            icon: ShoppingCart },
   { name: 'Clientes',            href: '/clientes',           icon: Users },
   { name: 'Proveedores',         href: '/proveedores',        icon: Truck },
+  { name: 'Parafiscales',        href: '/parafiscales',       icon: Landmark },
   { name: 'Punto de Venta',      href: '/pos',                icon: Store,        dividerBefore: true },
   { name: 'Precios por Volumen', href: '/pos/precios',        icon: Layers },
   { name: 'Reportes POS',        href: '/pos/reportes',       icon: BarChart3 },

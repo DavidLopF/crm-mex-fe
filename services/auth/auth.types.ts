@@ -1,7 +1,8 @@
 /** Tipos para el módulo de autenticación */
 
 export interface LoginDto {
-  email: string;
+  /** Correo electrónico o nombre de usuario (nickname). El backend acepta ambos. */
+  login: string;
   password: string;
 }
 

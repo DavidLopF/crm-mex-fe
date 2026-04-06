@@ -1,4 +1,5 @@
 // Barrel export de todos los servicios.
+export * from './parafiscales';
 // Importa desde aquí: import { getProducts } from '@/services';
 
 export * from './products';
