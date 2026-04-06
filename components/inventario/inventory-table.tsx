@@ -265,7 +265,57 @@ export function InventoryTable({
       </div>
 
       {/* ── Fila 2: Filtros de categoría + Sort ─────────────────────── */}
-      <div className="flex items-center gap-3">
+
+      {/* ── MÓVIL: selects compactos (< sm) ─────────────────────────── */}
+      <div className="flex gap-2 sm:hidden">
+        {/* Categoría */}
+        <div className="relative flex-1 min-w-0">
+          <select
+            value={externalCategoryId ?? ''}
+            onChange={(e) => onCategoryChange?.(e.target.value === '' ? undefined : Number(e.target.value))}
+            className={`w-full h-9 pl-3 pr-8 text-xs border rounded-lg bg-white appearance-none cursor-pointer font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors ${
+              externalCategoryId !== undefined
+                ? 'border-primary text-primary'
+                : 'border-zinc-200 text-zinc-600'
+            }`}
+          >
+            <option value="">Todas las categorías</option>
+            {apiCategories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+        </div>
+
+        {/* Ordenar */}
+        {onSortChange && (
+          <div className="relative flex-shrink-0">
+            <select
+              value={externalSortBy ? `${externalSortBy}_${externalSortDir}` : ''}
+              onChange={(e) => {
+                if (!e.target.value) { onSortChange('name', 'asc'); return; }
+                const [f, d] = e.target.value.split('_') as ['name' | 'price' | 'stock', 'asc' | 'desc'];
+                onSortChange(f, d);
+              }}
+              className={`h-9 pl-3 pr-8 text-xs border rounded-lg bg-white appearance-none cursor-pointer font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors ${
+                externalSortBy
+                  ? 'border-primary text-primary'
+                  : 'border-zinc-200 text-zinc-600'
+              }`}
+            >
+              <option value="">Ordenar</option>
+              <option value="name_asc">Nombre A→Z</option>
+              <option value="name_desc">Nombre Z→A</option>
+              <option value="price_asc">Precio ↑</option>
+              <option value="price_desc">Precio ↓</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+          </div>
+        )}
+      </div>
+
+      {/* ── DESKTOP: pills para categoría + sort (>= sm) ─────────────── */}
+      <div className="hidden sm:flex items-center gap-3">
         {/* Category pills — desde API, scrollable */}
         <div className="flex-1 min-w-0 overflow-x-auto scrollbar-none">
           <div className="flex gap-1 bg-zinc-100 rounded-lg p-1 w-max min-w-full">
@@ -298,7 +348,7 @@ export function InventoryTable({
         {/* Sort — server-side */}
         {onSortChange && (
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="text-xs text-zinc-400 hidden sm:inline">Ordenar:</span>
+            <span className="text-xs text-zinc-400">Ordenar:</span>
             <div className="flex items-center gap-1 bg-zinc-100 rounded-lg p-1">
               {([
                 { field: 'name',  label: 'Nombre' },

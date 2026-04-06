@@ -27,6 +27,32 @@ interface BulkImportModalProps {
   onConfirm: (rows: BulkImportRow[]) => Promise<BulkImportResult>;
 }
 
+// ── Utilidad: Title Case para español ────────────────────────────────────────
+// Capitaliza la primera letra de cada palabra, pero mantiene en minúsculas
+// los conectores y preposiciones cortas cuando no van al inicio de la frase.
+const LOWER_WORDS_ES = new Set([
+  'de', 'del', 'la', 'las', 'el', 'los', 'y', 'e', 'o', 'u',
+  'a', 'en', 'con', 'por', 'para', 'sin', 'al', 'un', 'una',
+  'unos', 'unas', 'ni', 'que', 'se',
+]);
+
+function toTitleCase(str: string): string {
+  return str
+    .split(' ')
+    .map((word, index) => {
+      if (!word) return word;
+      // Tokens con dígitos (ej: "34L", "120CC", "1/8", "N°6") se dejan tal cual
+      // para no corromper unidades de medida y referencias numéricas.
+      if (/\d/.test(word)) return word;
+      const lower = word.toLowerCase();
+      // Conectores/preposiciones en posición no-inicial → minúscula
+      if (index > 0 && LOWER_WORDS_ES.has(lower)) return lower;
+      // Resto → primera letra en mayúscula
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
+}
+
 // ── Utilidad: detectar formato El Carretel ───────────────────────────────────
 // El Carretel tiene "EL CARRETEL VF SAS" en la celda A1.
 function detectFormat(wb: XLSX.WorkBook): DetectedFormat {
@@ -53,44 +79,79 @@ function downloadTemplate() {
   XLSX.writeFile(wb, 'plantilla_importacion_productos.xlsx');
 }
 
-// ── Parser: Formato El Carretel (hoja PRECIOS) ───────────────────────────────
-// Usa la hoja "PRECIOS" que tiene formato limpio sin filas de grupos ni totales.
-// Columnas (fila 4 como encabezado, datos desde fila 5):
-//   0: CódigoInventario  1: Descripción  2: U Medida
-//   3: Existencias       4: Precio 1     5: Precio 2  6: Precio 3  7: Precio 4
-function parseExcelCarretel(wb: XLSX.WorkBook): ParsedImportRow[] {
-  // Preferir la hoja "PRECIOS"; si no existe, usar la primera hoja
-  const sheetName = wb.SheetNames.find((n) => n.toUpperCase() === 'PRECIOS') ?? wb.SheetNames[0];
+// ── Construir mapa código → categoría desde hoja INVENTARIO ─────────────────
+// INVENTARIO tiene GrupoUno/GrupoDos con carry-forward por código de inventario.
+// PRECIOS tiene los datos limpios pero sin columnas de categoría.
+// Cruzamos ambas hojas por CódigoInventario para obtener la categoría correcta.
+function buildCategoryMapFromInventario(wb: XLSX.WorkBook): Map<string, string> {
+  const sheetName = wb.SheetNames.find((n) => n.toUpperCase() === 'INVENTARIO') ?? wb.SheetNames[0];
   const ws = wb.Sheets[sheetName];
-
-  // Leer todas las filas como array de arrays
   const allRows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null }) as unknown[][];
 
-  const results: ParsedImportRow[] = [];
+  const map = new Map<string, string>();
+  let lastGrupoUno = '';
+  let lastGrupoDos = '';
 
-  // Datos inician en fila 5 (índice 4); fila 4 (índice 3) es encabezado
-  // La hoja PRECIOS no tiene filas de grupos ni totales — formato limpio
+  // Datos desde fila 5 (índice 4); INVENTARIO tiene 10 cols: GrupoUno[0] GrupoDos[1] Codigo[2] ...
   for (let i = 4; i < allRows.length; i++) {
     const row = allRows[i];
     if (!row || row.length === 0) continue;
 
-    const codigoRaw     = row[0];   // CódigoInventario
-    const descripcionRaw = row[1];  // Descripción
+    const g1 = String(row[0] ?? '').trim();
+    const g2 = String(row[1] ?? '').trim();
+    if (g1 && !g1.toLowerCase().startsWith('total')) lastGrupoUno = g1;
+    if (g2 && !g2.toLowerCase().startsWith('total')) lastGrupoDos = g2;
+
+    const codigoRaw = row[2];
+    if (codigoRaw === null || codigoRaw === undefined || codigoRaw === '') continue;
+    const codigoStr = String(codigoRaw).trim();
+    if (!codigoStr || codigoStr.toLowerCase().startsWith('total')) continue;
+
+    const rawCategory = lastGrupoDos || lastGrupoUno || 'El Carretel';
+    map.set(codigoStr, toTitleCase(rawCategory));
+  }
+
+  return map;
+}
+
+// ── Parser: Formato El Carretel (hoja PRECIOS + categorías de INVENTARIO) ────
+// Hoja PRECIOS: formato limpio, sin filas de grupos ni totales.
+// Columnas (fila 4 como encabezado, datos desde fila 5):
+//   0: CódigoInventario  1: Descripción  2: U Medida
+//   3: Existencias       4: Precio 1     5-7: Precio 2-4 (ignorados)
+function parseExcelCarretel(wb: XLSX.WorkBook): ParsedImportRow[] {
+  // Paso 1: construir mapa código → categoría desde INVENTARIO
+  const categoryMap = buildCategoryMapFromInventario(wb);
+
+  // Paso 2: leer datos limpios desde PRECIOS
+  const sheetName = wb.SheetNames.find((n) => n.toUpperCase() === 'PRECIOS') ?? wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  const allRows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null }) as unknown[][];
+
+  const results: ParsedImportRow[] = [];
+
+  // Datos inician en fila 5 (índice 4)
+  for (let i = 4; i < allRows.length; i++) {
+    const row = allRows[i];
+    if (!row || row.length === 0) continue;
+
+    const codigoRaw      = row[0];   // CódigoInventario
+    const descripcionRaw = row[1];   // Descripción
 
     // Saltar filas vacías o sin código
     if (codigoRaw === null || codigoRaw === undefined || codigoRaw === '') continue;
     const codigoStr = String(codigoRaw).trim();
     if (!codigoStr) continue;
 
-    const descripcion = String(descripcionRaw ?? '').trim();
+    const descripcion = toTitleCase(String(descripcionRaw ?? '').trim());
     if (!descripcion) continue;
 
-    const uMedida   = String(row[2] ?? '').trim();   // U Medida
-    const existencias = row[3];                       // Existencias
-    const precio1   = row[4];                         // Precio 1
+    const uMedida     = String(row[2] ?? '').trim();   // U Medida
+    const existencias = row[3];                         // Existencias
+    const precio1     = row[4];                         // Precio 1
 
-    // Sin columnas de categoría en PRECIOS → usar categoría genérica
-    const categoryName = 'El Carretel';
+    // Paso 3: resolver categoría cruzando con INVENTARIO; fallback 'El Carretel'
+    const categoryName = categoryMap.get(codigoStr) ?? 'El Carretel';
 
     const defaultPrice = precio1 !== null && precio1 !== undefined && precio1 !== '' ? Number(precio1) : 0;
     const stock        = existencias !== null && existencias !== undefined && existencias !== '' ? Number(existencias) : 0;
@@ -282,7 +343,6 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
                 <p className="text-sm text-zinc-600 font-medium">Formatos soportados (auto-detectados):</p>
                 <ul className="text-sm text-zinc-500 space-y-0.5">
                   <li>• <strong>Plantilla estándar</strong>: Nombre, SKU, Precio, Categoria, Stock...</li>
-                  <li>• <span className="inline-flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-amber-500" /><strong>El Carretel</strong></span>: auto-detectado por nombre de empresa en A1</li>
                 </ul>
               </div>
               <Button variant="outline" size="sm" onClick={downloadTemplate} className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
@@ -345,7 +405,7 @@ export function BulkImportModal({ isOpen, onClose, onConfirm }: BulkImportModalP
               <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
                 <Zap className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-500" />
                 <span>
-                  Excel de <strong>El Carretel</strong> detectado. Se mapearán: <em>CódigoInventario → SKU</em>, <em>Descripción → Nombre</em>, <em>GrupoDos → Categoría</em>, <em>Precio 1 → Precio</em>, <em>Existencias → Stock</em>. Moneda: <strong>COP</strong>.
+                  Excel de <strong>El Carretel</strong> detectado. Datos desde hoja <em>PRECIOS</em> · Categorías desde hoja <em>INVENTARIO</em> (CACHARRERIAS, CINTAS Y ENCAJES, BOTONES…) · <em>CódigoInventario → SKU</em> · <em>Precio 1 → Precio</em> · Moneda: <strong>COP</strong>.
                 </span>
               </div>
             )}

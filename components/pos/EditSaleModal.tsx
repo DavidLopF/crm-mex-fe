@@ -132,8 +132,8 @@ export function EditSaleModal({ sale, onClose, onSaved }: Props) {
     }
     setSearching(true);
     try {
-      const results = await getPosProducts(query.trim());
-      setSearchResults(results.slice(0, 10));
+      const result = await getPosProducts(query.trim(), 1, 10);
+      setSearchResults(result.data);
     } catch {
       setSearchResults([]);
     } finally {

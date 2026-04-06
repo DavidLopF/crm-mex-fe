@@ -27,6 +27,14 @@ export interface PosProductDto {
   requiresIva: boolean;
 }
 
+export interface PaginatedPosProductsDto {
+  data: PosProductDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface CreateSaleItemDto {
   variantId: number;
   qty: number;

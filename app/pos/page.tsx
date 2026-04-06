@@ -51,7 +51,7 @@ export default function PosPage() {
           <ReturnedSalesAlert />
 
           {/* Grid scrollable */}
-          <div className="flex-1 overflow-y-auto px-4 pb-24 md:pb-4">
+          <div className="flex-1 min-h-0 overflow-hidden px-4 pb-4">
             <ProductGrid />
           </div>
         </div>
@@ -86,19 +86,19 @@ export default function PosPage() {
           <>
             {/* Overlay */}
             <div
-              className="md:hidden fixed inset-0 z-40 bg-black/40"
+              className="md:hidden fixed inset-0 z-40 bg-black/40 animate-fadeIn"
               onClick={() => setShowMobileCart(false)}
             />
             {/* Drawer */}
-            <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white rounded-t-2xl shadow-2xl flex flex-col"
-              style={{ maxHeight: '88dvh' }}
+            <div
+              className="md:hidden fixed inset-x-0 bottom-0 top-[10vh] z-50 bg-white rounded-t-[1.75rem] shadow-2xl flex flex-col animate-drawerUp overflow-hidden"
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-                <div className="w-10 h-1 bg-zinc-300 rounded-full" />
+                <div className="w-10 h-1.5 bg-zinc-200 rounded-full" />
               </div>
-              <div className="flex-1 overflow-hidden">
-                <Cart onClose={() => setShowMobileCart(false)} />
+              <div className="flex-1 min-h-0">
+                <Cart onClose={() => setShowMobileCart(false)} mobileMode />
               </div>
             </div>
           </>

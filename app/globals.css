@@ -127,8 +127,45 @@ body::before {
   }
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawerUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .page-enter {
   animation: pageEnter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.animate-drawerUp {
+  animation: drawerUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease both;
 }
 
 /* ─── Custom UI Elements ─── */

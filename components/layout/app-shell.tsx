@@ -44,9 +44,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => media.removeEventListener('change', update);
   }, []);
 
-  // Evitar hydration mismatches: renderizar nada (o un shell vacío) hasta montar
+  // Antes de montar en cliente, renderizar el mismo loader que ve el server
+  // para evitar hydration mismatch (retornar null causaba diff server/client).
   if (!mounted) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-zinc-900 border-t-transparent animate-spin" />
+          <p className="text-sm text-zinc-400 font-medium tracking-wide">Cargando…</p>
+        </div>
+      </div>
+    );
   }
 
   if (isLoading) {

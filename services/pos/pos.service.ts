@@ -1,6 +1,7 @@
 import { get, post, put, patch } from '../http-client';
 import type {
   PosProductDto,
+  PaginatedPosProductsDto,
   PriceTierDto,
   CreateSaleDto,
   SaleResponseDto,
@@ -13,6 +14,84 @@ import type {
 } from './pos.types';
 
 const BASE = '/api/pos';
+
+type PosProductsResponseLike = Record<string, unknown> & {
+  data?: unknown;
+  items?: unknown;
+  pagination?: Record<string, unknown>;
+  total?: unknown;
+  page?: unknown;
+  limit?: unknown;
+  totalPages?: unknown;
+};
+
+function isPosProductDto(value: unknown): value is PosProductDto {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      'variantId' in value &&
+      'sku' in value &&
+      'productName' in value,
+  );
+}
+
+function normalizePosProductsResponse(payload: unknown): PaginatedPosProductsDto {
+  if (Array.isArray(payload)) {
+    const data = payload.filter(isPosProductDto);
+    return {
+      data,
+      total: data.length,
+      page: 1,
+      limit: data.length || 20,
+      totalPages: data.length > 0 ? 1 : 0,
+    };
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    return {
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+      totalPages: 0,
+    };
+  }
+
+  const response = payload as PosProductsResponseLike;
+  const nestedData = response.data;
+  const source = Array.isArray(nestedData)
+    ? nestedData
+    : Array.isArray(response.items)
+      ? response.items
+      : Array.isArray((nestedData as Record<string, unknown> | undefined)?.data)
+        ? (nestedData as { data: unknown[] }).data
+        : [];
+
+  const data = source.filter(isPosProductDto);
+  const pagination = response.pagination;
+  const total = typeof response.total === 'number'
+    ? response.total
+    : typeof pagination?.total === 'number'
+      ? pagination.total
+      : data.length;
+  const page = typeof response.page === 'number'
+    ? response.page
+    : typeof pagination?.page === 'number'
+      ? pagination.page
+      : 1;
+  const limit = typeof response.limit === 'number'
+    ? response.limit
+    : typeof pagination?.limit === 'number'
+      ? pagination.limit
+      : data.length || 20;
+  const totalPages = typeof response.totalPages === 'number'
+    ? response.totalPages
+    : typeof pagination?.totalPages === 'number'
+      ? pagination.totalPages
+      : Math.ceil(total / Math.max(limit, 1));
+
+  return { data, total, page, limit, totalPages };
+}
 
 function toDateOnly(value: string): string {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
@@ -28,8 +107,13 @@ function toDateOnly(value: string): string {
 
 // ── Productos POS ──
 
-export async function getPosProducts(search?: string): Promise<PosProductDto[]> {
-  return get<PosProductDto[]>(`${BASE}/products`, search ? { search } : undefined);
+export async function getPosProducts(
+  search?: string,
+  page = 1,
+  limit = 20,
+): Promise<PaginatedPosProductsDto> {
+  const raw = await get<unknown>(`${BASE}/products`, { search, page, limit });
+  return normalizePosProductsResponse(raw);
 }
 
 export async function getVariantTiers(variantId: number): Promise<PriceTierDto[]> {

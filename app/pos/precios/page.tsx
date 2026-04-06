@@ -249,7 +249,8 @@ export default function PreciosPage() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getPosProducts();
+      const result = await getPosProducts(undefined, 1, 500);
+      const data = result.data;
       setProducts(data);
 
       // Inicializar estado por variante
