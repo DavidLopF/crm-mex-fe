@@ -4,9 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from 'recharts';
-
-const fmtCOP = (n: number) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+import { formatCompactCurrency, formatCurrency } from '@/lib/utils';
 
 const fmtDay = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric' });
@@ -16,7 +14,7 @@ function CustomTooltip({ active, payload, label }: any) {
   return (
     <div className="bg-white border border-zinc-100 rounded-xl px-4 py-3 shadow-lg text-sm">
       <p className="text-zinc-500 text-xs mb-1">{fmtDay(label)}</p>
-      <p className="font-bold text-zinc-900">{fmtCOP(payload[0].value)}</p>
+      <p className="font-bold text-zinc-900">{formatCurrency(payload[0].value)}</p>
     </div>
   );
 }
@@ -45,7 +43,7 @@ export function SalesTrendChart({ data, color }: Props) {
           tickLine={false}
         />
         <YAxis
-          tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+          tickFormatter={(v) => formatCompactCurrency(v)}
           tick={{ fontSize: 11, fill: '#9CA3AF' }}
           axisLine={false}
           tickLine={false}

@@ -1,6 +1,7 @@
 'use client';
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { formatNumber, formatPercentage } from '@/lib/utils';
 
 interface Slice {
   name: string;
@@ -18,7 +19,7 @@ function CustomLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: an
   const y = cy + r * Math.sin(-midAngle * RADIAN);
   return (
     <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={700}>
-      {`${(percent * 100).toFixed(0)}%`}
+      {formatPercentage(percent, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
     </text>
   );
 }
@@ -29,7 +30,7 @@ function CustomTooltip({ active, payload }: any) {
   return (
     <div className="bg-white border border-zinc-100 rounded-xl px-3 py-2 shadow-lg text-sm">
       <p className="font-semibold text-zinc-900">{name}</p>
-      <p className="text-zinc-500">{value.toLocaleString('es-CO')}</p>
+      <p className="text-zinc-500">{formatNumber(Number(value))}</p>
     </div>
   );
 }

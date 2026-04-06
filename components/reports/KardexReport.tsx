@@ -13,30 +13,12 @@ import { getKardex, getVariantesParaKardex } from '@/services/reports';
 import type { KardexData, KardexMovimiento, VarianteOption } from '@/services/reports';
 import { useCompany } from '@/lib/company-context';
 import { KardexMovimientosChart } from '@/components/charts';
+import { formatCurrency, formatDateTime, formatNumber } from '@/lib/utils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(isoString: string): string {
-  return new Date(isoString).toLocaleDateString('es-CO', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('es-CO').format(value);
-}
-
-function formatCurrency(value: number | null): string {
-  if (value === null) return '—';
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(value);
+  return formatDateTime(isoString);
 }
 
 function variantLabel(v: VarianteOption): string {
@@ -80,7 +62,7 @@ function MovimientoRow({ mov }: { mov: KardexMovimiento }) {
         {formatNumber(mov.qty)}
       </td>
       <td className="px-4 py-3 text-right text-sm text-zinc-600">
-        {formatCurrency(mov.costo)}
+        {mov.costo === null ? '—' : formatCurrency(mov.costo)}
       </td>
       <td className="px-4 py-3 text-right text-sm font-bold text-zinc-900">
         {formatNumber(mov.saldo)}

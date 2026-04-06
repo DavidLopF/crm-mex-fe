@@ -4,9 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
-
-const fmtCOP = (n: number) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+import { formatCompactCurrency, formatCurrency } from '@/lib/utils';
 
 function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
@@ -14,7 +12,7 @@ function CustomTooltip({ active, payload }: any) {
   return (
     <div className="bg-white border border-zinc-100 rounded-xl px-4 py-3 shadow-lg text-sm">
       <p className="font-semibold text-zinc-900 mb-1 max-w-[180px] truncate">{d.name}</p>
-      <p className="text-zinc-600">{fmtCOP(d.revenue)}</p>
+      <p className="text-zinc-600">{formatCurrency(d.revenue)}</p>
       <p className="text-xs text-zinc-400">{d.qtySold} unidades</p>
     </div>
   );
@@ -38,7 +36,7 @@ export function TopProductsChart({ data, color }: Props) {
         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
         <XAxis
           type="number"
-          tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+          tickFormatter={(v) => formatCompactCurrency(v)}
           tick={{ fontSize: 10, fill: '#9CA3AF' }}
           axisLine={false}
           tickLine={false}

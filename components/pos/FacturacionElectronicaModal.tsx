@@ -17,12 +17,11 @@ import {
 } from '@/services/facturacion';
 import type { SaleResponseDto } from '@/services/pos';
 import { searchDaneCities, type DaneCity } from '@/lib/dane-cities';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+const fmt = (n: number) => formatCurrency(n);
 
 function DianStatusBadge({ status }: { status: DianStatus }) {
   const map: Record<DianStatus, { label: string; cls: string; icon: typeof CheckCircle }> = {

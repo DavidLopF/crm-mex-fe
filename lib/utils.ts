@@ -2,19 +2,67 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { EstadoPedido } from '@/types';
 
+const NUMBER_LOCALE = 'es-CO';
+const CURRENCY_CODE = 'COP';
+
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+export function formatCurrency(
+  amount: number,
+  options?: {
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+  },
+): string {
+  return new Intl.NumberFormat(NUMBER_LOCALE, {
     style: 'currency',
-    currency: 'MXN',
+    currency: CURRENCY_CODE,
+    minimumFractionDigits: options?.minimumFractionDigits ?? 2,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
   }).format(amount);
 }
 
+export function formatNumber(
+  value: number,
+  options?: {
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+  },
+): string {
+  return new Intl.NumberFormat(NUMBER_LOCALE, {
+    minimumFractionDigits: options?.minimumFractionDigits ?? 2,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+  }).format(value);
+}
+
+export function formatPercentage(
+  value: number,
+  options?: {
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+  },
+): string {
+  return `${formatNumber(value * 100, {
+    minimumFractionDigits: options?.minimumFractionDigits ?? 2,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+  })}%`;
+}
+
+export function formatCompactCurrency(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    return `${value < 0 ? '-' : ''}$${formatNumber(abs / 1_000_000)}M`;
+  }
+  if (abs >= 1_000) {
+    return `${value < 0 ? '-' : ''}$${formatNumber(abs / 1_000)}k`;
+  }
+  return formatCurrency(value);
+}
+
 export function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('es-MX', {
+  return new Intl.DateTimeFormat(NUMBER_LOCALE, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -31,7 +79,7 @@ export function formatDateTime(date: Date | string | null | undefined): string {
     return 'Fecha inválida';
   }
   
-  return new Intl.DateTimeFormat('es-MX', {
+  return new Intl.DateTimeFormat(NUMBER_LOCALE, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

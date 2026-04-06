@@ -172,13 +172,21 @@ export async function getPosDashboard(): Promise<PosDashboardDto> {
 
 // ── Cierre de Caja ──
 
+/**
+ * Obtiene el resumen de ventas PAGADAS del período directamente desde el
+ * backend. Se eliminó el cálculo local (que incluía incorrectamente ventas
+ * PENDIENTES) para garantizar consistencia con lo que el backend guarda al
+ * registrar el cierre definitivo.
+ */
 export async function getCashCloseSummary(
   from: string,
   to: string
 ): Promise<CashCloseSummaryDto> {
+  const fromDate = toDateOnly(from);
+  const toDate = toDateOnly(to);
   return get<CashCloseSummaryDto>(`${BASE}/cash-close/summary`, {
-    from: toDateOnly(from),
-    to: toDateOnly(to),
+    from: fromDate,
+    to: toDate,
   });
 }
 

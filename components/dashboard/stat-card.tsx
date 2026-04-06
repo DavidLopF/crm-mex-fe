@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Sparkline, SPARKLINE_PRESETS } from '@/components/ui/sparkline';
-import { cn } from '@/lib/utils';
+import { cn, formatNumber } from '@/lib/utils';
 import { LucideIcon, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface StatCardProps {
@@ -43,6 +43,10 @@ export function StatCard({
     trend?.isPositive === false ? '#f43f5e' : '#10b981'
   );
 
+  const displayValue = typeof value === 'number'
+    ? formatNumber(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    : value;
+
   return (
     <Card className={cn(
       'card-premium group relative overflow-hidden border-none transition-all duration-500',
@@ -80,7 +84,7 @@ export function StatCard({
             </p>
             <div className="flex items-baseline gap-2">
               <h3 className="text-3xl font-extrabold text-zinc-900 tracking-tight">
-                {value}
+                {displayValue}
               </h3>
               {trend && (
                 <div className={cn(

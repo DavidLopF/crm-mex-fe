@@ -38,9 +38,12 @@ export function ProductGrid() {
       window.addEventListener('offline-cache-hit', onCacheHit, { once: true });
 
       const result = await getPosProducts(currentSearch || undefined, currentPage, PAGE_SIZE);
-      setProducts(result.data);
-      setTotal(result.total);
-      setTotalPages(result.totalPages);
+      // Guardia defensiva: result.data debe ser array (podría llegar corrupto
+      // desde la caché offline IndexedDB o en formato inesperado de la API).
+      const safeData = Array.isArray(result.data) ? result.data : [];
+      setProducts(safeData);
+      setTotal(typeof result.total === 'number' ? result.total : safeData.length);
+      setTotalPages(typeof result.totalPages === 'number' ? result.totalPages : 1);
       window.removeEventListener('offline-cache-hit', onCacheHit);
     } catch (err) {
       if (err instanceof OfflineCacheError) {
@@ -51,6 +54,8 @@ export function ProductGrid() {
         setFromCache(false);
       } else {
         console.error('Error cargando productos POS:', err);
+        // Asegurar que products nunca quede como no-array
+        setProducts((prev) => (Array.isArray(prev) ? prev : []));
       }
     } finally {
       setLoading(false);

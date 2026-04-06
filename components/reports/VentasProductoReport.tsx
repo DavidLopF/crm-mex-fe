@@ -6,20 +6,9 @@ import { getVentasPorProducto } from '@/services/reports';
 import type { VentaProductoRow, VentasProductoSummary } from '@/services/reports';
 import { exportVentasProductoToExcel } from '@/lib/export-excel';
 import { useCompany } from '@/lib/company-context';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('es-CO').format(value);
-}
 
 // ─── Subcomponentes ───────────────────────────────────────────────────────────
 

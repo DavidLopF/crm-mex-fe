@@ -5,6 +5,7 @@ import {
   Tooltip, ResponsiveContainer, Legend, ReferenceLine,
 } from 'recharts';
 import type { KardexMovimiento } from '@/services/reports';
+import { formatNumber } from '@/lib/utils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -30,8 +31,8 @@ function CustomTooltip({ active, payload, label }: any) {
           <span style={{ color: p.color }} className="font-medium">{p.name}</span>
           <span className="font-bold text-zinc-900">
             {p.dataKey === 'saldo'
-              ? p.value.toLocaleString('es-CO')
-              : `${p.dataKey === 'entrada' ? '+' : '-'}${Math.abs(p.value).toLocaleString('es-CO')}`}
+              ? formatNumber(Number(p.value))
+              : `${p.dataKey === 'entrada' ? '+' : '-'}${formatNumber(Math.abs(Number(p.value)))}`}
           </span>
         </div>
       ))}

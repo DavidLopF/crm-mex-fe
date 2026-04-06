@@ -43,7 +43,10 @@ const fmtDate = (s: string) =>
   new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(s));
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  // Fecha LOCAL del dispositivo (no UTC) para evitar que a partir de las
+  // 7 pm (UTC-5) el sistema calcule el día siguiente como "hoy".
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 /** Muestra la diferencia con color semáforo: verde = exacto/sobrante, rojo = faltante */
@@ -351,7 +354,7 @@ export function CierreCaja() {
           {/* KPIs del período */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Card className="p-4">
-              <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Ventas pagadas</p>
+              <p className="text-xs text-zinc-500 uppercase font-medium mb-1">Ventas incluidas</p>
               <p className="text-2xl font-bold text-zinc-900 tracking-tight">{summary.salesCount}</p>
             </Card>
             <Card className="p-4">

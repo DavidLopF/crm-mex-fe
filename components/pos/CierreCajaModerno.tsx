@@ -10,7 +10,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Banknote, CreditCard, RefreshCw,
   CheckCircle2, AlertTriangle, ArrowRight,
@@ -399,7 +399,18 @@ export function CierreCajaModerno({ onClose }: CierreCajaModernoProps) {
   const [declared, setDeclared] = useState<DeclaredAmounts>(ZERO_DECLARED);
   const [notes, setNotes] = useState('');
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Se usa la fecha LOCAL del dispositivo (no UTC) para que el cierre del
+  // día corresponda al día que el cajero está viviendo, independientemente
+  // de la diferencia horaria con UTC (p.ej. a las 11 pm hora local, UTC
+  // ya puede ser el día siguiente y .toISOString() devolvería una fecha
+  // incorrecta que no encontraría ventas del período real).
+  const today = (() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  })();
   const [periodFrom] = useState(today);
   const [periodTo] = useState('');
 
@@ -421,6 +432,11 @@ export function CierreCajaModerno({ onClose }: CierreCajaModernoProps) {
       setLoading(false);
     }
   }, [periodFrom, periodTo, toast]);
+
+  // Carga el resumen automáticamente al abrir el componente
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
 
   const handleDeclaredChange = (key: keyof DeclaredAmounts, val: number) => {
     setDeclared((prev) => ({ ...prev, [key]: val }));
